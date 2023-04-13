@@ -18,6 +18,9 @@ This folder will contain examples with Python and C++ using qaicrt API. The exam
 
 8. Configuration files with parameters to compile some known models in the field of NLP and CV for highest throughput, lowest latency and balanced scenarios.
 
+9. How to run more than one model on the card? Example? [oversubscription] The oversubscription feature allows scheduling of multiple networks to run on a group of NSPs in a time-shared fashion. The switching time between networks is minimized to improve overall performance (throughput and latency) using Data Plane Switching (DPS). Oversubscription is available as a precompiled tool in the Platform SDK called qaic-program-group-app. Oversubscription APIs are available for application developers.
+
+
 # Error Handling
 
 # Benchmarking
