@@ -5,6 +5,7 @@ Qualcomm Cloud AI 100 accelerator cards and accompanying SDKs offer superior pow
 
 [Button Text](https://www.google.com){: .btn}
 [Button Text](https://www.google.com){: .btn .btn-primary}
+<a href="https://www.google.com" class="button">Button Text</a>
 
 # Table of contents  
 1. [Introduction](#introduction)  
