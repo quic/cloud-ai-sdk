@@ -8,6 +8,7 @@ Qualcomm Cloud AI 100 accelerator cards and accompanying SDKs offer superior pow
 2. [System support and SDK installation](#sdk)  
 3. [Quick Start](#quick-start)  
 4. [Prebuilt Samples](#prebuilt-samples)
+5. [FAQ](#faq)
 5. [License](#license)
 6. [Resources](#resources)
 
