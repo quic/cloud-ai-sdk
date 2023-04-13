@@ -1,0 +1,23 @@
+# Contents
+
+This folder will contain examples with Python and C++ using qaicrt API. The examples will cover.
+
+1. Float32 to Float16 conversion: The model is not optimized for AIC100, this code only shows how to get the model inference to work on AIC100. (Basic)
+
+2. Float16 model integration: For users with fp16 model who seek to swiftly integrate it into their inference workflow, a variety of examples with pre and post processing code for CV and NLP models are provided. This aim here is to enable users to rapidly enable inference on AIC100. (Basic)
+
+3. Model compilation for optimal performance: A walkthrough example with step-by-step instructions is provided to demonstrate how models can be compiled for AIC100 to achieve optimal throughput, and latency. (Advanced)
+
+4. Int8 Quantization and mixed precision examples. (Advanced)
+
+5. Python and C++ APIs with best pratices: Examples to illustrate API usage and best pratices. 
+
+6. Deployment ready code: End to End examples are provided to demonstrate running models in a production level environment. 
+
+7. Guidance on Batch size, Set size based on input data rate. 
+
+8. Configuration files with parameters to compile some known models in the field of NLP and CV for highest throughput, lowest latency and balanced scenarios.
+
+# Error Handling
+
+# Benchmarking
