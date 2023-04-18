@@ -1,5 +1,7 @@
 # Contents
 
+#FIXME samples
+
 This folder will contain examples with Python and C++ using qaicrt API. The examples will cover.
 
 1. Float32 to Float16 conversion: The model is not optimized for AIC100, this code only shows how to get the model inference to work on AIC100. (Basic)
@@ -16,7 +18,7 @@ This folder will contain examples with Python and C++ using qaicrt API. The exam
 
 7. Guidance on Batch size, Set size based on input data rate. 
 
-8. Configuration files with parameters to compile some known models in the field of NLP and CV for highest throughput, lowest latency and balanced scenarios.
+8. Configuration files with parameters to compile some known models in the field of NLP and CV for highest throughput, lowest latency and balanced scenarios. (own folder parallel to samples)
 
 9. How to run more than one model on the card? Example? [oversubscription] The oversubscription feature allows scheduling of multiple networks to run on a group of NSPs in a time-shared fashion. The switching time between networks is minimized to improve overall performance (throughput and latency) using Data Plane Switching (DPS). Oversubscription is available as a precompiled tool in the Platform SDK called qaic-program-group-app. Oversubscription APIs are available for application developers.
 
