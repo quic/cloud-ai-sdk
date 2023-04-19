@@ -13,3 +13,7 @@ Qualcomm Cloud AI 100 accelerator cards and accompanying SDKs offer superior pow
 6. [Resources](#resources)
 
 Note: This repository is a public mirror, pull requests will not be accepted. Please file an issue if you have a feature or bug request.
+
+Add points:
+1. SDK version
+2. Card health, resources, and logs
