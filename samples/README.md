@@ -2,7 +2,7 @@
 
 #FIXME samples
 
-This folder will contain examples with Python and C++ using qaicrt API. The examples will cover.
+This folder will contain examples with Python and C++ using qaicrt and qaic API. The examples will cover.
 
 1. Float32 to Float16 conversion: The model is not optimized for AIC100, this code only shows how to get the model inference to work on AIC100. (Basic)
 
