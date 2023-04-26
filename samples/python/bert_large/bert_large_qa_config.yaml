@@ -1,7 +1,0 @@
-aic_num_cores: 4
-num_activations: 1
-convert_to_fp16: false
-onnx_define_symbol:
-  batch_size: 1
-  max_seq_len: 128
-output_dir: './bertqa_qpc'
