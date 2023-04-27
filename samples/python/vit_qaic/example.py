@@ -17,10 +17,11 @@ from onnxsim import simplify
 image_size = 224
 
 #onnx_filename = f"./vit-base-patch16-{int(sys.argv[1])}-in21k.onnx"
-onnx_filename = "vit.onnx"
+model_name = f'vit-base-patch16-{image_size}'
 
 # Create an instance of the EfficientNet-B0 model
-model = ViTForImageClassification.from_pretrained(f'google/vit-base-patch16-{image_size}')
+model = ViTForImageClassification.from_pretrained(f'google/{model_name}')
+onnx_filename = f'{model_name}.onnx'
 
 # Export the PyTorch model to ONNX
 dummy_input = torch.randn(1, 3, image_size, image_size).type(torch.FloatTensor)
@@ -44,7 +45,8 @@ print("ONNX model saved at: ", onnx_filename)
 # define the batch_size
 batch_size = 1
 # Generate binary for QAIC by default the binary is compiled for 1 nsp core, set-size = 10 and fp16 precision.
-qpcPath = generate_bin(onnx_path = onnx_filename ,batch_size=batch_size, aic_num_cores=4) # return path to the folder containing compiled binary. 
+# qpcPath = generate_bin(onnx_path = onnx_filename ,batch_size=batch_size, aic_num_cores=4) # return path to the folder containing compiled binary. 
+qpcPath = generate_bin(onnx_path = onnx_filename , options_path='./vit_config.yaml') # return path to the folder containing compiled binary. 
 #FIXME: read yaml to generate binary?
 
 # Compile and load the model

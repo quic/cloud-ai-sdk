@@ -3,11 +3,34 @@ from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from transformers import ViTFeatureExtractor
 from transformers import ViTImageProcessor, ViTForImageClassification
-
+import yaml
 from PIL import Image
 import numpy as np
 
-def generate_bin(onnx_path, batch_size=1, aic_num_cores=1, precision='fp16'):
+def generate_bin(onnx_path, options_path):
+    filename, extension = os.path.splitext(onnx_path)
+    onnx_folder = os.path.dirname(onnx_path)
+    qpc_bin = onnx_folder+filename+'_qpc'
+    with open(options_path, "r") as file:
+        yaml_data = yaml.load(file, Loader=yaml.FullLoader)
+
+    if os.path.isdir(qpc_bin):
+        cmd = f'sudo rm -fr {qpc_bin}'
+        os.system(cmd)
+        print(f'Removing existing QPC')
+
+    if yaml_data["convert_to_fp16"]:
+        precision = "fp16"
+    else:
+        precision = "fp32"
+
+    cmd = f'/opt/qti-aic/exec/qaic-exec -m={onnx_path} -aic-hw -aic-hw-version=2.0 -convert-to-{precision} -onnx-define-symbol=batch_size,{yaml_data["onnx_define_symbol"]["batch_size"]} -aic-num-cores={yaml_data["aic_num_cores"]}  -aic-binary-dir={qpc_bin}'
+    os.system(cmd)
+    print(f'Running : {cmd}')
+
+    return qpc_bin
+
+def generate_bin_old(onnx_path, batch_size=1, aic_num_cores=1, precision='fp16'):
     filename, extension = os.path.splitext(onnx_path)
     onnx_folder = os.path.dirname(onnx_path)
     qpc_bin = onnx_folder+filename+'_qpc'
