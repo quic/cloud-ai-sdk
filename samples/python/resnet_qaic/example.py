@@ -5,7 +5,10 @@ import numpy as np
 import torchvision
 import torch
 import pandas as pd
-from utils import generate_bin, CustomImageDataset, data_transforms
+from utils import CustomImageDataset, data_transforms
+import os
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+from common_utils import generate_bin
 
 onnx_filename = 'resnet50.onnx'
 
@@ -28,8 +31,7 @@ torch.onnx.export(model,                # PyTorch model
 # define the batch_size
 batch_size = 2
 # Generate binary for QAIC by default the binary is compiled for 1 nsp core, set-size = 10 and fp16 precision.
-qpcPath = generate_bin(onnx_path = onnx_filename ,batch_size=batch_size, aic_num_cores=4) # return path to the folder containing compiled binary. 
-#FIXME: read yaml to generate binary?
+qpcPath = generate_bin(onnx_filename = onnx_filename , yaml_filename ='./resnet_config.yaml') # return path to the folder containing compiled binary. 
 
 # Compile and load the model
 resnet_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path='./resnet_config.yaml')

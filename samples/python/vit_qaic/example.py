@@ -5,7 +5,9 @@ import numpy as np
 import torchvision
 import torch
 import pandas as pd
-from utils import generate_bin, CustomImageDataset, data_transforms
+import os
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+from common_utils import generate_bin
 from transformers import ViTImageProcessor, ViTForImageClassification
 from PIL import Image
 import requests
@@ -46,8 +48,7 @@ print("ONNX model saved at: ", onnx_filename)
 batch_size = 1
 # Generate binary for QAIC by default the binary is compiled for 1 nsp core, set-size = 10 and fp16 precision.
 # qpcPath = generate_bin(onnx_path = onnx_filename ,batch_size=batch_size, aic_num_cores=4) # return path to the folder containing compiled binary. 
-qpcPath = generate_bin(onnx_path = onnx_filename , options_path='./vit_config.yaml') # return path to the folder containing compiled binary. 
-#FIXME: read yaml to generate binary?
+qpcPath = generate_bin(onnx_filename = onnx_filename , yaml_filename ='./vit_config.yaml') # return path to the folder containing compiled binary. 
 
 # Compile and load the model
 resnet_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path='./vit_config.yaml')

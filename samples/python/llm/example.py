@@ -3,6 +3,8 @@ import sys
 sys.path.append("/opt/qti-aic/examples/apps/qaic-python-sdk")
 import qaic
 import os
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+from common_utils import generate_bin
 import torch
 import onnx
 from onnxsim import simplify
@@ -33,46 +35,6 @@ def get_example_input(tokenizer):
 
 
     return inputIds, attentionMask, mask_token_index
-
-def generate_bin(onnx_path, batch_size=1, aic_num_cores=1, precision='fp16'):
-    filename, extension = os.path.splitext(onnx_path)
-    onnx_folder = os.path.dirname(onnx_path)
-    qpc_bin = onnx_folder+filename+'_qpc'
-    if os.path.isdir(qpc_bin):
-        cmd = f'sudo rm -fr {qpc_bin}'
-        os.system(cmd)
-        print(f'Removing existing QPC')
-
-    # cmd = f'/opt/qti-aic/exec/qaic-exec -m={onnx_path} -aic-hw -aic-hw-version=2.0 -convert-to-{precision} -onnx-define-symbol=batch_size,{batch_size} -aic-num-cores={aic_num_cores}  -aic-binary-dir={qpc_bin}'
-    
-    if True:
-        cmd = f'/opt/qti-aic/exec/qaic-exec \
-              -m=./{filename}.onnx \
-              -onnx-define-symbol=batch,1 \
-              -onnx-define-symbol=sequence,128 \
-              -aic-hw -aic-hw-version=2.0 \
-              -aic-num-cores=4 \
-              -ols=1 \
-              -mos=1 \
-              -convert-to-fp16 \
-              -aic-num-of-instances=1 \
-              -aic-binary-dir={qpc_bin}'
-    else:
-        cmd = f'/opt/qti-aic/exec/qaic-exec \
-            -m=./bert-large-uncased.onnx \
-            -onnx-define-symbol=batch,1 \
-            -onnx-define-symbol=sequence,128 \
-            -aic-hw -aic-hw-version=2.0 \
-            -aic-num-cores=4 \
-            -ols=1 \
-            -mos=1 \
-            -aic-num-of-instances=1 \
-            -aic-binary-dir={qpc_bin}'
-        
-    os.system(cmd)
-    print(f'Running : {cmd}')
-
-    return qpc_bin
 
 torch.manual_seed(10)
 
@@ -137,11 +99,12 @@ if torch_inference:
 # define the batch_size
 batch_size = 1
 # Generate binary for QAIC by default the binary is compiled for 1 nsp core, set-size = 10 and fp16 precision.
-qpcPath = generate_bin(onnx_path = output_path) # return path to the folder containing compiled binary. #FIXME: compile cmd is hardcoded.
+# qpcPath = generate_bin(onnx_path = output_path) # return path to the folder containing compiled binary. #FIXME: compile cmd is hardcoded.
+options_path = f'{model_card}-config.yaml'
+qpcPath = generate_bin(onnx_filename = output_path, yaml_filename=options_path)
 #FIXME: read yaml to generate binary?
 
 # Compile and load the model
-options_path = f'{model_card}-config.yaml'
 bert_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path=options_path)
 input_shape, input_type = bert_sess.model_input_shape_dict['input_ids']
 attn_shape, attn_type = bert_sess.model_input_shape_dict['attention_mask']
