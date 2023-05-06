@@ -40,8 +40,9 @@ def generate_bin(onnx_filename, yaml_filename):
         arg = arg.replace('_','-')
         if arg in ignore:
             continue
-        if isinstance(value, bool) and value:# include the argument only if true; for example -convert-to-fp16
-            cmd_list.append(f'-{arg}') 
+        if isinstance(value, bool):
+            if value:# include the argument only if true; for example -convert-to-fp16
+                cmd_list.append(f'-{arg}') 
         elif isinstance(value, dict):
             for subarg, subval in value.items():
                 cmd_list.append(f'-{arg}={subarg},{subval}')
