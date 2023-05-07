@@ -1,7 +1,7 @@
 aic_num_cores: 4
 num_activations: 1
-convert_to_fp16: true
+convert_to_fp16: false
 onnx_define_symbol:
   batch: 1
   sequence: 128
-output_dir: './bert-large-uncased_qpc'
+# output_dir: './bert-large-uncased_qpc'

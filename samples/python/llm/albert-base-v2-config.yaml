@@ -4,4 +4,4 @@ convert_to_fp16: true
 onnx_define_symbol:
   batch: 1
   sequence: 128
-output_dir: './albert-base-v2_qpc'
+# output_dir: './albert-base-v2_qpc'
