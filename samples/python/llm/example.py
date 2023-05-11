@@ -15,7 +15,7 @@ torch_inference = False
 
 parser = argparse.ArgumentParser(description='python example.py --model albert-base-v2')
 
-parser.add_argument("--model", required=False, help="select one of the LLMs 'distilbert-base-uncased' 'bert-base-uncased' 'bert-large-uncased' 'bert-base-cased' 'albert-base-v2' 'xlm-roberta-large'", default='bert-large-uncased')
+parser.add_argument("--model", required=False, help="select one of the LLMs 'distilbert-base-uncased' 'bert-base-uncased' 'bert-large-uncased' 'bert-base-cased' 'albert-base-v2' 'xlm-roberta-large'", default='albert-base-v2')
 args = parser.parse_args()
 model = args.model
 
@@ -102,7 +102,6 @@ batch_size = 1
 # qpcPath = generate_bin(onnx_path = output_path) # return path to the folder containing compiled binary. #FIXME: compile cmd is hardcoded.
 options_path = f'{model_card}-config.yaml'
 qpcPath = generate_bin(onnx_filename = output_path, yaml_filename=options_path)
-#FIXME: read yaml to generate binary?
 
 # Compile and load the model
 bert_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path=options_path)

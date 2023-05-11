@@ -1,3 +1,11 @@
+# Installation steps
+
+```
+pip install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
+pip install -r requirements.txt
+```
+
+
 # Contents
 
 This folder contains examples showing an end-to-end workflow for running inference on QAIC100 using our python APIs. 
