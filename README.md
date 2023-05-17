@@ -18,6 +18,15 @@ Qualcomm Cloud AI 100 accelerator cards and accompanying SDKs offer superior pow
 │   ├── python              # Python based APIs used for QAIC100 inference (#FIXME Amey add details about subdirectories)
 └── triton                  # example using triton framework
 └── tutorials               # Jupyter notebook based tutorials.
+  - Gettting Started
+    - README.md
+    - NLP
+      - bert-base
+        - tutorial1
+            -nb1.ipynb
+            -nb1.ipynb
+    - CV
+
 ```
 
 # Table of contents  
