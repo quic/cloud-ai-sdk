@@ -11,7 +11,7 @@ Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superi
 This repository contains sample applications, model recipes, tutorials, etc to aid beginner/intermediate/advanced developers.     
 # Platform SDK Installation 
 
-# APPS SDK Installation 
+# Apps SDK Installation 
 
 # Directory structure
 ```
