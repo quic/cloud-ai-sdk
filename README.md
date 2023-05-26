@@ -24,11 +24,11 @@ For developers with Cloud AI equipped servers, refer to [Getting Started](https:
 ├── docker                  # dockerfiles
 |── images                  # Images related to documentation (Should remove this and host images elsewhere)
 |── models                  # Config and script files for some popular models (#FIXME Rohan please add your files here)
-|── samples                 # End-to-end inference examples on QAIC100
+|── samples                 # End-to-end inference examples on Cloud AI
 │   ├── cpp                 # CPP based APIs used for QAIC100 inference
 │   ├── python              # Python based APIs used for QAIC100 inference (#FIXME Amey add details about subdirectories)
-└── triton                  # example using triton framework
-└── tutorials               # Jupyter notebook based tutorials.
+└── triton                  # example using triton inference server
+└── tutorials               # Jupyter notebook based tutorials
   - Gettting Started
     - README.md
     - NLP
