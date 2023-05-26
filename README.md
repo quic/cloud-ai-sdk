@@ -47,3 +47,9 @@ Note: This repository is a public mirror, pull requests will not be accepted. Pl
 Add points: #FIXME
 1. SDK version
 2. Card health, resources, and logs
+
+# References 
+- [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
+- [Cloud AI Documentation](https://docs.qualcomm.com/bundle/resource/topics/AIC_Developer_Guide)
+- [Cloud AI Software Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
+
