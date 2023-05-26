@@ -20,10 +20,10 @@ For developers with Cloud AI equipped servers, refer to [Getting Started](https:
 # Directory structure
 ```
 .
-├── API_Reference_Card      # Provides quick overview of APIs to interact with QAIC100
+├── API_Reference_Card      # Provides quick overview of Python and C++ APIs to interact with Cloud AI hardware
 ├── docker                  # dockerfiles
-|── images                  # Images related to documentation 
-|── model_configs           # Config and script files for some popular models (#FIXME Rohan please add your files here)
+|── images                  # Images related to documentation (Should remove this and host images elsewhere)
+|── models                  # Config and script files for some popular models (#FIXME Rohan please add your files here)
 |── samples                 # End-to-end inference examples on QAIC100
 │   ├── cpp                 # CPP based APIs used for QAIC100 inference
 │   ├── python              # Python based APIs used for QAIC100 inference (#FIXME Amey add details about subdirectories)
