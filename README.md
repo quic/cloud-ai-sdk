@@ -11,7 +11,7 @@ This repository contains sample applications, model recipes, tutorials, etc to a
 The AWS Cloud AI 100 instances have the Platform and Apps SDK installed. Developers can clone this repository on the instance to get started.  
 
 # Pre-requisites 
-For developers with Cloud AI equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A) for   
+For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A) for   
 - Overview of Cloud AI Hardware and Software Architecture 
 - Installation Guide for Platform and Apps SDK 
 - Release Notes of Platform and Apps SDK
