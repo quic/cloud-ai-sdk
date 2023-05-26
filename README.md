@@ -7,7 +7,7 @@ This repository contains sample applications, model recipes, tutorials, etc to a
 - For business inquiries, please contact xyz@qualcomm.com 
 
 # Access to Cloud AI Instances 
-- AWS 
+## - AWS 
 The AWS Cloud AI 100 instances have the Platform and Apps SDK installed. Developers can clone this repository on the instance to get started.  
 
 # Pre-requisites 
