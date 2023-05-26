@@ -1,14 +1,21 @@
 # Qualcomm cloud-ai
-![App Screenshot](images/aic100.png)  
 
 Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superior power and performance capabilities to meet the growing inference needs of Data Centers, Edge, and other machine learning (ML) applications. The Cloud AI Apps and Platform SDKs provide the ability to compile, optimize, quantize and run deep learning models from popular frameworks such as ONNX, PyTorch, TensorFlow, etc.
 
-![Platform_APPS_SDK_Screenshot](images/Platform_APPS_SDK.JPG)  
+This repository contains sample applications, model recipes, tutorials, etc to aid beginner/intermediate/advanced ML application developers. This repository is a public mirror, pull requests will not be accepted. 
 
-This repository contains sample applications, model recipes, tutorials, etc to aid beginner/intermediate/advanced developers.     
-# Platform SDK Installation 
+- For business inquiries, please contact xyz@qualcomm.com 
 
-# Apps SDK Installation 
+# Access to Cloud AI Instances 
+- AWS 
+The AWS Cloud AI 100 instances have the Platform and Apps SDK installed. Developers can clone this repository on the instance to get started.  
+
+# Pre-requisites 
+For developers with Cloud AI equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A) for   
+- Overview of Cloud AI Hardware and Software Architecture 
+- Installation Guide for Platform and Apps SDK 
+- Release Notes of Platform and Apps SDK
+- Docker support 
 
 # Directory structure
 ```
