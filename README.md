@@ -8,7 +8,7 @@ This repository contains sample applications, model recipes, tutorials, etc to a
 
 # Access to Cloud AI Instances 
 ### AWS 
-The AWS Cloud AI 100 instances have the Platform and Apps SDK installed. Developers can clone this repository on the instance to get started. Need to add more details. 
+AWS Cloud AI 100 instances have Platform and Apps SDK installed. Developers can clone this repository on the instance to get started. Need to add more details. 
 
 # Pre-requisites 
 For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A) for   
@@ -22,13 +22,12 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 .
 ├── API_Reference_Card      # Provides quick overview of Python and C++ APIs to interact with Cloud AI hardware
 ├── docker                  # dockerfiles
-|── images                  # Images related to documentation (Should remove this and host images elsewhere)
-|── models                  # Config and script files for some popular models (#FIXME Rohan please add your files here)
-|── samples                 # End-to-end inference examples on Cloud AI
-│   ├── cpp                 # CPP based APIs used for QAIC100 inference
-│   ├── python              # Python based APIs used for QAIC100 inference (#FIXME Amey add details about subdirectories)
-└── triton                  # example using triton inference server
-└── tutorials               # Jupyter notebook based tutorials
+|── models                  # Contains model recipes for computer vision, natural language processing and generative AI models 
+|── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
+│   ├── cpp                 # CPP based APIs used inference
+│   ├── python              # Python based APIs used for inference (#FIXME Amey add details about subdirectories)
+└── triton                  # Example using triton inference server
+└── tutorials               # Quick Start Guides
   - Gettting Started
     - README.md
     - NLP
