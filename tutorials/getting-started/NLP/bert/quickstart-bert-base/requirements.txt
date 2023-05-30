@@ -1,0 +1,5 @@
+onnx==1.10.2
+optimum
+numpy==1.23.4
+onnxruntime
+torch===1.11.0
