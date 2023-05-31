@@ -6,7 +6,7 @@ MODEL:
     INFO:
         DESCRIPTION: "HuggingFace BERT base cased Model"
         MODEL_TYPE: TRANSFORMERS
-        MODEL_PATH: 'generatedModels/ONNX/cased/model.onnx'
+        MODEL_PATH: 'generatedModels/ONNX/cased/bert-base-cased_fix_outofrange_fp16.onnx'
         INPUT_INFO: [["input_ids", [1, 128]],
                      ["attention_mask", [1, 128]],
                      ["token_type_ids", [1, 128]]]
