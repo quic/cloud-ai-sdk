@@ -1,9 +1,3 @@
-# Compile parameters
-aic_num_cores: 4
-convert_to_fp16: true
-onnx_define_symbol:
-  batch: 1
-  sequence: 128
-
 # Inference Parameters
 num_activations: 1
+set_size: 1
