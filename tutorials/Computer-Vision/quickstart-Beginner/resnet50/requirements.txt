@@ -1,0 +1,8 @@
+numpy
+opencv-python
+pandas
+tensorflow
+pyfiglet
+colorama
+tabulate
+
