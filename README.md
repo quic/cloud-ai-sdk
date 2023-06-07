@@ -24,18 +24,20 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 ├── docker                  # dockerfiles
 |── models                  # Contains model recipes for computer vision, natural language processing and generative AI models 
 |── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
-│   ├── cpp                 # CPP based APIs used inference
-│   ├── python              # Python based APIs used for inference (#FIXME Amey add details about subdirectories)
-└── triton                  # Example using triton inference server
-└── tutorials               # Quick Start Guides
-  - Gettting Started
-    - README.md
-    - NLP
-      - bert-base
-        - tutorial1
-            -nb1.ipynb
-            -nb1.ipynb
-    - CV
+│   └── cpp                 # CPP based APIs used inference
+│   └── python              # Python based APIs used for inference (#FIXME Amey add details about subdirectories)
+├── tools                   # Cloud AI tools
+├── triton                  # Example using triton inference server
+├── tutorials               # Quick Start Guides
+    └── Computer-Vision
+    └── Generative-AI
+    └── NLP
+        └── Accuracy-Analyzer-Intermediate
+        └── Accuracy-Evaluator-Intermediate
+        └── python-api-example-Beginner
+        └── quickstart-Beginner
+            └── bert-base
+├── README.md
 
 ```
 
