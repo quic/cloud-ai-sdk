@@ -1,6 +1,12 @@
-aic_num_cores: 4
-num_activations: 1
+# compile parameters
+aic_num_cores: 2
 convert_to_fp16: true
+mos: 1
+ols: 1
+multicast-weights: true
 onnx_define_symbol:
   batch_size: 1
-# output_dir: './vit_qpc'
+stats-batchsize: 1
+
+# inference parameters
+num_activations: 7

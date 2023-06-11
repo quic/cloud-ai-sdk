@@ -14,14 +14,11 @@ import requests
 import onnx
 from onnxsim import simplify
 
-
-# assert int(sys.argv[1]) in [224, 384], "Input size should be 224 or 384."
 image_size = 224
 
-#onnx_filename = f"./vit-base-patch16-{int(sys.argv[1])}-in21k.onnx"
 model_name = f'vit-base-patch16-{image_size}'
 
-# Create an instance of the EfficientNet-B0 model
+# Import the model
 model = ViTForImageClassification.from_pretrained(f'google/{model_name}')
 onnx_filename = f'{model_name}.onnx'
 
@@ -38,16 +35,13 @@ torch.onnx.export(model,                # PyTorch model
                   dynamic_axes={'image': {0: 'batch_size'},  # Dynamic axes
                                 'output': {0: 'batch_size'}})
 
-# FIXME: is onnxsim required?
+# apply onnxsim (optional)
 onnx_model = onnx.load(onnx_filename)
 onnx_model_simp, check = simplify(onnx_model)
 onnx.save(onnx_model_simp, onnx_filename)
 print("ONNX model saved at: ", onnx_filename)
 
-# define the batch_size
-batch_size = 1
-# Generate binary for QAIC by default the binary is compiled for 1 nsp core, set-size = 10 and fp16 precision.
-# qpcPath = generate_bin(onnx_path = onnx_filename ,batch_size=batch_size, aic_num_cores=4) # return path to the folder containing compiled binary. 
+# Generate binary for QAIC by default the binary using a helper library. 
 qpcPath = generate_bin(onnx_filename = onnx_filename , yaml_filename ='./vit_config.yaml') # return path to the folder containing compiled binary. 
 
 # Compile and load the model
@@ -55,34 +49,22 @@ resnet_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path='
 input_shape, input_type = resnet_sess.model_input_shape_dict['image']
 output_shape, output_type = resnet_sess.model_output_shape_dict['output']
 
-# image_df = pd.read_csv('dataset.csv') #FIXME:add Qualcomm compliant dataset.
-# # Define the custom dataset
-# dataset = CustomImageDataset(image_df, data_dir='./data', transform=data_transforms)
-# # Create a data loader for the dataset
-# dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
-
-# for batch_idx, (data, labels) in enumerate(dataloader):
-#     input_data = data.numpy().astype(input_type)
-#     input_dict = {'image': input_data}
-#     output = resnet_sess.run(input_dict)
-#     output_data = np.frombuffer(output['output'], dtype=output_type).reshape(batch_size, -1) # dtype to be modified based on given model
-#     predicted_labels = np.argmax(output_data, axis=1)
-#     print(f'Actual : {labels} vs predicted {predicted_labels}')
-
 processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224')
 
+# input sample
 url = 'http://images.cocodataset.org/val2017/000000039769.jpg'
 image = Image.open(requests.get(url, stream=True).raw)
 inputs = processor(images=image, return_tensors="pt")
 
-batch_size = 1
 device = True
 if device:
+    print("INFO: running inference on Qualcomm Cloud AI 100")
     input_data = inputs['pixel_values'].numpy().astype(input_type)
     input_dict = {'image': input_data}
     output = resnet_sess.run(input_dict)
-    logits = np.frombuffer(output['output'], dtype=output_type).reshape(batch_size, -1) # dtype to be modified based on given model
+    logits = np.frombuffer(output['output'], dtype=output_type).reshape(output_shape) # dtype to be modified based on given model
 else:
+    print("INFO: running inference on CPU")
     outputs = model(**inputs)
     logits = outputs.logits
 
