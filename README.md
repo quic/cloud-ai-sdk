@@ -1,3 +1,4 @@
+**Add badges to license, getting started sections** 
 [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A)
 # Qualcomm cloud-ai
 
