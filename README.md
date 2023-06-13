@@ -1,3 +1,5 @@
+**Add badges to license, getting started sections** 
+[Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A)
 # Qualcomm cloud-ai
 
 Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superior power and performance capabilities to meet the growing inference needs of Data Centers, Edge, and other machine learning (ML) applications. The Cloud AI Apps and Platform SDKs provide the ability to compile, optimize, quantize and run deep learning models from popular frameworks such as ONNX, PyTorch, TensorFlow, etc.
@@ -5,10 +7,6 @@ Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superi
 This repository contains sample applications, model recipes, tutorials, etc to aid beginner/intermediate/advanced ML application developers. This repository is a public mirror, pull requests will not be accepted. 
 
 - For business inquiries, please contact xyz@qualcomm.com 
-
-# Access to Cloud AI Instances 
-### AWS 
-AWS Cloud AI 100 instances have Platform and Apps SDK installed. Developers can clone this repository on the instance to get started. Need to add more details. 
 
 # Pre-requisites 
 For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A) for   
@@ -26,7 +24,7 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 |── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
 │   └── cpp                 # CPP based APIs used inference
 │   └── python              # Python based APIs used for inference (#FIXME Amey add details about subdirectories)
-├── tools                   # Cloud AI tools
+├── tools                   # Cloud AI tools (key tools like - qaic-exec, qaic-runner, accruacy evaluator, accuracy analyzer etc) 
 ├── triton                  # Example using triton inference server
 ├── tutorials               # Quick Start Guides
     └── Computer-Vision
@@ -34,27 +32,14 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
     └── NLP
         └── Accuracy-Analyzer-Intermediate
         └── Accuracy-Evaluator-Intermediate
-        └── python-api-example-Beginner
-        └── quickstart-Beginner
-            └── bert-base
+        └── Model-Onboarding-Beginner
+        └── Performance-Tuning-Beginner
+        └── Quantization-Intermediate 
+        └── Sample-Application-Beginner
 ├── README.md
 
 ```
 
-# Table of contents  
-1. [Introduction](#introduction)  
-2. [System support and SDK installation](#sdk)  
-3. [Quick Start](#quick-start)  
-4. [Prebuilt Samples](#prebuilt-samples)
-5. [FAQ](#faq)
-5. [License](#license)
-6. [Resources](#resources)
-
-Note: This repository is a public mirror, pull requests will not be accepted. Please file an issue if you have a feature or bug request.
-
-Add points: #FIXME
-1. SDK version
-2. Card health, resources, and logs
 
 # References 
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
