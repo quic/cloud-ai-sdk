@@ -40,20 +40,6 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 
 ```
 
-# Table of contents  
-1. [Introduction](#introduction)  
-2. [System support and SDK installation](#sdk)  
-3. [Quick Start](#quick-start)  
-4. [Prebuilt Samples](#prebuilt-samples)
-5. [FAQ](#faq)
-5. [License](#license)
-6. [Resources](#resources)
-
-Note: This repository is a public mirror, pull requests will not be accepted. Please file an issue if you have a feature or bug request.
-
-Add points: #FIXME
-1. SDK version
-2. Card health, resources, and logs
 
 # References 
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
