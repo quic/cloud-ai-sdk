@@ -24,7 +24,7 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 |── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
 │   └── cpp                 # CPP based APIs used inference
 │   └── python              # Python based APIs used for inference (#FIXME Amey add details about subdirectories)
-├── tools                   # Cloud AI tools
+├── tools                   # Cloud AI tools (key tools like - qaic-exec, qaic-runner, accruacy evaluator, accuracy analyzer etc) 
 ├── triton                  # Example using triton inference server
 ├── tutorials               # Quick Start Guides
     └── Computer-Vision
