@@ -32,9 +32,10 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
     └── NLP
         └── Accuracy-Analyzer-Intermediate
         └── Accuracy-Evaluator-Intermediate
-        └── python-api-example-Beginner
-        └── quickstart-Beginner
-            └── bert-base
+        └── Model-Onboarding-Beginner
+        └── Performance-Tuning-Beginner
+        └── Quantization-Intermediate 
+        └── Sample-Application-Beginner
 ├── README.md
 
 ```
