@@ -1,0 +1,117 @@
+model:
+    info:
+        desc: "DistilBERT with SL=128"
+        batchsize: 1
+    globals:
+        sl: 128
+        npi_file: model_configs/public/bert/npi_distilbert_known_ops.yaml
+        calib_val: 99.9992
+        count: -1
+        calib: -1
+        squad_ver: 1
+        model_name: distilbert-base-uncased-distilled-squad 
+        cached_path: /home/ml-datasets/huggingface/cache/distilbert-base-uncased
+        onnx_path: generatedModels/ONNX/uncased/prepmodel.onnx
+
+    dataset:
+        name: SQUAD
+        path: '/local/mnt/workspace/stangade/qaic-notebooks/quick-start-bert-base/distilbert/squadv1/SQuAD-explorer/dataset/'
+        inputlist_file: datafile.txt
+        annotation_file: dev-v1.1.json
+        calibration:
+            type: dataset
+            file: calib_datafile.txt
+        transformations:
+            - plugin:
+                  name: create_squad_examples
+                  params:
+                      squad_version: $squad_ver
+                      vocabulary: $model_name
+                      max_seq_length: $sl
+                      doc_stride: 128
+                      max_query_length: 64
+                      cached_vocab_path: $cached_path
+                      max_inputs: $count
+                      max_calib: $calib
+
+    processing:
+        preprocessing:
+            transformations:
+                - plugin:
+                      name: squad_preprocess
+
+        postprocessing:
+            transformations:
+                - plugin:
+                      name: squad_postprocess
+
+    inference-engine:
+        model_path: $onnx_path
+        onnx_define_symbol: "seq_len=$sl batch_size=1"
+        comparator:
+            enabled: False
+        platforms:
+            - platform:
+                  name: onnxrt
+                  tag: onnxrt_fp32, compare_fp32_int8_mixed_precision
+
+            - platform:
+                name: aic
+                precision: fp16
+                tag: aic_fp16
+                params:
+                    aic-num-cores: 2
+
+            - platform:
+                  name: aic
+                  precision: int8
+                  reuse_pgq: True
+                  pgq_group: group1
+                  tag: aic_int8
+                  params:
+                      aic-num-cores: 2
+                      quantization-calibration: None | SQNR | MSE | KLMinimization | KLMinimizationV2 | Percentile
+                      quantization-schema-activations: asymmetric
+                      quantization-schema-constants: symmetric    #quantization-schema-constants: asymmetric | symmetric
+                      enable-rowwise: True | False
+                      percentile-calibration-value: 99.9992    #percentile-calibration-value: 99.9 | 99.99 | 99.999 | 99.9999  | range=(99.9900-99.9999-0.0001)
+
+            - platform:
+                  name: aic
+                  precision: int8
+                  reuse_pgq: True
+                  pgq_group: group1
+                  tag: aic_int8_mixed_precision, compare_fp32_int8_mixed_precision
+                  params:
+                      aic-num-cores: 2
+                      quantization-calibration: KLMinimizationV2
+                      quantization-schema-activations: asymmetric
+                      quantization-schema-constants: symmetric
+                      enable-rowwise: True
+                      node-precision-info: /local/mnt/workspace/stangade/qaic-notebooks/quick-start-bert-base/distilbert/npi_distilbert_1.yaml
+
+        inputs_info:
+            - input_ids:
+                  type: int64
+                  shape: ["*", $sl]
+            - attention_mask:
+                  type: int64
+                  shape: ["*", $sl]
+
+        outputs_info:
+            - start_logits:
+                  type: float32
+                  shape: ["*", $sl]
+            - end_logits:
+                  type: float32
+                  shape: ["*", $sl]
+
+    evaluator:
+        metrics:
+            - plugin:
+                  name: squad_eval
+                  params:
+                      n_best_size: 20
+                      max_answer_length: 30
+                      vocabulary: $model_name
+                      cached_vocab_path: $cached_path
