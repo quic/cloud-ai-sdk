@@ -1,0 +1,58 @@
+# Model Compilation
+
+The AI/ML models compilation step compiles a pre-tranined model defined in other formats into QPC (Qualcomm Program Container) format.
+This is reqiured, since  AIC-100 device works on this format, to run inference.
+
+A pretrained model can be compiled in three ways:
+1. Using qaic-exec (Binary executable shipped with QAIC-SDK) 
+2. Using High Level Python APIs 
+3. Using C++ APIs 
+
+
+## Before compiling model into QPC format:
+1. Use ONNX format as input.
+2. Try to squash the original model into a single file ONNX format.
+   
+
+## Compliation using qaic-exec
+The qaic-exec (QAic executor) is a CLI tool, that can be used to compile the model.
+* Location(binary executable) : /opt/qti-aic/exec/qaic-exec
+* Location(Source code)       : /opt/qti-aic/examples/app/qaic-exec/
+
+The help command provides the extensive list of arguments and their descriptions for usage.
+/opt/qti-aic/exec/qaic-exec -h
+
+Few of the frequently used arguments are additionally explained:
+* -m=&lt;path&gt;, -model=&lt;path&gt;<br>
+  &nbsp;specifies the path of input ONNX model 
+* -onnx-define-symbol=<sym, value><br>
+  &nbsp;defines the names and values of the ONNX symbols that needed to be passed into the QPC.
+  for example
+  * -onnx-define-symbol=sequence,10<br>
+    &nbsp;(For single symbol)
+  * -onnx-define-symbol=sequence,10 -onnx-define-symbol=batch_size,8<br>
+    &nbsp;(For more than one symbol)
+* -aic-num-cores=&lt;numCores&gt;<br>
+    &nbsp;The AIC 100 card can have 14 or 16 NSP(Neural Signal Processor Cores). The Inferencing workload 
+    &nbsp;can be distributed among different cores, so that they can execute concurrently and can produce
+    &nbsp;more efficient inferencing.
+* -aic-num-of-instances=&lt;numInstances&gt;<br>
+  &nbsp;specifies the number of active instances of the program(Neural network) to run on the device. If
+  &nbsp;the model is using 4 NSPs and there are 16 NSPs on the device, then a more efficient use of the
+  &nbsp;device is to compile the model for 4 instances.
+* -convert-to-fp16<br>
+  &nbsp;The flag when used, ensures that compiled QPC executes all floating point computations on the 
+  &nbsp;AIC 100 device in 16-bit precision. Default precision used is 32bit floating point. This flag
+  &nbsp;shall be used to reduce memory footprint on the device (on the cost of lesser accuracy).
+* -batchsize=&lt;numBatch&gt;<br>
+  &nbsp;batchsize refers to number of number of input samples that can be passed to the model during
+  &nbsp;inferencing.  Ideally a careful selection of batch size can facilitate better parallel processing
+  &nbsp;and hence a better througput from the device.
+* -aic-binary-dir=&lt;path&gt;<br>
+  &nbsp;specifies the output QPC path.
+* -aic-hw<br>
+  &nbsp;This flag enables the QPC to be run on hardware. (to avoid the default simulator mode, in which
+  &nbsp;the device is modeled as software components)
+* -compile-only <br>
+  &nbsp;This flag, allows to only compile and produce the QPC format file for the model and does not
+  &nbsp;run the model with random data;
