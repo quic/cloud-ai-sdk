@@ -12,6 +12,8 @@ Install qaic python package <br>
 
 `/opt/qti-aic/dev/python/qaic-env/bin/python -m ipykernel install --user --name qaic-env --display-name "qaic-env"`
 
+`source /opt/qti-aic/dev/python/qaic-env/bin/activate`
+
 `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`
 
 
