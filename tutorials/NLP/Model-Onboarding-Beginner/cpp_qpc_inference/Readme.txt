@@ -27,7 +27,7 @@ VocabularyHelper :
    this file is used in the input and output feeded to the model
    while running the inference.
 
-Tokenixer :
+Tokenizer :
    This class, is very basic and trivial parser of input sentence
    feeded to the bert model. It uses space as delimeter to parse
    the sentence.  It does not cater special handling for special
@@ -47,7 +47,7 @@ Helper Functions to convert few data structures to string for printing:
 [[nodiscard]] std::string to_string(const qaic::rt::BufferMappings& allBufferMappings)
 [[nodiscard]] std::string to_string(const std::vector<int64_t> & tokenVec)
 
-Processing the intput and output for  inference:
+Processing the intput and output for inference:
    The input buffer for bert inference in this example is an array of bytes
    representing the indexes for each sentence word ( in the vocabulary file ).
    For example:-
@@ -83,7 +83,7 @@ Processing the intput and output for  inference:
    logit values shall be present in the following bytes in the output buffer
    289960*3*4  to 289960*4* bytes position.
    These 2899960 float values are the logits for the corresponding logits for
-   each symbold/word in the vocabulary.
+   each symbol/word in the vocabulary.
    We find the index for maximum logit value to get the index of prediceted 
    word. Then we find the word in the vocabulary.
     
