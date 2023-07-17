@@ -56,3 +56,6 @@ Few of the frequently used arguments are additionally explained:
 * -compile-only <br>
   &nbsp;This flag, allows to only compile and produce the QPC format file for the model and does not
   &nbsp;run the model with random data;
+* -aic-hw-version=&lt;versionString&gt;<br>
+  &nbsp;The version string must be passed as "2.0", which can be read as MajorVersion.MinorVersion of
+  &nbsp;the current AIC100 hardware card being used.
