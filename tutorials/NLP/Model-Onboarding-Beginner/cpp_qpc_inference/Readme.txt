@@ -81,7 +81,7 @@ Processing the intput and output for inference:
    For example:-
    If the [MASK] token is at 3rd word index in sentence, then the corresponding
    logit values shall be present in the following bytes in the output buffer
-   289960*3*4  to 289960*4* bytes position.
+   289960*3*4  to 289960*4*4 bytes position.
    These 2899960 float values are the logits for the corresponding logits for
    each symbol/word in the vocabulary.
    We find the index for maximum logit value to get the index of prediceted 
