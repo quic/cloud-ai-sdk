@@ -1,2 +1,1 @@
-# README 
-Provide the documentation flow for developers
+# Inference workflow on Cloud AI 
