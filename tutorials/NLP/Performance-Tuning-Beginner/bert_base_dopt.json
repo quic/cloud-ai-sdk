@@ -1,0 +1,63 @@
+{
+  "max_func_eval": 200,
+  "objective": "maximize_inf_rate",
+  "params": {
+    "cores": {
+      "min": 1,
+      "max": 14
+    },
+    "mos": {
+      "min": 1,
+      "max": 8
+    },
+    "ols": {
+      "min": 1,
+      "max": 8
+    },
+    "bs": {
+      "min": 1,
+      "max": 16
+    },
+    "instances": {
+      "min": 1,
+      "max": 14
+    }
+  },
+  "initial_values": [
+    {
+      "cores": 1,
+      "mos": 1,
+      "ols": 1,
+      "bs": 1,
+      "instances": 14
+    },
+    {
+      "cores": 2,
+      "mos": 1,
+      "ols": 1,
+      "bs": 1,
+      "instances": 7
+    },
+    {
+      "cores": 4,
+      "mos": 1,
+      "ols": 1,
+      "bs": 1,
+      "instances": 3
+    },
+    {
+      "cores": 7,
+      "mos": 1,
+      "ols": 1,
+      "bs": 1,
+      "instances": 2
+    },
+    {
+      "cores": 14,
+      "mos": 1,
+      "ols": 1,
+      "bs": 1,
+      "instances": 1
+    }
+  ]
+}
