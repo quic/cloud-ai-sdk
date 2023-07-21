@@ -23,7 +23,7 @@ Cloud AI SDKs support
 
 There are 3 basic steps to execute a model on Cloud AI hardware:
 
-![Workflow](../images/qaic_workflow.jpg)
+![Workflow](images/qaic_workflow.jpg)
 
 
 # Pre-requisites 
