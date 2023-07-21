@@ -3,7 +3,7 @@ Developers can monitor the health/resources of Cloud AI hardware through CLI (co
 **Health** refers to the functional state of the Cloud AI card. Its a binary state - Good or Error. A card in error state needs to go through the recovery steps. <br>
 **Resources** refers to compute/memory/IO resouces.   
 
-For detailed in-band and out-of-band card management details, refer to [Cloud AI Card Management](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-995A)
+For detailed in-band and out-of-band card management details, refer to [Cloud AI Card Management](https://docs.qualcomm.com/bundle/resource/topics/80-PT790-995A)
 
 ## CLI 
 `qaic-util` is a CLI tool developers can use to query
