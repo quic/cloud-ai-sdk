@@ -17,7 +17,7 @@ A pretrained model can be compiled in three ways:
 ## Compliation using qaic-exec
 The qaic-exec (QAic executor) is a CLI tool, that can be used to compile the model.
 * Location(binary executable) : /opt/qti-aic/exec/qaic-exec
-* Location(Source code)       : /opt/qti-aic/examples/app/qaic-exec/
+* Location(Source code)       : /opt/qti-aic/examples/apps/qaic-exec/
 
 The help command provides the extensive list of arguments and their descriptions for usage.
 /opt/qti-aic/exec/qaic-exec -h
