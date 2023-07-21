@@ -13,7 +13,6 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 - Overview of Cloud AI Hardware and Software Architecture 
 - Installation Guide for Platform and Apps SDK 
 - Release Notes of Platform and Apps SDK
-- Docker support 
 
 # Directory structure
 ```
@@ -39,6 +38,7 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 ├── README.md
 
 ```
+# Installation 
 
 
 # References 
