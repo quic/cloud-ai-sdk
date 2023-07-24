@@ -5,5 +5,5 @@ Developers can deploy a pre-trained model for inference on any Cloud AI platform
 2. Compile and optimize the model
 3. Integrate into a production pipeline, and deploy the model
 
-![Workflow](images/qaic_workflow.jpg)
+![Workflow](images/AIC_Inference_workflow.jpg)
 
