@@ -20,10 +20,17 @@ Cloud AI SDKs support
 - Development of inference applications through support for multiple OS and docker containers.  
 - Deploy inference applications at scale with support for Triton (**trademark**) inference server
 
-
 There are 3 basic steps to execute a model on Cloud AI hardware:
 
 ![Workflow](images/qaic_workflow.jpg)
+
+# Cloud AI SDKs
+The Cloud AI SDK comprises of Application and Platform SDK. 
+
+The Application (Apps) SDK consists of model development tools, including a sophisticated parallelizing compiler, performance and integration tools, and code samples. 
+
+The Platform SDK consists of development tools icluding a kerneal space runtime, which contains the API's and language bindings, accompanied by kernel drivers, a user space runtime, card firmware, and several card monitoring, telemetry, profiling and debugging tools.  
+
 
 
 # Pre-requisites 
