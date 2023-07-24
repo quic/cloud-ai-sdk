@@ -28,7 +28,7 @@ The Application (Apps) SDK consists of model development tools, including a soph
 
 The Platform SDK consists of development tools icluding a kernel space runtime, which contains the API's and language bindings, accompanied by kernel drivers, a user space runtime, card firmware, and several card monitoring, telemetry, profiling and debugging tools.  
 
-![Cloud AI SDK](Plat_Apps_SDK.jpg) 
+![Cloud AI SDK](Plat_Apps_SDK.JPG) 
 
 # Pre-requisites 
 For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A) for   
