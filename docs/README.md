@@ -8,4 +8,4 @@ Developers can deploy a pre-trained model for inference on any Cloud AI platform
 ![Workflow](images/AIC_Inference_workflow.jpg) 
 
 ## Export and prepare the model
-
+ 
