@@ -21,6 +21,8 @@ Cloud AI SDKs support
 There are 3 basic steps to execute a model on Cloud AI hardware:
 ![Workflow](images/qaic_workflow.jpg)
 
+A pre-trained model, trained using ML framework such as PyTorch or TensorFlow, is exported to ONNX format. The ONNX file is compiled using the Apps SDK to generate a binary file (QPC). Developers can also use graph API in the Apps SDK to create the network graph and compile it. The binary file (QPC) is executed on the Cloud AI accelerator, using the Platform runtime, aided by the kernel drivers and the device firmware.  
+
 # Cloud AI SDK
 An Application and Platform SDK constitute the Cloud AI SDK. 
 
