@@ -8,8 +8,6 @@ This repository contains sample applications, model recipes, tutorials, etc to a
 
 - For business inquiries, please contact xyz@qualcomm.com 
 
-
-
 # Inference workflow on Cloud AI 
 
 Cloud AI SDKs enable developers to optimize trained deep learning models for high-performance inference. The SDKs provide workflows to optimize the models for best performance,  provides runtime for execution and supports integration with ONNXRT and Triton Inference Server for deployment.
@@ -21,15 +19,14 @@ Cloud AI SDKs support
 - Deploy inference applications at scale with support for Triton (**trademark**) inference server
 
 There are 3 basic steps to execute a model on Cloud AI hardware:
-
 ![Workflow](images/qaic_workflow.jpg)
 
-# Cloud AI SDKs
-The Cloud AI SDK comprises of Application and Platform SDK. 
+# Cloud AI SDK
+An Application and Platform SDK constitute the Cloud AI SDK. 
 
 The Application (Apps) SDK consists of model development tools, including a sophisticated parallelizing compiler, performance and integration tools, and code samples. 
 
-The Platform SDK consists of development tools icluding a kerneal space runtime, which contains the API's and language bindings, accompanied by kernel drivers, a user space runtime, card firmware, and several card monitoring, telemetry, profiling and debugging tools.  
+The Platform SDK consists of development tools icluding a kernel space runtime, which contains the API's and language bindings, accompanied by kernel drivers, a user space runtime, card firmware, and several card monitoring, telemetry, profiling and debugging tools.  
 
 
 
