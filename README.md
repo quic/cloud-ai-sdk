@@ -31,7 +31,7 @@ The Platform SDK consists of development tools icluding a kernel space runtime, 
 ![Cloud AI SDK](images/Plat_Apps_SDK.JPG) 
 
 # Pre-requisites 
-For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A) for   
+For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/80-PT790-991A) for   
 - Overview of Cloud AI Hardware and Software Architecture 
 - Installation Guide for Platform and Apps SDK 
 - Release Notes of Platform and Apps SDK
@@ -60,9 +60,6 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 ├── README.md
 
 ```
-# Installation 
-#FIXME 
-
 # References 
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
 - [Cloud AI Documentation](https://docs.qualcomm.com/bundle/resource/topics/AIC_Developer_Guide)
