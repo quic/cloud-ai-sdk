@@ -8,7 +8,7 @@ This repository contains sample applications, model recipes, tutorials, etc to a
 
 - For business inquiries, please contact xyz@qualcomm.com 
 
-# Inference workflow on Cloud AI 
+# Inference on Cloud AI
 
 Cloud AI SDKs enable developers to optimize trained deep learning models for high-performance inference. The SDKs provide workflows to optimize the models for best performance,  provides runtime for execution and supports integration with ONNXRT and Triton Inference Server for deployment.
 
