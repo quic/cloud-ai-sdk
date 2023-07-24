@@ -2,7 +2,7 @@
 [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A)
 # Qualcomm cloud-ai
 
-Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superior power and performance capabilities to meet the growing inference needs of Data Centers, Edge, and other machine learning (ML) applications. The Cloud AI Apps and Platform SDKs provide the ability to compile, optimize, quantize and run deep learning models from popular frameworks such as ONNX, PyTorch, TensorFlow, etc.
+Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superior power and performance capabilities to meet the growing inference needs of Data Centers, Edge, and other machine learning (ML) applications. The Cloud AI Apps and Platform SDKs provide the ability to compile, optimize, quantize and run deep learning models from popular frameworks such as ONNX, PyTorch, etc.
 
 This repository contains sample applications, model recipes, tutorials, etc to aid beginner/intermediate/advanced ML application developers. This repository is a public mirror, pull requests will not be accepted. 
 
@@ -30,13 +30,13 @@ The Platform SDK consists of development tools icluding a kernel space runtime, 
 
 ![Cloud AI SDK](images/Plat_Apps_SDK.JPG) 
 
-# Pre-requisites 
+# Pre-requisites
 For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/80-PT790-991A) for   
 - Overview of Cloud AI Hardware and Software Architecture 
 - Installation Guide for Platform and Apps SDK 
 - Release Notes of Platform and Apps SDK
 
-# Directory structure
+# Directory structure (FIXME)
 ```
 .
 ├── API_Reference_Card      # Provides quick overview of Python and C++ APIs to interact with Cloud AI hardware
