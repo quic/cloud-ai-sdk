@@ -10,5 +10,13 @@ Developers can deploy a pre-trained model for inference on any Cloud AI platform
 The image below provides more details on each of the steps. Developers are expected to go through the 3 steps in order. 
 
 ![AIC Workflow Details](/images/AIC_workflow_details.JPG)
+
+## Export and prepare the Model 
+
+
+
+
+
+
   
 Platform Management folder provides details on monitoring the health and resources of Cloud AI platforms. 
