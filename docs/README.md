@@ -14,9 +14,18 @@ The image below provides more details on each of the steps. Developers are expec
 ## Export and prepare the Model 
 
 
+![Export the Model](/images/Export_the_model.jpg)
 
 
+## Compile and optimize the Model
+
+![Compile the Model](/images/Compile_the_model.jpg)
+
+## Execute, integrate and deploy in production pipeline
+
+![Execute the Model](/images/Execute_the_model.jpg)
 
 
+## Platform Management
   
 Platform Management folder provides details on monitoring the health and resources of Cloud AI platforms. 
