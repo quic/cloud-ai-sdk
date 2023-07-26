@@ -32,6 +32,20 @@ The Platform SDK consists of development tools icluding a kernel space runtime, 
 
 ![Cloud AI SDK](images/Plat_Apps_SDK.JPG) 
 
+# Contents of this repository  
+1. API_Reference_Card - This section will cover the APIs developers can use to execute inferences.
+    - C++ APIs 
+    - Python APIs for inference
+    - ONNX Runtime support on Cloud AI 
+2. docs - This section covers the end-to-end inference workflow, from onboarding a pre-trained model to execution of inferences on Cloud AI platforms. 
+    - Export and prepare the model 
+    - Compile and optimize the model 
+    - Execute, integrate and deploy in production pipeline
+    - Platform management 
+5. models - This section provides the best throughput and best latency recipes for many CV, NLP and LLMs. 
+6. samples - #FIXME
+7. tutorials - This section breaks down the inference workflow on Cloud AI into multiple tutorials (Jupyter notebooks) across NLP/CV that developers can peruse. 
+
 # Pre-requisites
 For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/80-PT790-991A) for   
 - Overview of Cloud AI Hardware and Software Architecture 
