@@ -22,11 +22,10 @@ Optimizing the model as explained in this section is the most important step in 
 ![Compile the Model](/images/Compile_the_model.jpg)
 
 ## Execute, integrate and deploy in production pipeline
-
+This section will go over the different ways (CLI, C++, Python etc) for developers to execute inferences on Cloud AI platforms and all the tools/utilities available to integrate into inference application and deploy in the production pipeline.  
 
 ![Execute the Model](/images/Execute_the_model.jpg)
 
 
 ## Platform Management
-  
-Platform Management folder provides details on monitoring the health and resources of Cloud AI platforms. 
+Inference application developers are expected to go through this section to be able to determine the overall health and resource usage of the cards before running inference. Platform Management folder provides details on monitoring the health and resources of Cloud AI platforms.   
