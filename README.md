@@ -6,7 +6,6 @@ Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superi
 
 This repository contains sample applications, model recipes, tutorials, etc to aid beginner/intermediate/advanced ML application developers. This repository is a public mirror, pull requests will not be accepted. 
 
-- For business inquiries, please contact xyz@qualcomm.com 
 
 # Inference on Cloud AI
 
