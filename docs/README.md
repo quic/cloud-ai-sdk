@@ -12,7 +12,7 @@ The image below provides more details on each of the steps. Developers are expec
 ![AIC Workflow Details](/images/AIC_workflow_details.JPG)
 
 ## Export and prepare the Model 
-Exporting and preparing the pre-trained model as explained in this section plays an important role in extracting the best performance from Cloud AI platforms. 
+Exporting and preparing the pre-trained model as explained in this section is a requirement to extract the best performance from Cloud AI platforms. 
 
 ![Export the Model](/images/Export_the_model.jpg)
 
