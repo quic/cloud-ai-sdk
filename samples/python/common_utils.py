@@ -33,7 +33,7 @@ def generate_bin(onnx_filename, yaml_filename):
     cmd_list = [f'/opt/qti-aic/exec/qaic-exec -m={onnx_path} -aic-hw -aic-hw-version={2.0}']
 
     # ignore the following arguments:
-    ignore = ['num-activations']
+    ignore = ['num-activations', 'set-size']
     replace_dict = {'aic_num_cores':'aic-num-cores'}
 
     for arg, value in yaml_data.items():
@@ -50,7 +50,6 @@ def generate_bin(onnx_filename, yaml_filename):
             cmd_list.append(f'-{arg}={value}')
 
     cmd_list.append(f'-aic-binary-dir={qpc_bin}')
-    #cmd_list.append(f'-compile-only')
 
     cmd = ' '.join(cmd_list)
     print(f'INFO: Running the compile cmd: {cmd}')
