@@ -45,11 +45,12 @@ print("ONNX model saved at: ", onnx_filename)
 qpcPath = generate_bin(onnx_filename = onnx_filename , yaml_filename ='./vit_config.yaml') # return path to the folder containing compiled binary. 
 
 # Compile and load the model
-resnet_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path='./vit_config.yaml')
-input_shape, input_type = resnet_sess.model_input_shape_dict['image']
-output_shape, output_type = resnet_sess.model_output_shape_dict['output']
+vit_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path='./vit_config.yaml')
+vit_sess.setup() 
+input_shape, input_type = vit_sess.model_input_shape_dict['image']
+output_shape, output_type = vit_sess.model_output_shape_dict['output']
 
-processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224')
+processor = ViTImageProcessor.from_pretrained(f'google/{model_name}')
 
 # input sample
 url = 'http://images.cocodataset.org/val2017/000000039769.jpg'
@@ -61,7 +62,7 @@ if device:
     print("INFO: running inference on Qualcomm Cloud AI 100")
     input_data = inputs['pixel_values'].numpy().astype(input_type)
     input_dict = {'image': input_data}
-    output = resnet_sess.run(input_dict)
+    output = vit_sess.run(input_dict)
     logits = np.frombuffer(output['output'], dtype=output_type).reshape(output_shape) # dtype to be modified based on given model
 else:
     print("INFO: running inference on CPU")

@@ -35,6 +35,7 @@ qpcPath = generate_bin(onnx_filename = onnx_filename , yaml_filename ='./resnet_
 
 # Compile and load the model
 resnet_sess = qaic.Session(model_path= qpcPath+'/programqpc.bin', options_path='./resnet_config.yaml')
+resnet_sess.setup()
 input_shape, input_type = resnet_sess.model_input_shape_dict['input']
 output_shape, output_type = resnet_sess.model_output_shape_dict['output']
 
