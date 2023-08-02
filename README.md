@@ -17,10 +17,7 @@ Cloud AI SDKs support
 - Development of inference applications through support for multiple OS and docker containers.  
 - Deploy inference applications at scale with support for Triton (**trademark**) inference server
 
-There are 3 basic steps to execute a model on Cloud AI hardware:
-![Workflow](images/qaic_workflow.jpg)
-
-A pre-trained model, trained using ML framework such as PyTorch or TensorFlow, is exported to ONNX format. The ONNX file is compiled using the Apps SDK to generate a binary file (QPC). Developers can also use graph API in the Apps SDK to create the network graph and compile it. The binary file (QPC) is executed on the Cloud AI accelerator, using the Platform runtime, aided by the kernel drivers and the device firmware.  
+To execute inference on Cloud AI platforms, a pre-trained model, trained using ML framework such as PyTorch or TensorFlow, is exported to ONNX format. The ONNX file is compiled using the Apps SDK to generate a binary file (QPC). Developers can also use graph API in the Apps SDK to create the network graph and compile it. The binary file (QPC) is executed on the Cloud AI accelerator, using the Platform runtime, aided by the kernel drivers and the device firmware.  
 
 # Cloud AI SDK
 An Application and Platform SDK constitute the Cloud AI SDK. 
@@ -77,6 +74,5 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 ```
 # References (FIXME)
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
-- [Cloud AI Documentation](https://docs.qualcomm.com/bundle/resource/topics/AIC_Developer_Guide)
 - [Cloud AI Software Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
 
