@@ -31,12 +31,13 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | Note3: Apps SDK is available only for x86 platforms. |
 
 ### Hypervisors
+Cloud AI only supports PCIe passthrough to a virtual machine. This means that the virtual machine completely owns the Cloud AI device. A single Cloud AI device cannot be shared between virtual machines or between a virtual machine and the native host. 
 
 | **Hypervisor**                                                                                                                                           | **X86** | **Arm** |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | KVM                                                                                                                                                      | ✔       | ✗       |
 | Hyper-V                                                                                                                                                  | ✔       | ✗       |
 | ESXi                                                                                                                                                     | ✔       | ✗       |
-| **Note** Cloud AI are not required to be installed on the hypervisor. All the Cloud AI software/SDKs are installed on the guest VMs. |
+| **Note** Cloud AI SDKs are not required to be installed on the hypervisor. All the Cloud AI software/SDKs are installed on the guest VMs. |
 
 
