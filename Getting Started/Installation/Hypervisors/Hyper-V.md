@@ -18,10 +18,10 @@ Within a virtual machine, AIC100 still requires the assignment of 32 message sig
 However, Hyper-V supports a paravirtualized PCIe root controller that has a driver in the Linux kernel. This driver uses the Hyper-V hypervisor to configure the host IOMMU for the purposes of supplying MSIs for devices like AIC100.
 
 AIC100 requires the following fixes to the Hyper-V PCIe root controller driver within the Linux kernel to operate properly:
-  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=08e61e861a0e47e5e1a3fb78406afd6b0cea6b6d
-  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=455880dfe292a2bdd3b4ad6a107299fce610e64b
-  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=b4b77778ecc5bfbd4e77de1b2fd5c1dd3c655f1f
-  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=a2bad844a67b1c7740bda63e87453baf63c3a7f7
+  - https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=08e61e861a0e47e5e1a3fb78406afd6b0cea6b6d
+  - https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=455880dfe292a2bdd3b4ad6a107299fce610e64b
+  - https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=b4b77778ecc5bfbd4e77de1b2fd5c1dd3c655f1f
+  - https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v5.19-rc7&id=a2bad844a67b1c7740bda63e87453baf63c3a7f7
 
 Consult the provider of your Linux distribution to confirm that those fixes are present in the Linux kernel used for your Linux distribution.
 Once the Hyper-V virtual machine is created, the AIC100 device must be assigned to the virtual machine. Hyper-V calls this direct device assignment (DDA) and it is the same as PCIe passthrough.
