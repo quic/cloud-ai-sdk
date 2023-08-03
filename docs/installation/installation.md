@@ -8,11 +8,13 @@ The Platform SDK (x86 and Arm) and Apps SDK (x86 only) are targeted for Linux-ba
 ## Supported Operating Systems, Hypervisors, and Platforms 
 The AIC100 Platform SDK is compatible with the following operating systems (OS) and platforms.
 
+### Operating Systems
+
 | **Operating systems**        | **Kernel**                          | **X86** | **Arm****™** **(Aarch64)** |
 | ---------------------------- | ----------------------------------- | ------- | -------------------------- |
 | CentOS Linux 7               | Linux Kernel 5.4.1                  | ✔       | ✗                          |
 | CentOS Linux 8               | Linux Kernel 4.19                   | ✗       | ✔                          |
-| Ubuntu 18.04                 | Linux Kernel 5.4.1 / Default Kernel | ✔       | ✔^1^                         |
+| Ubuntu 18.04                 | Linux Kernel 5.4.1 / Default Kernel | ✔       | ✔ (Note1)                        |
 | Ubuntu 20.04                 | Default Kernel                      | ✔       | ✗                          |
 | Ubuntu 22.04                 | Default Kernel                      | ✔       | ✗                          |
 | Red Hat Enterprise Linux 7.9 | Default Kernel                      | ✔       | ✗                          |
@@ -24,10 +26,11 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | Red Hat Enterprise Linux 9.1 | Default Kernel                      | ✔       | ✗                          |
 | AWS linux2                                          | Default Kernel | ✔ | ✗ |
 | --------------------------------------------------- | -------------- | - | - |
-| ^1^ Supported on certain Arm-based Qualcomm platforms. |
+| Note1: Supported on certain Arm-based Qualcomm platforms. |
+| Note2: Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. |
+| Note3: Apps SDK is available only for x86 platforms. |
 
-**Note**:Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. <br>
-**Note**:Apps SDK is available only for x86 platforms.
+### Hypervisors
 
 | **Hypervisor**                                                                                                                                           | **X86** | **Arm** |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
@@ -35,3 +38,5 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | Hyper-V                                                                                                                                                  | ✔       | ✗       |
 | ESXi                                                                                                                                                     | ✔       | ✗       |
 | **Note** Cloud AI are not required to be installed on the hypervisor. All the Cloud AI software/SDKs are installed on the guest VMs. |
+
+
