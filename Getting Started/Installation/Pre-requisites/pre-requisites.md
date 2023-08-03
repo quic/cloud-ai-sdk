@@ -2,7 +2,9 @@
 
 - Ubuntu 20.04 / 22.04 with default kernel installed, with minimum options.
 - Install the “dkms” package for the kernel.
+```
   sudo apt-get install dkms
+ ```
 - Install the "linux-headers" package for the kernel.
 -	Install the following packages:
 ```
