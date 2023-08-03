@@ -12,11 +12,10 @@ AIC100 only supports PCIe passthrough to a virtual machine. This means that the 
 
 The generic setup and operation of a KVM virtual machine is outside the scope of this document. This document assumes that the reader is familiar with those operations and, thus, only explains the elements directly related to assigning an AIC100 device to a KVM virtual machine.
 
-AIC100 supports only the operating systems listed in Table 2-1 as the operating system running within the virtual machine as the guest OS.
+AIC100 supports only the operating systems listed in #FIXME as the operating system running within the virtual machine as the guest OS.
 
 Within a virtual machine, AIC100 still requires the assignment of 32 message signal interrupts (MSI) to operate, which requires the virtual machine to emulate an IOMMU. During the creation of a virtual machine, the virtual machine must be configured to emulate a system that can emulate an IOMMU.
  
-
 One such system is the “q35” system. If using “virt-install”, a q35 based virtual machine can be created by adding “—machine=q35” to the virt-install command.
 
 The remainder of this section assumes that the virtual machine is created with virt-install and the –machine=q35 option. Other systems may require different configurations than what is described to obtain the same end effect.
