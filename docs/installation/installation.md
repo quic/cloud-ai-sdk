@@ -1,3 +1,5 @@
+# Installation 
+
 The Platform SDK (x86 and Arm) and Apps SDK (x86 only) are targeted for Linux-based platforms. The SDKs can be installed natively on Linux operating systems. Container and orchestration are also supported through Docker and Kubernetes. Virtual machines, including KVM, ESXi, and Hyper-V, are also supported. This section covers:
   - Installation of the SDKs across multiple Linux distributions
   - Building a docker image with the SDKs and third-party packages for a seamless execution of QAic inference tools/workflow
@@ -24,3 +26,12 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | --------------------------------------------------- | -------------- | - | - |
 | ^1^Supported on certain Arm-based Qualcomm platforms. |
 
+NOTE:Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. <br>
+Note:Apps SDK is available only for x86 platforms.
+
+| **Hypervisor**                                                                                                                                           | **X86** | **Arm** |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| KVM                                                                                                                                                      | ✔       | ✗       |
+| Hyper-V                                                                                                                                                  | ✔       | ✗       |
+| ESXi                                                                                                                                                     | ✔       | ✗       |
+| **NOTE**    No AI 100 related software/SDKs are required to be installed on the hypervisor. All the AI 100 software/SDKs are installed on the guest VMs. |
