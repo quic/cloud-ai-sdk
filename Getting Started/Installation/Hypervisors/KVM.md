@@ -27,17 +27,19 @@ The virtual machine configuration must have the emulated IOMMU presented to the 
 First, to present the IOMMU to the guest OS, add the following elements to the configuration XML:
  1. Configure the ioapic driver in split mode for interrupt remapping. This is done by adding “<ioapic driver='qemu'/>” under the “features” section of the XML.
  2. Configure the emulated IOMMU to be present with the interrupt remapping functionality enabled. This is done by adding the following snippet under the “features” section of the XML:
+ ```
  <iommu model='intel'>
  <driver caching_mode='on' intremap='on'/>
  </iommu>
-
+ ```
 Second, configure what device to pass through to the virtual machine guest OS.
  1. Obtain the PCIe SBDF address of the AIC100 device using “lspci” in the host.
  2. Add the device address obtained from Step 1 to the “devices” section of the XML, as follows, but change the address tag values to match that of your specific system.
+ ```
  <hostdev mode='subsystem' type='pci' managed='yes'>
  <source>
  <address domain='0x0' bus='0x0' slot='0x19' function='0x0'/>
  </source>
  </hostdev>
-
+ ```
 After making these edits, save the configuration. The next time the virtual machine is booted, you will observe the AIC100 device in lspci output in the virtual machine. It will have a different PCIE SBDF address than the host. Install the AIC100 Platform SDK and Apps SDK in the same manner as if you were operating a native system.
