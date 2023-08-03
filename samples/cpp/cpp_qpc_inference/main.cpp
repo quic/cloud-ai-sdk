@@ -73,6 +73,11 @@ private:
 
   void populateVocabularyInfo() {
     std::ifstream file(pathToVocabularyFile_);
+    if (!file.good()) {
+      throw std::runtime_error("Unable to read the vocabulary file : " +
+                               pathToVocabularyFile_);
+    }
+
     std::string line;
     int index = 0;
     while (std::getline(file, line)) {
@@ -107,7 +112,7 @@ private:
 };
 
 [[nodiscard]] std::string to_string(const qaic::rt::BufferMapping &bufMap) {
-  std::stringstream strm;
+  std::ostringstream strm;
   strm << "Name : " << std::setw(20) << bufMap.bufferName << ", ";
 
   strm << "Type : " << std::setw(6);
@@ -180,7 +185,7 @@ private:
 
 [[nodiscard]] std::string
 to_string(const qaic::rt::BufferMappings &allBufferMappings) {
-  std::stringstream strm;
+  std::ostringstream strm;
   for (const auto &bufMap : allBufferMappings) {
     std::cout << to_string(bufMap);
   }
@@ -193,7 +198,7 @@ to_string(const qaic::rt::BufferMappings &allBufferMappings) {
     return "";
   }
 
-  std::stringstream strm;
+  std::ostringstream strm;
   std::copy(tokenVec.begin(), tokenVec.end() - 1,
             std::ostream_iterator<int64_t>(strm, ", "));
   strm << tokenVec.back();
@@ -217,11 +222,16 @@ using shQBufferWrapper = std::shared_ptr<QBufferWrapper>;
 [[nodiscard]] shQBufferWrapper
 createBuffer(const std::string &bufferName,
              const qaic::rt::BufferMappings &allBufferMappings) {
-  for (auto const &bufferMapping : allBufferMappings) {
-    if (bufferName == bufferMapping.bufferName) {
-      return std::make_shared<QBufferWrapper>(bufferMapping.size);
-    }
+  auto it =
+      std::find_if(allBufferMappings.begin(), allBufferMappings.end(),
+                   [&bufferName](const qaic::rt::BufferMapping &bufferMapping) {
+                     return (bufferName == bufferMapping.bufferName);
+                   });
+
+  if (it != allBufferMappings.end()) {
+    return std::make_shared<QBufferWrapper>(it->size);
   }
+
   throw std::runtime_error(
       "Buffer mapping of Input Type not found for buffer named : " +
       bufferName);
@@ -229,7 +239,7 @@ createBuffer(const std::string &bufferName,
 
 template <typename T>
 [[nodiscard]] std::string qBufferToString(shQBufferWrapper wrappedBuf) {
-  std::stringstream strm;
+  std::ostringstream strm;
   auto rawBufPtr = wrappedBuf->getQBuffer().buf;
   const T *bufferT = reinterpret_cast<const T *>(rawBufPtr);
   int numT = wrappedBuf->getQBuffer().size / sizeof(T);
@@ -241,15 +251,18 @@ template <typename T>
 
 void populateInputIdBuffer(QBuffer &inputIdBuffer,
                            const std::vector<int64_t> &tokenVector) {
-  std::memcpy(inputIdBuffer.buf, tokenVector.data(),
-              tokenVector.size() * sizeof(int64_t));
-  std::memset(inputIdBuffer.buf + tokenVector.size() * sizeof(int64_t), 0,
-              inputIdBuffer.size - tokenVector.size() * sizeof(int64_t));
+  std::copy_n(reinterpret_cast<const uint8_t *>(tokenVector.data()),
+              tokenVector.size() * sizeof(int64_t), inputIdBuffer.buf);
+  std::fill(inputIdBuffer.buf + tokenVector.size() * sizeof(int64_t),
+            inputIdBuffer.buf + inputIdBuffer.size -
+                tokenVector.size() * sizeof(int64_t),
+            0);
 }
 
 void populateAttentionMaskBuffer(QBuffer &attentionMaskBuffer,
                                  const std::vector<int64_t> &tokenVector) {
-  std::memset(attentionMaskBuffer.buf, 0, attentionMaskBuffer.size);
+  std::fill(attentionMaskBuffer.buf,
+            attentionMaskBuffer.buf + attentionMaskBuffer.size, 0);
   for (unsigned int i = 0; i < tokenVector.size(); ++i) {
     int64_t *bufferChunkInt = reinterpret_cast<int64_t *>(
         attentionMaskBuffer.buf + (i * sizeof(int64_t)));
@@ -312,8 +325,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   // qBufferToString<int64_t>(attentionMaskBuffer);
 
   auto outputBuffer = createBuffer("logits", allBufferMappings);
-  std::memset(outputBuffer->getQBuffer().buf, 0,
-              outputBuffer->getQBuffer().size);
+  std::fill(outputBuffer->getQBuffer().buf,
+            outputBuffer->getQBuffer().buf + outputBuffer->getQBuffer().size,
+            0);
   // std::cout << "Output Buffer (initialized): \n" <<
   // qBufferToString<float>(outputBuffer);
 
