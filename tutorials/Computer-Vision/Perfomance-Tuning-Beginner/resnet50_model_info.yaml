@@ -1,0 +1,41 @@
+##############################################################################
+#
+# Copyright (c) 2022 Qualcomm Technologies, Inc.
+# All Rights Reserved.
+# Confidential and Proprietary - Qualcomm Technologies, Inc.
+#
+# All data and information contained in or disclosed by this document are
+# confidential and proprietary information of Qualcomm Technologies, Inc., and
+# all rights therein are expressly reserved. By accepting this material, the
+# recipient agrees that this material and the information contained therein
+# are held in confidence and in trust and will not be used, copied, reproduced
+# in whole or in part, nor its contents revealed in any manner to others
+# without the express written permission of Qualcomm Technologies, Inc.
+#
+##############################################################################
+
+# Onnx Vision Model Zoo Location: https://github.com/onnx/models/tree/main/vision/classification/resnet
+
+MODEL:
+    INFO:
+        DESCRIPTION: "ResNet50 V1 Classification Model"
+        MODEL_TYPE: CLASSIFICATION
+        MODEL_PATH: 'resnet50_v1.onnx'
+        INPUT_INFO: [["input_tensor", [1, 224, 224, 3]]]
+        EXPORT_TYPE: ONNX
+        DYNAMIC_INFO: []
+        VALIDATE: False
+        WORKSPACE: WORKSPACE_RESNET50
+        VERBOSE: INFO #INFO, DEBUG, WARNING. TRACE
+
+    PRE_POST_HANDLE:
+        ANCHOR_BIN_FILE: None
+        POST_PLUGIN: NONE
+        PRE_PLUGIN: True
+        NMS_PARAMS:
+            MAX_OUTPUT_SIZE_PER_CLASS: None
+            MAX_TOTAL_SIZE: None
+            IOU_THRESHOLD: None
+            SCORE_THRESHOLD: None
+            CLIP_BOXES: None
+            PAD_PER_CLASS: None
