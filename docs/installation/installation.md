@@ -24,7 +24,7 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | Red Hat Enterprise Linux 9.1 | Default Kernel                      | ✔       | ✗                          |
 | AWS linux2                                          | Default Kernel | ✔ | ✗ |
 | --------------------------------------------------- | -------------- | - | - |
-| ^1^Supported on certain Arm-based Qualcomm platforms. |
+| ^1^ Supported on certain Arm-based Qualcomm platforms. |
 
 **Note**:Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. <br>
 **Note**:Apps SDK is available only for x86 platforms.
