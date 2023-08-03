@@ -15,6 +15,8 @@ project(simple-bert-inference-example)
 cmake_minimum_required (VERSION 3.17.2)
 set(CMAKE_CXX_STANDARD 17)
 
+find_package(Threads REQUIRED)
+
 add_executable(simple-bert-inference-example main.cpp)
 
 target_include_directories(simple-bert-inference-example
@@ -41,6 +43,6 @@ target_compile_options(simple-bert-inference-example
 
 target_link_libraries(simple-bert-inference-example
     PRIVATE
-        pthread
-        dl
+       Threads::Threads
+       dl
 )
