@@ -26,12 +26,12 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | --------------------------------------------------- | -------------- | - | - |
 | ^1^Supported on certain Arm-based Qualcomm platforms. |
 
-**NOTE**:Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. <br>
-**NOTE**:Apps SDK is available only for x86 platforms.
+**Note**:Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. <br>
+**Note**:Apps SDK is available only for x86 platforms.
 
 | **Hypervisor**                                                                                                                                           | **X86** | **Arm** |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | KVM                                                                                                                                                      | ✔       | ✗       |
 | Hyper-V                                                                                                                                                  | ✔       | ✗       |
 | ESXi                                                                                                                                                     | ✔       | ✗       |
-| **NOTE**    No AI 100 related software/SDKs are required to be installed on the hypervisor. All the AI 100 software/SDKs are installed on the guest VMs. |
+| **Note** Cloud AI are not required to be installed on the hypervisor. All the Cloud AI software/SDKs are installed on the guest VMs. |
