@@ -26,8 +26,8 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | --------------------------------------------------- | -------------- | - | - |
 | ^1^Supported on certain Arm-based Qualcomm platforms. |
 
-NOTE:Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. <br>
-Note:Apps SDK is available only for x86 platforms.
+==NOTE==:Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. <br>
+==NOTE==:Apps SDK is available only for x86 platforms.
 
 | **Hypervisor**                                                                                                                                           | **X86** | **Arm** |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
