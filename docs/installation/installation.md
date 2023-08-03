@@ -10,7 +10,7 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | ---------------------------- | ----------------------------------- | ------- | -------------------------- |
 | CentOS Linux 7               | Linux Kernel 5.4.1                  | ✔       | ✗                          |
 | CentOS Linux 8               | Linux Kernel 4.19                   | ✗       | ✔                          |
-| Ubuntu 18.04                 | Linux Kernel 5.4.1 / Default Kernel | ✔       | ✔1                         |
+| Ubuntu 18.04                 | Linux Kernel 5.4.1 / Default Kernel | ✔       | ✔^1^                         |
 | Ubuntu 20.04                 | Default Kernel                      | ✔       | ✗                          |
 | Ubuntu 22.04                 | Default Kernel                      | ✔       | ✗                          |
 | Red Hat Enterprise Linux 7.9 | Default Kernel                      | ✔       | ✗                          |
@@ -22,5 +22,5 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | Red Hat Enterprise Linux 9.1 | Default Kernel                      | ✔       | ✗                          |
 | AWS linux2                                          | Default Kernel | ✔ | ✗ |
 | --------------------------------------------------- | -------------- | - | - |
-| 1Supported on certain Arm-based Qualcomm platforms. |
+| ^1^Supported on certain Arm-based Qualcomm platforms. |
 
