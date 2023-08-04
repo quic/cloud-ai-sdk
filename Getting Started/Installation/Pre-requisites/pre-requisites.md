@@ -58,7 +58,7 @@ headers package needs to be manually installed.
 # Pre-requisites for Centos 7 / RHEL on x86
 
 - Centos 7 / RHEL with default kernel installed
--	Run all following commands as ‘root’.
+-	Run all commands as ‘root’.
 - Install the dkms package for the kernel.
     - Centos 7 – yum -y install dkms
     - RHEL – Refer to https://docs.fedoraproject.org/en-US/epel/#How_can_I_use_these_extra_packages.3F on how to install EPEL packages
