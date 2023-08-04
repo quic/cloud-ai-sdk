@@ -10,9 +10,55 @@
   ```
 - Copy the Patform SDK downloaded from the Qualcomm Portal to the host machine:
     - For networked x86 or Arm host:
-    - Use scp, rsync, or samba to copy the Platform SDK zip file to the host machine
-    - Log-in to the host machine (ssh or local terminal)
-    - Unzip the downloaded zip file to a working directory
-    - ```cd``` to the working directory
+      - Use scp, rsync, or samba to copy the Platform SDK zip file to the host machine
+      - Log-in to the host machine (ssh or local terminal)
+      - Unzip the downloaded zip file to a working directory
+      - ```cd``` to the working directory
+    - For ARM hosts that support Google Android Debug Bridge (ADB):
+      - adb push <Platform SDK zip file> /data
+      - adb shell
+      - cd /data
+      - Unzip the downloaded zip file to a working directory
+      - cd to the working directory
   
+  Note: #FIXME extract until 
+  
+  - Install Platform SDK 
+    The Platform SDK is composed of the following tree structure. Users will see rpm or deb based on the SDK package:
+    ```
+      ├── common
+      │   ├── sectools 
+      ├── <architecture - x86_64 or aarch64>  
+      │   ├── rpm 
+      │   │   ├── rpm 
+      │   │   │   ├── qaic-fw-<version>.el7.x86_64.rpm 
+      │   │   │   ├── qaic-kmd-<version>.el7.x86_64.rpm 
+      │   │   │   └── qaic-rt-<version>.el7.x86_64.rpm   
+      │   │   ├── rpm-docker 
+      │   │   │   └── qaic-rt-docker-<version>.el7.x86_64.rpm  
+      │   │   ├── install.sh 
+      │   │   ├── Notice.txt 
+      │   │   └── uninstall.sh 
+      │   ├── deb
+      │   │   ├── deb 
+      │   │   │   ├── qaic-fw_<version>.deb 
+      │   │   │   ├── qaic-kmd_<version>-devel_amd64.deb 
+      │   │   │   └── qaic-rt_<version>_amd64.debm  
+      │   │   ├── install.sh 
+      │   │   ├── Notice.txt 
+      │   │   └── uninstall.sh 
+      │   ├── test_suite   
+      │   │   ├── pcietool   
+      └── └── └── powerstress    
+    ```
+  - Run the install.sh script as root or with sudo to install with root permissions.
+    - cd <architecture>/<deb/rpm> 
+    - For Hyrid boot cards (PCIe CEM form factor cards), run ```sudo ./install.sh --auto_upgrade_sbl --ecc enable```
+      For VM on ESXi hypervisor, run ```sudo ./install.sh --auto_upgrade_sbl --datapath_polling –-ecc enable```
+    - For Flashless boot cards, run ```sudo ./install.sh –-ecc enable```
+      For VM on ESXi hypervisor, run ```sudo ./install.sh --datapath_polling –-ecc enable```
+  
+  
+
+
 
