@@ -24,5 +24,5 @@ The Docker scripts are in the Apps SDK in the ```tools/docker-build``` folder. T
   │       └── Dockerfile.ubuntu18
   ├── README.md
 
-Note: Ubuntu18 ocnfig file works for Ubuntu20 as well.
+Note: Ubuntu18 config file works for Ubuntu20 as well.
 ```
