@@ -61,9 +61,9 @@
       ```dev  drivers  examples  exec  firmware  services  test-data  tools```
 
 - Verify card health 
-  - Check card health using the qaic-util utility. The following command should output "Ready" for all cards present in the system:
+  - Check card health using the qaic-util utility. The following command should output "Ready" for all cards present in the system.<br>
     ```sudo /opt/qti-aic/tools/qaic-util -q | grep Status```
-  - Check other parameters such as Max Link Speed, Device capabilities, etc. by running the qaic-util tool per card in the system.
+  - Check other parameters such as Max Link Speed, Device capabilities, etc. by running the qaic-util tool per card in the system.<br>
     ```sudo /opt/qti-aic/tools/qaic-util -q```
   
 
