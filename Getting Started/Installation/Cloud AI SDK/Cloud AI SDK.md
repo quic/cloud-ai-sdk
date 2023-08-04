@@ -66,6 +66,7 @@
   - Check other parameters such as Max Link Speed, Device capabilities, etc. by running the qaic-util tool per card in the system.<br>
     ```sudo /opt/qti-aic/tools/qaic-util -q```
   
-
+# Apps SDK Installation
+The Apps SDK can be installed only on x86 hosts. 
 
 
