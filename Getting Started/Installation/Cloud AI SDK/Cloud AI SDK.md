@@ -114,8 +114,10 @@ The Apps SDK can only be installed on x86 hosts. For Arm-based Qualcomm platform
   - Check the Apps SDK version with the following command
     ```cat /opt/qti-aic/versions/apps.xml```
   - Apply chmod commands 
-    ```sudo chmod a+x /opt/qti-aic/dev/hexagon_tools/bin/*
-       sudo chmod a+x /opt/qti-aic/exec/*```
+    ```
+       sudo chmod a+x /opt/qti-aic/dev/hexagon_tools/bin/*
+       sudo chmod a+x /opt/qti-aic/exec/*
+    ```
       
   
   
