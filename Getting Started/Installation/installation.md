@@ -3,6 +3,7 @@ Developers can access Qualcomm Cloud AI hardware through hyperscalar instances o
 
 ## Hyperscalar Instances 
 Hyperscalar instances have all the software tools/packages that a developer needs to run the Cloud AI toolchain. The minimum setup typically includes installation of Apps and Platform SDK. Developers have the ability to launch deep learning containers, load a machine image that fits their needs etc. Details on accessing these instances are coming soon. 
+
 **Developers using hyperscalar instances can skip the rest of the installation section.** 
 
 ## On-prem Servers
@@ -19,7 +20,9 @@ The Platform SDK (x86 and Arm) and Apps SDK (x86 only) are targeted for Linux-ba
 Apps and Platform SDKs enable just-in-time(JIT) or ahead-of-time(AOT) compilation/execution of x86 platforms while only AOT compilation/execution is supported on Arm aarch64. 
 
 In JIT mode, compilation and execution are tightly coupled and require Apps and Platform SDKs to be installed on the same system/VM.
+
 In AOT mode, compilation and execution are decoupled. Networks can be compiled ahead-of-time on x86 (with Apps SDK only) and the compiled networks can be deployed (using Platform SDK) on x86 or Arm aarch64 platforms.
+
 Both JIT and AOT are supported on x86 when Apps and Platform SDK installed on the same server/VM. 
 
 ## Supported Operating Systems, Hypervisors, and Platforms 
