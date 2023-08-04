@@ -26,3 +26,12 @@ The Docker scripts are in the Apps SDK in the ```tools/docker-build``` folder. T
 
 Note: Ubuntu18 config file works for Ubuntu20 as well.
 ```
+
+# Build a Qaic Docker image 
+
+# Create a container 
+
+# Execute the container 
+
+# Build Docker for aarch64 from x86_64 
+
