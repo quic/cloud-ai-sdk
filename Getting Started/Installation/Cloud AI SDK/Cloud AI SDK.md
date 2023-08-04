@@ -21,7 +21,7 @@
       - Unzip the downloaded zip file to a working directory
       - cd to the working directory
   
-  Note: #FIXME extract until 
+  Note: Extract the downloaded zip file until qaic-platform-sdk-<x86_64/aarch64>-<deb/rpm>-<SDK version>.zip is available. Confirm the architecture and installation linux package format works for your setup. Unzip 
   
   - Install Platform SDK 
     The Platform SDK is composed of the following tree structure. Users will see rpm or deb based on the SDK package:
@@ -51,13 +51,16 @@
       │   │   ├── pcietool   
       └── └── └── powerstress    
     ```
-  - Run the install.sh script as root or with sudo to install with root permissions.
+  - Run the install.sh script as root or with sudo to install with root permissions. Installation may take up to 30 mins depending on the number of Cloud AI cards in the server/VM. Cloud AI cards undergo resets several times during the installation. 
     - cd <architecture>/<deb/rpm> 
     - For Hyrid boot cards (PCIe CEM form factor cards), run ```sudo ./install.sh --auto_upgrade_sbl --ecc enable```
       For VM on ESXi hypervisor, run ```sudo ./install.sh --auto_upgrade_sbl --datapath_polling –-ecc enable```
     - For Flashless boot cards, run ```sudo ./install.sh –-ecc enable```
       For VM on ESXi hypervisor, run ```sudo ./install.sh --datapath_polling –-ecc enable```
-  
+  - On successful installation of the platform SDK, the contents are stored in ```/opt/qti-aic```.
+      ```dev  drivers  examples  exec  firmware  services  test-data  tools```
+
+
   
 
 
