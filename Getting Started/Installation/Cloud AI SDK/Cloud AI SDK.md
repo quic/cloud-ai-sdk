@@ -118,12 +118,8 @@ The Apps SDK can only be installed on x86 hosts. For Arm-based Qualcomm platform
        sudo chmod a+x /opt/qti-aic/dev/hexagon_tools/bin/*
        sudo chmod a+x /opt/qti-aic/exec/*
     ```
-- Set environment variables 
-  ```
-  export AIC_COMPILER_LIB_DIR=/opt/qti-aic/dev/lib/x86_64/apps:/opt/qti-aic/dev/lib/x86_64/  
-  export AIC_COMPILER_TOOLS_DIR=/opt/qti-aic/dev/hexagon_tools/
-  ```
-      
+  
+
   
   
   
