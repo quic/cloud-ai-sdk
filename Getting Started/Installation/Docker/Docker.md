@@ -1,7 +1,7 @@
 # Introduction 
 Docker is a product that allows users to build, test, and deploy applications through software containers. Docker for Cloud AI 100 packages the Platform SDK, Apps SDK (x86 only), libraries, system tools, etc., which enables the user to navigate the inference workflow seamlessly. 
 
-`When building a docker image with the Platform and Apps SDK, it is required to have the Platform SDK installed on the host bare metal OS or VM. `
+`When building a docker image with the Platform and Apps SDK, it is required to have the Platform SDK installed on the host bare metal OS or VM. It is recommended to have the same version of the Platform SDK installed on host and passed to the docker build.`
 
 The Docker scripts are in the Apps SDK in the ```tools/docker-build``` folder. The scripts to build a QAic Docker image are composed of the following structure.
 ```
