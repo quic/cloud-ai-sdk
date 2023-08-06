@@ -1,32 +1,5 @@
 **Add badges for license, documentation etc** 
 [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A)
-# Qualcomm cloud-ai
-
-Qualcomm Cloud AI inference accelerator cards and accompanying SDKs offer superior power and performance capabilities to meet the growing inference needs of Data Centers, Edge, and other machine learning (ML) applications. The Cloud AI Apps and Platform SDKs provide the ability to compile, optimize, quantize and run deep learning models from popular frameworks such as ONNX, PyTorch, etc.
-
-This repository contains sample applications, model recipes, tutorials, etc to aid beginner/intermediate/advanced ML application developers. This repository is a public mirror, pull requests will not be accepted. 
-
-
-# Inference on Cloud AI
-
-Cloud AI SDKs enable developers to optimize trained deep learning models for high-performance inference. The SDKs provide workflows to optimize the models for best performance,  provides runtime for execution and supports integration with ONNXRT and Triton Inference Server for deployment.
-
-Cloud AI SDKs support 
-- Generative AI, Natural Language Processing, Recommender systems and Computer Vision models running on Cloud AI hardware performantly
-- Optimize performance of the models per application requirements (throughput, accuracy and latency) through various quantization techniques
-- Development of inference applications through support for multiple OS and docker containers.  
-- Deploy inference applications at scale with support for Triton (**trademark**) inference server
-
-To execute inference on Cloud AI platforms, a pre-trained model, trained using ML framework such as PyTorch or TensorFlow, is exported to ONNX format. The ONNX file is compiled using the Apps SDK to generate a binary file (QPC). Developers can also use graph API in the Apps SDK to create the network graph and compile it. The binary file (QPC) is executed on the Cloud AI accelerator, using the Platform runtime, aided by the kernel drivers and the device firmware.  
-
-# Cloud AI SDK
-An Application and Platform SDK constitute the Cloud AI SDK. 
-
-The Application (Apps) SDK consists of model development tools, including a sophisticated parallelizing compiler, performance and integration tools, and code samples. 
-
-The Platform SDK consists of development tools icluding a kernel space runtime, which contains the API's and language bindings, accompanied by kernel drivers, a user space runtime, card firmware, and several card monitoring, telemetry, profiling and debugging tools.  
-
-![Cloud AI SDK](images/Plat_Apps_SDK.JPG) 
 
 # Contents of this repository  
 1. API_Reference_Card - This section will cover the APIs developers can use to execute inferences.
