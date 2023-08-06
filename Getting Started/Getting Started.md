@@ -6,7 +6,7 @@ Cloud AI SDKs support
 - Generative AI, Natural Language Processing, and Computer Vision models running on Cloud AI hardware performantly
 - Optimize performance of the models per application requirements (throughput, accuracy and latency) through various quantization techniques
 - Development of inference applications through support for multiple OS and docker containers.  
-- Deploy inference applications at scale with support for Triton (**trademark**) inference server
+- Deploy inference applications at scale with support for [Triton](https://github.com/triton-inference-server/server) inference server
 
 ## Cloud AI SDKs
 An Application and Platform SDK constitute the Cloud AI SDK. 
