@@ -1,5 +1,5 @@
 **Add badges for license, documentation etc** 
-[Getting Started](https://docs.qualcomm.com/bundle/resource/topics/HD-PT790-991A)
+
 
 # Contents of this repository  
 1. API_Reference_Card - This section will cover the APIs developers can use to execute inferences.
