@@ -15,12 +15,6 @@
 6. samples - #FIXME
 7. tutorials - This section breaks down the inference workflow on Cloud AI into multiple tutorials (Jupyter notebooks) across NLP/CV that developers can peruse. 
 
-# Pre-requisites
-For developers with Cloud AI hardware equipped servers, refer to [Getting Started](https://docs.qualcomm.com/bundle/resource/topics/80-PT790-991A) for   
-- Overview of Cloud AI Hardware and Software Architecture 
-- Installation Guide for Platform and Apps SDK 
-- Release Notes of Platform and Apps SDK
-
 # Directory structure (FIXME)
 ```
 .
@@ -48,4 +42,7 @@ For developers with Cloud AI hardware equipped servers, refer to [Getting Starte
 # References (FIXME)
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
 - [Cloud AI Software Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
+- Getting Started 
+- Developer Guide 
+- API reference 
 
