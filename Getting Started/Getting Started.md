@@ -18,17 +18,25 @@ The Platform SDK consists of development tools icluding a kernel space runtime, 
 ![Cloud AI SDK](../images/Plat_Apps_SDK.JPG) 
 
 ## [Installation](https://github.qualcomm.com/qranium/cloud-ai/blob/main/Getting%20Started/Installation/installation.md)
-
+The installation guide covers 
+- Platforms, operating systems and hypervisors supported and corresponding pre-requisites
+- Cloud AI SDK (Platform and Apps SDK) installation
+- Docker support
 
 ## [Quick Start Guide](https://github.qualcomm.com/qranium/cloud-ai/blob/main/Getting%20Started/Inference%20Workflow/Inference%20Workflow.md) 
+The Quick start guide provides the inference workflow on Cloud AI SDK, from onboarding a pre-trained model to deployment on Cloud AI platforms. 
 
-## [Release Notes]()
+## [Release Notes](https://docs.qualcomm.com/bundle/80-PT790-1/resource/80-PT790-1.pdf)
+Cloud AI release notes provide developers with new features, limitations and modifications in the Platform and Apps SDKs.   
 
 ## [Tutorials](https://github.qualcomm.com/qranium/cloud-ai/tree/main/tutorials)
+Tutorials in the form of Jupyter Notebooks walk the developer through the Cloud AI inference workflow as well as the tools used in the process. Tutorials are divided into CV and NLP to provide a better developer experience even though the inference workflows are quite similar. 
 
 ## [Model Recipes](https://github.qualcomm.com/qranium/cloud-ai/tree/main/models)
+Model recipes provide the developer the most performant and efficient way to run some of the popular models across categories. The recipe starts with the public model. The model is then exported to ONNX, some patches are applied if required, compiled and executed for best performance. Developers can integrate the compiled binary into their inference application.   
 
 ## [Sample Code](https://github.qualcomm.com/qranium/cloud-ai/tree/main/samples)
+Sample code helps developers get familair with the usage of Python and C++ APIs for inferencing on Cloud AI platforms. 
 
  
 
