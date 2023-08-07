@@ -1,10 +1,8 @@
-Tutorials are designed to walk the developer through the Cloud AI SDK toolchain. 
+Tutorials are Jupyter notebools designed to walk the developer through the Cloud AI inference workflow. The tutorials are split into 2 categories - CV and NLP. The inference workflow for the CV and NLP are quite similar.   
 
 # Pre-requisites
 Install qaic python package <br>
 `/opt/qti-aic/dev/python/qaic-env/bin/python3.8 install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl`
-
-
 
 ## Jupyter Notebook Setup 
 
@@ -14,7 +12,7 @@ Install qaic python package <br>
 
 `source /opt/qti-aic/dev/python/qaic-env/bin/activate`
 
-`jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`
+Clone the Cloud AI repo and run `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`
 
 
 
