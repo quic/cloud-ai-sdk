@@ -1,4 +1,4 @@
-Tutorials are Jupyter notebools designed to walk the developer through the Cloud AI inference workflow. The tutorials are split into 2 categories - CV and NLP. The inference workflow for the CV and NLP are quite similar.   
+Tutorials are Jupyter notebools designed to walk the developer through the Cloud AI inference workflow. The tutorials are split into 2 categories - CV and NLP. Overall, the inference workflow for the CV and NLP are quite similar. The differences are primarily related to the usage of the tools in Cloud AI SDK.   
 
 # Pre-requisites
 Install qaic python package <br>
