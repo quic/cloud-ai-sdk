@@ -19,9 +19,16 @@ The Platform SDK consists of development tools icluding a kernel space runtime, 
 
 ## [Installation](https://github.qualcomm.com/qranium/cloud-ai/blob/main/Getting%20Started/Installation/installation.md)
 
+
 ## [Quick Start Guide](https://github.qualcomm.com/qranium/cloud-ai/blob/main/Getting%20Started/Inference%20Workflow/Inference%20Workflow.md) 
 
 ## [Release Notes]()
+
+## [Tutorials](https://github.qualcomm.com/qranium/cloud-ai/tree/main/tutorials)
+
+## [Model Recipes](https://github.qualcomm.com/qranium/cloud-ai/tree/main/models)
+
+## [Sample Code](https://github.qualcomm.com/qranium/cloud-ai/tree/main/samples)
 
  
 
