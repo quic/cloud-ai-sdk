@@ -7,7 +7,7 @@ Developers can deploy a pre-trained model for inference on any Cloud AI platform
 
 ![AIC Workflow](../../images/AIC_Inference_workflow.jpg)
 
-The image below provides more details on each of the steps. Developers are expected to go through the 3 steps in order. 
+Cloud AI SDK provides tools for each of the steps as shown below. 
 
 ![AIC Workflow Details](../../images/AIC_workflow_details.JPG)
 
