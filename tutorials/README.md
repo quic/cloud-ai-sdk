@@ -6,7 +6,7 @@ Tutorials are Jupyter notebools designed to walk the developer through the Cloud
 
 `Profiler` - This is a intermediate-level notebook that describes system and device level inference profiling capabilities. Developers can use the tools and techniques described in this tutorial to measure application/device level latency and identify system/device bottlenecks. 
 
-`Accuracy-Evaluator` - This is a intermediate-level notebook that describes usage of the Accuracy Evaluator tool. Accuracy evaluator is used to evaluate the accuracy of the Cloud AI inference outputs vs a reference implementation like ONNX Runtime for an input dataset. Developers have the ability to choose the accuracy metrics to be reported by the tool. 
+`Accuracy-Evaluator` - This is a intermediate-level notebook that describes usage of the Accuracy Evaluator tool. Accuracy evaluator is used to evaluate the accuracy of the Cloud AI inference outputs vs a reference implementation like ONNX Runtime for an input dataset. The tool provides multiple accuracy metrics to choose from. 
 
 `Accuracy-Analyzer` - This is a intermediate-notebook that walks the developer through the Accuracy analyzer tool used in debugging accuracy issues on a model compiled for Cloud AI. The tool provides multiple techniques/strategies to identify the operations causing the accuracy issues. 
 
