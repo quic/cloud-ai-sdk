@@ -43,7 +43,7 @@ usage: run_yolo_model.py [-h] --model-name {yolov4,yolov5s,yolov5m,yolov5l,yolov
 	     [--cores {1,2,3,4,5,6,7,8,9,10,11,12,13,14}]
              [--instances {1,2,3,4,5,6,7,8,9,10,11,12,13,14}] 
 	     [--ols {1,2,3,4,5,6,7,8,9,10,11,12,13,14}] 
-	     [--mos MOS]
+	     [--mos {1,2,3,4,5,6,7,8,9,10,11,12,13,14}]
              [--set-size {1,2,3,4,5,6,7,8,9,10}] 
 	     [--extra EXTRA] 
 	     [--time TIME] 
@@ -72,7 +72,8 @@ optional arguments:
                         Number of model instances to run on AIC100. Default <7>
   --ols {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
                         Overlap split factor. Default <1>
-  --mos MOS             Maximum output channel split. Default <1>
+  --mos {1,2,3,4,5,6,7,8,9,10,11,12,13,14}             
+                        Maximum output channel split. Default <None>
   --set-size {1,2,3,4,5,6,7,8,9,10}
                         Set size. Default <10>
   --extra EXTRA         Extra compilation arguments.
