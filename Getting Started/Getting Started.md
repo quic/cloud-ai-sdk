@@ -30,10 +30,10 @@ The Quick start guide provides the inference workflow on Cloud AI SDK, from onbo
 Cloud AI release notes provide developers with new features, limitations and modifications in the Platform and Apps SDKs.   
 
 ## [Tutorials](https://github.qualcomm.com/qranium/cloud-ai/tree/main/tutorials)
-Tutorials in the form of Jupyter Notebooks walk the developer through the Cloud AI inference workflow as well as the tools used in the process. Tutorials are divided into CV and NLP to provide a better developer experience even though the inference workflows are quite similar. 
+Tutorials, in the form of Jupyter Notebooks walk the developer through the Cloud AI inference workflow as well as the tools used in the process. Tutorials are divided into CV and NLP to provide a better developer experience even though the inference workflows are quite similar. 
 
 ## [Model Recipes](https://github.qualcomm.com/qranium/cloud-ai/tree/main/models)
-Model recipes provide the developer the most performant and efficient way to run some of the popular models across categories. The recipe starts with the public model. The model is then exported to ONNX, some patches are applied if required, compiled and executed for best performance. Developers can integrate the compiled binary into their inference application.   
+Model recipes provide the developer the most performant and efficient way to run some of the popular models across categories. The recipe starts with the public model. The model is then exported to ONNX, some patches are applied if required, compiled and executed for best performance. Developers can use the recipe to integrate the compiled binary into their inference application.   
 
 ## [Sample Code](https://github.qualcomm.com/qranium/cloud-ai/tree/main/samples)
 Sample code helps developers get familair with the usage of Python and C++ APIs for inferencing on Cloud AI platforms. 
