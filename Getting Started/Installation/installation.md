@@ -57,6 +57,6 @@ Cloud AI only supports PCIe passthrough to a virtual machine. This means that th
 | KVM                                                                                                                                                      | ✔       | ✗       |
 | Hyper-V                                                                                                                                                  | ✔       | ✗       |
 | ESXi                                                                                                                                                     | ✔       | ✗       |
-| **Note** Cloud AI SDKs are not required to be installed on the hypervisor. All the Cloud AI software/SDKs are installed on the guest VMs. |
+| `Note` Cloud AI SDKs are not required to be installed on the hypervisor. All the Cloud AI software/SDKs are installed on the guest VMs. |
 
 
