@@ -45,9 +45,9 @@ The AIC100 Platform SDK is compatible with the following operating systems (OS) 
 | Red Hat Enterprise Linux 9.0 | Default Kernel                      | ✔       | ✗                          |
 | Red Hat Enterprise Linux 9.1 | Default Kernel                      | ✔       | ✗                          |
 | AWS linux2                                          | Default Kernel | ✔ | ✗ |
-| Note1: Supported on certain Arm-based Qualcomm platforms. |
-| Note2: Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. |
-| Note3: Apps SDK is available only for x86 platforms. |
+| `Note1`: Supported on certain Arm-based Qualcomm platforms. |
+| `Note2`: Arm is a trademark of Arm Limited (or its subsidiaries) in the US and/or elsewhere. |
+| `Note3`: Apps SDK is available only for x86 platforms. |
 
 ### Hypervisors
 Cloud AI only supports PCIe passthrough to a virtual machine. This means that the virtual machine completely owns the Cloud AI device. A single Cloud AI device cannot be shared between virtual machines or between a virtual machine and the native host. 
