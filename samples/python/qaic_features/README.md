@@ -26,6 +26,7 @@ metrics = session.get_metrics()
 
 Sample output for session.print_metrics()
 
+```bash
 Number of inferences utilized for calculation are 999
 Minimum latency observed 0.0009578340000000001 s
 Maximum latency observed 0.002209001 s
@@ -37,7 +38,7 @@ P90 / 90% of inferences observed latency less than 0.002209001 s
 P99 / 99% of inferences observed latency less than 0.0016082370000000002 s
 Sum of all the inference times 1.2368375560000007 s
 Average latency / inference time observed is 0.0012380756316316324 s
-
+```
 
 
 
@@ -67,6 +68,7 @@ session.print_profile_data(n=5)
 
 Sample output for session.print_profile_data()
 
+```bash
 |  File-Line-Function  | |  num calls  | |  func time  | |  tot time  |
 
 ('~', 0, "<method 'astype' of 'numpy.ndarray' objects>") 1 0.000149101 0.000149101
@@ -74,7 +76,7 @@ Sample output for session.print_profile_data()
 ('~', 0, '<built-in method numpy.empty>') 1 2.38e-06 2.38e-06
 
 ('~', 0, '<built-in method numpy.frombuffer>') 1 4.22e-06 4.22e-06
-
+```
 
 
 
