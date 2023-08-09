@@ -24,6 +24,24 @@ session.print_metrics()
 metrics = session.get_metrics()
 ```
 
+Sample output for session.print_metrics()
+
+Number of inferences utilized for calculation are 999
+Minimum latency observed 0.0009578340000000001 s
+Maximum latency observed 0.002209001 s
+Average latency / inference time observed is 0.0012380756316316324 s
+P25 / 25% of inferences observed latency less than 0.001095435 s
+P50 / 50% of inferences observed latency less than 0.0012522870000000001 s
+P75 / 75% of inferences observed latency less than 0.001299786 s
+P90 / 90% of inferences observed latency less than 0.002209001 s
+P99 / 99% of inferences observed latency less than 0.0016082370000000002 s
+Sum of all the inference times 1.2368375560000007 s
+Average latency / inference time observed is 0.0012380756316316324 s
+
+
+
+
+
 b) Profiling
 To profile your inferences being performed on AIC100 chip and get inference time statistic metrics, you can use following methods:
 
@@ -46,6 +64,20 @@ session.print_metrics()
 metrics = session.get_metrics()
 session.print_profile_data(n=5)
 ```
+
+Sample output for session.print_profile_data()
+
+|  File-Line-Function  | |  num calls  | |  func time  | |  tot time  |
+
+('~', 0, "<method 'astype' of 'numpy.ndarray' objects>") 1 0.000149101 0.000149101
+
+('~', 0, '<built-in method numpy.empty>') 1 2.38e-06 2.38e-06
+
+('~', 0, '<built-in method numpy.frombuffer>') 1 4.22e-06 4.22e-06
+
+
+
+
 
 c) Benchmarking
 To run benchmarking for model inferences on AIC100 chip, following method can be used:
