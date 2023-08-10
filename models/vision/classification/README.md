@@ -1,7 +1,7 @@
 ## Description
 ---
 
-This document runs a script (run_cv_classifier.py) that downloads a CV model from Huggingface/Torchvision, prepares it for the Qualcomm AIC100, compile it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, run the model on a generated random sample, and obtain the benchmarking results and output values.
+This document uses a script (run_cv_classifier.py) to download a computer-vision model from Huggingface or Torchvision, prepares it for the Qualcomm AIC100, compiles it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, runs the model on a generated random sample, and obtains the benchmarking results (Inf/Sec and Latency) and output values.
 
 ## Source of the models
 ---
