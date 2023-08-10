@@ -127,7 +127,7 @@ optional arguments:
 ```
 For example:
 ```commandline
-python run_cv_classifier.py -m resnet50
+python run_cv_classifier.py -m resnet-50
 ```
 or
 ```commandline
@@ -135,7 +135,7 @@ python run_cv_classifier.py -m resnet-152 -o best-throughput
 ```
 or
 ```commandline
-python run_cv_classifier.py -m resnet-50 -o balanced
+python run_cv_classifier.py -m resnet-50 -o best-latency
 ```
 or
 
