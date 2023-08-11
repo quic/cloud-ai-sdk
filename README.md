@@ -7,7 +7,7 @@ This repository provides various codes and Jupyter notebook walkthroughs to run 
 
 To learn more visit [Getting Started](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/).
 
-# Directory structure 
+## Directory structure 
 ```
 |── models                  # Contains model recipes for various computer vision and natural language processing models 
 |── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
