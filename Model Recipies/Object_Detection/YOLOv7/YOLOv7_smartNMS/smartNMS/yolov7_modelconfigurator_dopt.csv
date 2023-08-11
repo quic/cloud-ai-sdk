@@ -1,0 +1,5 @@
+OptimizerStatus,InitialValue,cores,mos,ols,batchSize,deallocDelay,splitSize,vtcmRatio,instances,Objective (inf/sec)
+SUCCESS,"(cores=1, mos=[1], ols=1, batchSize=1, deallocDelay=0, splitSize=512, vtcmRatio=100, instances=14)",1,[1],1,1,0,1536,85,14,200.95
+SUCCESS,"(cores=2, mos=[1], ols=1, batchSize=1, deallocDelay=0, splitSize=512, vtcmRatio=100, instances=7)",2,[1],1,1,1,1280,100,7,238.37
+SUCCESS,"(cores=7, mos=[1], ols=1, batchSize=1, deallocDelay=0, splitSize=512, vtcmRatio=100, instances=2)",7,[1],1,1,0,512,100,2,230.08
+SUCCESS,"(cores=14, mos=[1], ols=1, batchSize=1, deallocDelay=0, splitSize=512, vtcmRatio=100, instances=1)",14,[1],1,2,0,1024,100,1,274.98
