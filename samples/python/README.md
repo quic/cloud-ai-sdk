@@ -1,4 +1,4 @@
-# This folder consists:
+# This folder consists
 
 1. `vit_qaic` and `resnet_qaic` folder contains example showing an end-to-end workflow for running inference on QAIC100 using the python APIs. 
 2. `qaic_features` folder consists of examples to show how to perform benchmarking, profiling and measuring metrics for inferences made on the device.
