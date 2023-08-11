@@ -1,0 +1,6 @@
+protobuf==3.19.0
+onnx==1.10.1
+onnx_simplifier==0.3.6
+nvidia-pyindex
+onnx-graphsurgeon
+numpy==1.20.3
