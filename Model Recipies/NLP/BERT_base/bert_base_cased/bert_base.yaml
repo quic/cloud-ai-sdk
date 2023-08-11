@@ -1,0 +1,49 @@
+##############################################################################
+#
+# Copyright (c) 2022 Qualcomm Technologies, Inc.
+# All Rights Reserved.
+# Confidential and Proprietary - Qualcomm Technologies, Inc.
+#
+# All data and information contained in or disclosed by this document are
+# confidential and proprietary information of Qualcomm Technologies, Inc., and
+# all rights therein are expressly reserved. By accepting this material, the
+# recipient agrees that this material and the information contained therein
+# are held in confidence and in trust and will not be used, copied, reproduced
+# in whole or in part, nor its contents revealed in any manner to others
+# without the express written permission of Qualcomm Technologies, Inc.
+#
+##############################################################################
+
+# Official Model Location: https://huggingface.co/models
+# Model Generation steps from HF:
+  # git clone https://github.com/huggingface/transformers.git
+  # pip install -e transformers
+  # python -m transformers.convert_graph_to_onnx --model bert-base-uncased --pipeline question-answering --framework pt bert_base.onnx --opset 12
+
+
+MODEL:
+    INFO:
+        DESCRIPTION: "HuggingFace Transformers Bert-Base Model"
+        MODEL_TYPE: TRANSFORMERS
+        MODEL_PATH: 'bert-base-cased/generatedModels/bert-base-cased_simplified.onnx'
+        INPUT_INFO: [["input_ids", [1, 128]],
+                     ["input_mask", [1, 128]],
+                     ["segment_ids", [1, 128]]]
+        EXPORT_TYPE: ONNX
+        DYNAMIC_INFO: []
+        VALIDATE: False
+        WORKSPACE: WORKSPACE
+        VERBOSE: DEBUG #INFO, DEBUG, WARNING. TRACE
+
+    PRE_POST_HANDLE:
+        ANCHOR_BIN_FILE: None
+        POST_PLUGIN: NONE
+        PRE_PLUGIN: False
+        NMS_PARAMS:
+            MAX_OUTPUT_SIZE_PER_CLASS: None
+            MAX_TOTAL_SIZE: None
+            IOU_THRESHOLD: None
+            SCORE_THRESHOLD: None
+            CLIP_BOXES: None
+            PAD_PER_CLASS: None
+

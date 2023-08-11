@@ -1,0 +1,7 @@
+transformers
+onnxruntime
+onnx
+torch
+protobuf
+numpy
+onnx-simplifier

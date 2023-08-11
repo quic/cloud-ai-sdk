@@ -1,0 +1,13 @@
+
+diff --git a/src/transformers/models/gpt2/modeling_gpt2.py b/src/transformers/models/gpt2/modeling_gpt2.py
+index 58b7d5ea2..1c1a8658d 100644
+--- a/src/transformers/models/gpt2/modeling_gpt2.py
++++ b/src/transformers/models/gpt2/modeling_gpt2.py
+@@ -1061,6 +1061,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
+             torch.cuda.set_device(self.transformer.first_device)
+             hidden_states = hidden_states.to(self.lm_head.weight.device)
+ 
++        hidden_states = hidden_states[:,-1,:]
+         lm_logits = self.lm_head(hidden_states)
+ 
+         loss = None

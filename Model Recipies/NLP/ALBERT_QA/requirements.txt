@@ -1,0 +1,9 @@
+#requirements
+torch==1.9.1
+transformers==4.10.3
+onnxruntime==1.8.1
+onnxsim
+onnx==1.10.1
+onnx-simplifier==0.3.6
+numpy==1.23.5
+protobuf==3.20.0

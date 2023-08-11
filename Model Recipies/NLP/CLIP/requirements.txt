@@ -1,0 +1,6 @@
+onnxruntime==1.9.0
+onnx-simplifier
+torch==1.9.0
+numpy==1.23.4
+protobuf==3.19.6
+Pillow

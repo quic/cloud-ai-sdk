@@ -1,0 +1,5 @@
+torch==1.11.0
+onnxruntime==1.8.1 
+onnx-simplifier
+sentencepiece
+transformers

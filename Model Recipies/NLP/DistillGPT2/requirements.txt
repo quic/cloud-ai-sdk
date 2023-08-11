@@ -1,0 +1,4 @@
+coloredlogs
+torch==1.9.0
+onnxruntime==1.8.1
+onnxsim
