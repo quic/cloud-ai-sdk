@@ -3,26 +3,17 @@
 
 # Contents of this repository  
 
-1. API_Reference_Card - This section will cover the APIs developers can use to execute inferences.
-    - C++ APIs 
-    - Python APIs for inference
-    - ONNX Runtime support on Cloud AI 
-2. docs - This section covers the end-to-end inference workflow, from onboarding a pre-trained model to execution of inferences on Cloud AI platforms. 
-    - Export and prepare the model 
-    - Compile and optimize the model 
-    - Execute, integrate and deploy in production pipeline
-    - Platform management 
-5. models - This section provides the best throughput and best latency recipes for many CV, NLP and LLMs. 
-6. samples - #FIXME
-7. tutorials - This section breaks down the inference workflow on Cloud AI into multiple tutorials (Jupyter notebooks) across NLP/CV that developers can peruse. 
+This repository provides various codes and Jupyter notebook walkthroughs to run AI models on Qualcomm Cloud AI device.
 
-# Directory structure (FIXME)
+To learn more visit [Getting Started](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/).
+
+# Directory structure 
 ```
-|── models                  # Contains model recipes for computer vision, natural language processing and generative AI models 
+|── models                  # Contains model recipes for various computer vision and natural language processing models 
 |── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
 │   └── cpp                 # CPP based APIs used inference
-│   └── python              # Python based APIs used for inference (#FIXME Amey add details about subdirectories)
-├── tutorials               # Quick Start Guides
+│   └── python              # Python based APIs used for inference
+├── tutorials               # Jupyter Notebooks based quick start guides
     └── Computer-Vision
     └── NLP
         └── Model-Onboarding-Beginner
@@ -34,7 +25,5 @@
 # References (FIXME)
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
 - [Cloud AI Software Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
-- Getting Started 
-- Developer Guide 
-- API reference 
-
+- [Getting Started](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/)
+- [API reference](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Python-API/qaic/qaic/)
