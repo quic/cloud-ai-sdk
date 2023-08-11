@@ -2,6 +2,7 @@
 
 
 # Contents of this repository  
+
 1. API_Reference_Card - This section will cover the APIs developers can use to execute inferences.
     - C++ APIs 
     - Python APIs for inference
@@ -17,25 +18,16 @@
 
 # Directory structure (FIXME)
 ```
-.
-├── API_Reference_Card      # Provides quick overview of Python and C++ APIs to interact with Cloud AI hardware
-├── docker                  # dockerfiles
 |── models                  # Contains model recipes for computer vision, natural language processing and generative AI models 
 |── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
 │   └── cpp                 # CPP based APIs used inference
 │   └── python              # Python based APIs used for inference (#FIXME Amey add details about subdirectories)
-├── tools                   # Cloud AI tools (key tools like - qaic-exec, qaic-runner, accruacy evaluator, accuracy analyzer etc) 
-├── triton                  # Example using triton inference server
 ├── tutorials               # Quick Start Guides
     └── Computer-Vision
-    └── Generative-AI
     └── NLP
-        └── Accuracy-Analyzer-Intermediate
-        └── Accuracy-Evaluator-Intermediate
         └── Model-Onboarding-Beginner
         └── Performance-Tuning-Beginner
-        └── Quantization-Intermediate 
-        └── Sample-Application-Beginner
+        └── Profiler-Intermediate 
 ├── README.md
 
 ```
