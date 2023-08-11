@@ -1,0 +1,16 @@
+--- ./yolov3/utils/google_utils.py	2021-11-03 15:11:40.210082697 +0530
++++ google_utils.py	2021-11-03 15:07:37.809227403 +0530
+@@ -59,6 +59,13 @@
+             except:
+                 tag = 'v9.5.0'  # current release
+ 
++        print("\n\n")
++        print("=="*30)
++        print("Changing the release tag from latest to v9.5.0 to download older checkpoint.")
++        tag = 'v9.5.0'
++        print("=="*30)
++        print("\n\n")
++
+         if name in assets:
+             safe_download(file,
+                           url=f'https://github.com/{repo}/releases/download/{tag}/{name}',

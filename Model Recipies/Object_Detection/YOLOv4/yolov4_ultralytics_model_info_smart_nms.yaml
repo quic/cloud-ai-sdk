@@ -1,0 +1,45 @@
+##############################################################################
+#
+# Copyright (c) 2022 Qualcomm Technologies, Inc.
+# All Rights Reserved.
+# Confidential and Proprietary - Qualcomm Technologies, Inc.
+#
+# All data and information contained in or disclosed by this document are
+# confidential and proprietary information of Qualcomm Technologies, Inc., and
+# all rights therein are expressly reserved. By accepting this material, the
+# recipient agrees that this material and the information contained therein
+# are held in confidence and in trust and will not be used, copied, reproduced
+# in whole or in part, nor its contents revealed in any manner to others
+# without the express written permission of Qualcomm Technologies, Inc.
+#
+##############################################################################
+
+# Official Model Location: https://github.com/ultralytics/yolov5
+# Onnx Ultralytics Model Generation steps:
+    # git clone https://github.com/ultralytics/yolov5.git
+    # cd yolov5 && pip install -r requirements.txt
+    # python export.py --weights yolov5s.pt --include onnx # Generate yolov5s onnx model
+
+MODEL:
+    INFO:
+        DESCRIPTION: "YoloV5 Models from Ultralytics Repo"
+        MODEL_TYPE: YOLOV4
+        MODEL_PATH: 'yolov3/yolov4_416_416_without_ABP_NMS.onnx'
+        INPUT_INFO: [["images", [1, 3, 416, 416]]]
+        EXPORT_TYPE: ONNX
+        DYNAMIC_INFO: [["images", [1, 3, 416, 416]]]
+        VALIDATE: False
+        WORKSPACE: SMARTNMS
+        VERBOSE: INFO #INFO, DEBUG, WARNING. TRACE
+
+    PRE_POST_HANDLE:
+        ANCHOR_BIN_FILE: None
+        POST_PLUGIN: SMARTNMS
+        PRE_PLUGIN: True
+        NMS_PARAMS:
+            MAX_OUTPUT_SIZE_PER_CLASS: None
+            MAX_TOTAL_SIZE: None
+            IOU_THRESHOLD: None
+            SCORE_THRESHOLD: None
+            CLIP_BOXES: None
+            PAD_PER_CLASS: None

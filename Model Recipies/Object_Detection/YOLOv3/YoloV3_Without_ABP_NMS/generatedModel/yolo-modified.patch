@@ -1,0 +1,50 @@
+--- ./yolov3/models/yolo.py	2021-10-26 13:06:59.405866831 +0530
++++ yolo-modified.py	2021-10-26 13:06:25.490000000 +0530
+@@ -43,13 +43,17 @@
+         self.m = nn.ModuleList(nn.Conv2d(x, self.no * self.na, 1) for x in ch)  # output conv
+         self.inplace = inplace  # use in-place ops (e.g. slice assignment)
+ 
+-    def forward(self, x):
++    def forward(self, x, without_abp_nms=False):
+         # x = x.copy()  # for profiling
+         z = []  # inference output
+         for i in range(self.nl):
+             x[i] = self.m[i](x[i])  # conv
+             bs, _, ny, nx = x[i].shape  # x(bs,255,20,20) to x(bs,3,20,20,85)
+-            x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
++            # x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
++            x[i] = x[i].view(-1, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
++
++            if without_abp_nms:
++                continue
+ 
+             if not self.training:  # inference
+                 if self.grid[i].shape[2:4] != x[i].shape[2:4] or self.onnx_dynamic:
+@@ -63,9 +67,13 @@
+                     xy = (y[..., 0:2] * 2. - 0.5 + self.grid[i]) * self.stride[i]  # xy
+                     wh = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i].view(1, self.na, 1, 1, 2)  # wh
+                     y = torch.cat((xy, wh, y[..., 4:]), -1)
+-                z.append(y.view(bs, -1, self.no))
++                # z.append(y.view(bs, -1, self.no))
++                z.append(y.view(-1, self.na * ny * nx, self.no))
+ 
+-        return x if self.training else (torch.cat(z, 1), x)
++        if without_abp_nms or self.training:
++            return x
++        else:
++            return torch.cat(z, 1), x
+ 
+     @staticmethod
+     def _make_grid(nx=20, ny=20):
+@@ -149,7 +157,10 @@
+                     logger.info(f"{'time (ms)':>10s} {'GFLOPS':>10s} {'params':>10s}  {'module'}")
+                 logger.info(f'{dt[-1]:10.2f} {o:10.2f} {m.np:10.0f}  {m.type}')
+ 
+-            x = m(x)  # run
++            if isinstance(m, Detect):
++                x = m(x, without_abp_nms=True)
++            else:
++                x = m(x)  # run
+             y.append(x if m.i in self.save else None)  # save output
+ 
+         if profile:

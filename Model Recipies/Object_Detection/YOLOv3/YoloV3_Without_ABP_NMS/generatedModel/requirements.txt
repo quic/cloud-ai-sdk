@@ -1,0 +1,7 @@
+onnx==1.10.1
+torch==1.8.1
+numpy==1.20.3
+torchvision==0.9.1
+
+onnx_simplifier==0.3.6
+protobuf==3.19.6
