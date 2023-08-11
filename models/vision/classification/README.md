@@ -145,3 +145,23 @@ python run_cv_classifier.py -m vit-base-patch16-224 -o best-latency
 
 The hardware configuration will be either associated to the corresponding row in the lut_cv_classifiers.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_cv_classifiers.csv, default values will be used.
 
+After download, compile, and run is complete, the working directory of the selected model is as follows. To manually resproduce the results, navigate to the working directory, change the content accordingly, and run commands from the command.txt.
+
+# Working Directory structure
+```
+.
+|── model                   # Contains the onnx file of the picked model 
+|   └── model.onnx          # The onnx file of the picked model
+|── inputFiles              # Contains the (randomly generated) input files of the compiled model
+│   └── input_img*.raw      # Randomly generated input files of the compiled model
+|── outputFiles             # Contains the corresponding output to input, as well as the hardware profiling for latency
+│   └── fp16*               
+│       └── output-act*.bin # Corresponding output to the randomly generated input_img*.raw
+│       └── aic-profil*.bin # The hardware profiling for round trip latency between host and device for each inference
+├── compiled-bin*           # Compilation path
+│   └── programqpc.bin      # For the selected objective, the model.onnx is compiled into programqpc.bin 
+├── list*.txt               # A list that contains path to the inputs. Can be used as input to qaic-runner
+├── commands*.txt           # Includes necessary compilation and running scripts to reproduce the results manually.
+
+```
+
