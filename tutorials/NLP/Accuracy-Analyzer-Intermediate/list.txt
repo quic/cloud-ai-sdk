@@ -1,1 +1,0 @@
-./inputFiles/input_ids.raw,./inputFiles/input_mask.raw,./inputFiles/segment_ids.raw
