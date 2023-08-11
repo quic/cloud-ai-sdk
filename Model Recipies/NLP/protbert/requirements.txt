@@ -1,0 +1,5 @@
+torch==1.13.1
+transformers
+onnxruntime==1.14.1
+onnx==1.13.1
+optimum

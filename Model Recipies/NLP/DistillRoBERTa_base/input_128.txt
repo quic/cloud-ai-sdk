@@ -1,0 +1,1 @@
+./input_dir/input_ids.raw,./input_dir/attention_mask.raw

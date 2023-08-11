@@ -1,0 +1,7 @@
+ONNX
+onnxruntime
+onnx-simplifier
+torch
+optimum
+protobuf
+numpy
