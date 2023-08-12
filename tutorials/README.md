@@ -1,4 +1,4 @@
-Tutorials are Jupyter notebools designed to walk the developer through the Cloud AI inference workflow. The tutorials are split into 2 categories - CV and NLP. Overall, the inference workflow for the CV and NLP are quite similar. The differences are primarily related to the usage of the tools in Cloud AI SDK.   
+Tutorials are Jupyter notebools designed to walk the developer through the Cloud AI inference workflow. The tutorials are split into 2 categories - CV and NLP. Overall, the inference workflow for CV and NLP models are very similar and have been presented for convenience. 
 
 `Model-Onboarding` - This is one of the beginner notebooks. This goes through exporting and preparing the model, compiling the model using a CLI tool and executing inference using CLI tool / Python APIs. 
 
