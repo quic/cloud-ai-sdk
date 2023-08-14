@@ -29,28 +29,28 @@
       "mos": 1,
       "ols": 1,
       "bs": 1,
-      "instances": 14
+      "instances": 1
     },
     {
       "cores": 2,
       "mos": 1,
       "ols": 1,
       "bs": 1,
-      "instances": 7
+      "instances": 1
     },
     {
       "cores": 4,
       "mos": 1,
       "ols": 1,
       "bs": 1,
-      "instances": 3
+      "instances": 1
     },
     {
       "cores": 7,
       "mos": 1,
       "ols": 1,
       "bs": 1,
-      "instances": 2
+      "instances": 1
     },
     {
       "cores": 14,
