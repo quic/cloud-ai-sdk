@@ -168,3 +168,24 @@ or
 python run_nlp_model.py --model-name bert-base-uncased --objective best-latency
 ```
 The TASK and hardware configuration will be either associated to the corresponding row in the lut_nlp_models.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_nlp_models.csv, pick a corresponding task, or switch to default.
+
+After download, compile, and run is complete, the working directory of the selected model is as follows. 
+# Working directory structure
+```
+|── model                   # Contains the onnx file of the picked model 
+|   └── model.onnx          # The onnx file of the picked model
+|── inputFiles              # Contains the (randomly generated) input files of the compiled model
+│   └── input_ids*.raw      # Randomly generated input files for the compiled model
+│   └── attention_mask*.raw 
+│   └── token_type_ids*.raw 
+|── outputFiles             # Contains the corresponding output to input, as well as the hardware profiling for latency
+│   └── fp16*               
+│       └── output-act*.bin # Corresponding output to the randomly generated input_img*.raw
+│       └── aic-profil*.bin # The hardware profiling for round trip latency between host and device for each inference
+├── compiled-bin*           # Compilation path
+│   └── programqpc.bin      # For the selected objective, the model.onnx is compiled into programqpc.bin 
+├── list*.txt               # A list that contains path to the inputs. Can be used as input to qaic-runner
+├── commands*.txt           # Includes necessary compilation and running scripts to reproduce the results manually.
+
+```
+To manually resproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 
