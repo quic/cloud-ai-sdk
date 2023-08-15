@@ -157,7 +157,7 @@ optional arguments:
 ```
 For example:
 ```commandline
-python run_nlp_model.py -m bert-large-uncased
+python run_nlp_model.py -m Rostlab/prot_bert
 ```
 or
 ```commandline
