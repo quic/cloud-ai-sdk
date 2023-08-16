@@ -104,7 +104,7 @@ def execute(cmd_elements, write_to_file, mode):
 # checks device status and cores available
 def check_device(DEVICE_ID, CORES, INSTANCES):
 
-    QAIC_UTIL = subprocess.run(f"/opt/qti-aic/tools/qaic-util -d {DEVICE_ID} -q",  shell=True, capture_output=True, text=True).stdout
+    QAIC_UTIL = subprocess.run(f"sudo /opt/qti-aic/tools/qaic-util -d {DEVICE_ID} -q",  shell=True, capture_output=True, text=True).stdout
 
     try:
         NSP_TOTAL = int(QAIC_UTIL.split("Nsp Total:")[1].split()[0])
@@ -370,7 +370,7 @@ def main(args):
     except:
         None
     
-    cmd_elements = ["/opt/qti-aic/exec/qaic-runner",
+    cmd_elements = ["sudo", "/opt/qti-aic/exec/qaic-runner",
                     "-t", f"./compiled-bin-fp16-{MOTIF}",
                     "-a", f"{INSTANCES}",
                     "--time", f"{TIME}",
