@@ -20,7 +20,7 @@ For a quick environment setup:
 
 ```commandline
 source /opt/qti-aic/dev/python/qaic-env/bin/activate
-python -m venv det_models
+python3 -m venv det_models
 source det_models/bin/activate
 
 ```
@@ -28,8 +28,8 @@ source det_models/bin/activate
 ## Framework and version
 ---
 ```commandline
-pip3 install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
-pip3 install ultralytics seaborn nvidia-pyindex onnx-graphsurgeon
+pip install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
+pip install ultralytics seaborn nvidia-pyindex onnx-graphsurgeon
 
 ```
 ## Syntax
