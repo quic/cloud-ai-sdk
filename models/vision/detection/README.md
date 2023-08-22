@@ -20,7 +20,7 @@ For a quick environment setup:
 
 ```commandline
 source /opt/qti-aic/dev/python/qaic-env/bin/activate
-python3 -m venv det_models
+python3.8 -m venv det_models
 source det_models/bin/activate
 
 ```
