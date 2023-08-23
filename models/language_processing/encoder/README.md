@@ -93,14 +93,14 @@ The models are downloaded from (https://huggingface.co). This script has been te
 For a quick environment setup:
 
 ```commandline
-python3 -m venv nlp_models
-source nlp_models/bin/activate
+python3 -m venv nlp_env
+source nlp_env/bin/activate
 ```
 
 ## Framework and version
 ---
 ```commandline
-pip3 install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 optimum==1.8 pandas==2.0.2 urllib3==1.26.6
+pip install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 optimum==1.8 pandas==2.0.2 urllib3==1.26.6
 ```
 ## Syntax
 ---
