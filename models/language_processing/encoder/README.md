@@ -155,15 +155,13 @@ optional arguments:
   --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
 
 ```
-For example:
+Examples:
 ```commandline
 python run_nlp_model.py -m Rostlab/prot_bert
 ```
-or
 ```commandline
 python run_nlp_model.py -m bert-base-cased -t question-answering -o best-throughput
 ```
-or
 ```commandline
 python run_nlp_model.py --model-name bert-base-uncased --objective best-latency
 ```
