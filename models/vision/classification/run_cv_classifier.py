@@ -58,8 +58,8 @@ torchvision_models = ['resnet18','resnet34','resnet50','resnet101','resnet152','
 # torchvision_models = list_models()
 # timm_pretrained_models = timm.list_models(pretrained=True) # This list is huge. Ignoring for now
 timm_pretrained_models = []
-aws_list = ['resnet-50', 'resnet-152', 'vit-base-patch16-224']
-all_models  = list(set(torchvision_models+timm_pretrained_models+aws_list))
+other_sources = ['resnet-50', 'resnet-152', 'vit-base-patch16-224']
+all_models  = list(set(torchvision_models+timm_pretrained_models+other_sources))
 all_models.sort()
 
 
@@ -71,6 +71,7 @@ def get_metric(series, method):
         prctile = int(method.replace('pct', ''))/100
         return series.quantile(prctile)
     return None
+
 
 # computes the latency from the profiling latency text files, using the latency_method specified
 def get_latency(latency_logs, latency_method):
