@@ -20,8 +20,8 @@ For a quick environment setup:
 
 ```commandline
 source /opt/qti-aic/dev/python/qaic-env/bin/activate
-python3.8 -m venv det_models
-source det_models/bin/activate
+python3.8 -m venv det_env
+source det_env/bin/activate
 
 ```
 
@@ -87,16 +87,13 @@ optional arguments:
 
 
 ```
-For example:
+Examples:
 ```commandline
 python run_yolo_model.py -m yolov5s -o best-throughput
 ```
-or
 ```commandline
 python run_yolo_model.py -m yolov5m -o balanced
 ```
-or
-
 ```commandline
 python run_yolo_model.py -m yolov5x -o best-throughput
 ```
