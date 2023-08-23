@@ -66,14 +66,14 @@ This script has been tested for the following models. These models are downloade
 For a quick environment setup:
 
 ```commandline
-python3 -m venv cv_models
-source cv_models/bin/activate
+python3 -m venv cv_env
+source cv_env/bin/activate
 ```
 
 ## Framework and version
 ---
 ```commandline
-pip3 install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
+pip install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
 ```
 ## Syntax
 ---
