@@ -125,20 +125,16 @@ optional arguments:
 
 
 ```
-For example:
+Examples:
 ```commandline
 python run_cv_classifier.py -m resnet-50
 ```
-or
 ```commandline
 python run_cv_classifier.py -m resnet-152 -o best-throughput
 ```
-or
 ```commandline
 python run_cv_classifier.py -m resnet-50 -o best-latency
 ```
-or
-
 ```commandline
 python run_cv_classifier.py -m vit-base-patch16-224 -o best-latency
 ```
