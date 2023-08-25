@@ -9,7 +9,6 @@ The models are downloaded from (https://huggingface.co). This script has been te
 * albert-base-v2
 * allenai/scibert_scivocab_uncased
 * avichr/heBERT_sentiment_analysis
-* BaptisteDoyen/camembert-base-xnli
 * beomi/kcbert-base
 * bert-base-cased
 * bert-base-chinese
