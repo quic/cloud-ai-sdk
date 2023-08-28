@@ -1,3 +1,8 @@
+'''
+Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+SPDX-License-Identifier: BSD-3-Clause-Clear
+'''
+
 import sys
 sys.path.append("/opt/qti-aic/examples/apps/qaic-python-sdk")
 import qaic

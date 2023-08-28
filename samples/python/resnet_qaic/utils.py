@@ -1,3 +1,8 @@
+'''
+Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+SPDX-License-Identifier: BSD-3-Clause-Clear
+'''
+
 import os
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms

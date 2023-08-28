@@ -1,25 +1,6 @@
 #!/usr/bin/env python3
-'''---------------------------------------------------------------------------
-Qualcomm Technologies, Inc. Proprietary
-(c) 2022 Qualcomm Technologies, Inc. All rights reserved.
-
-All data and information contained in or disclosed by this document are
-confidential and proprietary information of Qualcomm Technologies, Inc., and
-all rights therein are expressly reserved. By accepting this material, the
-recipient agrees that this material and the information contained therein
-are held in confidence and in trust and will not be used, copied, reproduced
-in whole or in part, nor its contents revealed in any manner to others
-without the express written permission of Qualcomm Technologies, Inc.
-
-This software may be subject to U.S. and international export, re-export, or
-transfer ("export") laws.  Diversion contrary to U.S. and international law
-is strictly prohibited.
----------------------------------------------------------------------------'''
-
-'''
-TODO:
-
-'''
+# Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
 
 import numpy as np
 import pandas as pd
