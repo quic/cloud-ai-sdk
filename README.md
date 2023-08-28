@@ -27,3 +27,7 @@ To learn more visit [Getting Started](https://github.qualcomm.com/pages/qranium/
 - [Cloud AI Software Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
 - [Getting Started](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/)
 - [API reference](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Python-API/qaic/qaic/)
+
+
+## License
+QAic Compute SDK is licensed under the terms in the [LICENSE](LICENSE) file.
