@@ -30,4 +30,4 @@ To learn more visit [Getting Started](https://github.qualcomm.com/pages/qranium/
 
 
 ## License
-QAic Compute SDK is licensed under the terms in the [LICENSE](LICENSE) file.
+cloud-ai is licensed under the terms in the [LICENSE](LICENSE) file.
