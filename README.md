@@ -1,6 +1,3 @@
-**Add badges for license, documentation etc** 
-
-
 # Contents of this repository  
 
 This repository provides various codes and Jupyter notebook walkthroughs to run AI models on Qualcomm Cloud AI device.
