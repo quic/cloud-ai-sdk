@@ -8,7 +8,7 @@ The models are downloaded from (https://huggingface.co)
 ## Environment and dependancies
 ---
 ```commandline
-python3 -m venv stable_diffusion_env
+python3.8 -m venv stable_diffusion_env
 source stable_diffusion_env/bin/activate
 pip install torch==2.0.0 onnx==1.12.0 onnxruntime accelerate
 ```
