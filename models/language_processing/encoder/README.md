@@ -92,7 +92,7 @@ The models are downloaded from (https://huggingface.co). This script has been te
 For a quick environment setup:
 
 ```commandline
-python3 -m venv nlp_env
+python3.8 -m venv nlp_env
 source nlp_env/bin/activate
 ```
 
