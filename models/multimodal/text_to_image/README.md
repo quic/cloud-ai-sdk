@@ -79,6 +79,6 @@ cp model_index.json stable_diffusion_AIC/
 ```
 ## Run the pipeline
 ```commandline
-python aic_inference_dps.py --model_directory stable_diffusion_AIC/ --prompt "glass of wine on the beach"
+sudo python aic_inference_dps.py --model_directory stable_diffusion_AIC/ --prompt "glass of wine on the beach"
 ```
 
