@@ -65,11 +65,11 @@ def get_latency(latency_logs, latency_method):
     return latency_ms    
 
 # looks the model up in the lut.csv file and fetches its row entries
-def look_model_up(model_name, objective, precision, lut_path):
+def look_model_up(model_name, task, objective, precision, lut_path):
     with open(lut_path, mode='r', encoding='utf-8-sig') as file:
         reader = DictReader(file)
         for row in reader:
-            if (row['MODEL_NAME'] == model_name) and (row['OBJECTIVE'] == objective) and (row['PRECISION'] == precision):
+            if (row['MODEL_NAME'] == model_name) and (row['TASK'] == task) and (row['OBJECTIVE'] == objective) and (row['PRECISION'] == precision):
                 return row
         for row in reader:
             if (row['MODEL_NAME'] == model_name):
@@ -201,9 +201,10 @@ def main(args):
     
     RUN_ONLY = args.run_only
     MODEL_NAME = args.model_name
+    TASK = args.task
     OBJECTIVE = 'best-throughput' if args.objective is None else args.objective
     try:
-        row = look_model_up(MODEL_NAME, OBJECTIVE, 'fp16', 'lut_nlp_models.csv')
+        row = look_model_up(MODEL_NAME, TASK, OBJECTIVE, 'fp16', 'lut_nlp_models.csv')
     except:
         row = None
     try:
@@ -218,7 +219,6 @@ def main(args):
         DEVICE_ID = args.device
 
     # If TASK not specified by user, look that up in lut.csv or set to 'default'
-    TASK = args.task
     if TASK is None:
         try:
             TASK = row['TASK']
