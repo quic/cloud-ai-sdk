@@ -23,8 +23,8 @@ This repository provides developers with 3 key resources
 ```
 # References (FIXME)
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
-- [Cloud AI SDK Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
 - [User Guide](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/)
+- [Cloud AI SDK Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
 - [API reference](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Python-API/qaic/qaic/)
 
 
