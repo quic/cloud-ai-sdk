@@ -1,11 +1,8 @@
-# Cloud AI SDKs
-
-
-# Contents of this repository  
-
-This repository provides various codes and Jupyter notebook walkthroughs to run AI models on Qualcomm Cloud AI devices.
-
-To learn more visit [Getting Started](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/).
+# Qualcomm Cloud AI Developer Resources
+This repository provides developers with 3 key resources
+    - `Models` - Recipes for CV and NLP models to run on Cloud AI platforms performantly
+    - `Tutorials` - Tutorials cover the model onboarding, performance tuning and profiling aspects of inferencing on Cloud AI platforms 
+    - `Samples` - Sample code illustrating usage of APIs for inference on Cloud AI platforms 
 
 ## Directory structure 
 ```
@@ -26,7 +23,7 @@ To learn more visit [Getting Started](https://github.qualcomm.com/pages/qranium/
 # References (FIXME)
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
 - [Cloud AI SDK Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
-- [Getting Started](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/)
+- [User Guide](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Getting-Started/)
 - [API reference](https://github.qualcomm.com/pages/qranium/cloud-ai-mkdocs/Python-API/qaic/qaic/)
 
 
