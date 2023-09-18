@@ -1,4 +1,4 @@
-# Qualcomm Cloud AI Developer Resources
+# Qualcomm Cloud AI SDK - Developer Resources
 This repository provides developers with 3 key resources
 
     - Models - Recipes for CV and NLP models to run on Cloud AI platforms performantly
