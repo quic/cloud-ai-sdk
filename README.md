@@ -1,9 +1,8 @@
 # Qualcomm Cloud AI Developer Resources
 This repository provides developers with 3 key resources
-
-    - `Models` - Recipes for CV and NLP models to run on Cloud AI platforms performantly
-    - `Tutorials` - Tutorials cover the model onboarding, performance tuning and profiling aspects of inferencing on Cloud AI platforms 
-    - `Samples` - Sample code illustrating usage of APIs for inference on Cloud AI platforms 
+    - Models - Recipes for CV and NLP models to run on Cloud AI platforms performantly
+    - Tutorials - Tutorials cover the model onboarding, performance tuning and profiling aspects of inferencing on Cloud AI platforms 
+    - Samples - Sample code illustrating usage of APIs for inference on Cloud AI platforms 
 
 ## Directory structure 
 ```
