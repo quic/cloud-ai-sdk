@@ -1,13 +1,7 @@
 # ==============================================================================
 #
-# @@-COPYRIGHT-START-@@
-#
-# Copyright (c) 2023 Qualcomm Technologies, Inc.
-#
-# All rights reserved.
-# Confidential & Proprietary - Qualcomm Technologies, Inc.
-#
-# @@-COPYRIGHT-END-@@
+# Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved. <br>
+# SPDX-License-Identifier: BSD-3-Clause-Clear
 #
 # ==============================================================================
 
