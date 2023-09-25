@@ -25,7 +25,7 @@ This repository provides developers with 3 key resources
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
 - [User Guide](https://quic.github.io/cloud-ai-sdk-pages/)
 - [Cloud AI SDK Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
-- [API reference](https://github.qualcomm.com/pages/quic/cloud-ai-sdk-pages/API/)
+- [API reference](https://quic.github.io/cloud-ai-sdk-pages/API/)
 
 
 # Disclaimer
