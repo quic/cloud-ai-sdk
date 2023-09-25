@@ -1,0 +1,14 @@
+# compile parameters
+aic_num_cores: 4
+convert_to_fp16: true
+mos: 1
+ols: 2
+multicast-weights: true
+onnx_define_symbol:
+  batch_size: 1
+stats-batchsize: 1
+compile-only: true
+
+# inference parameters
+num_activations: 3
+set_size: 4

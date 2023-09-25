@@ -1,0 +1,112 @@
+﻿MODEL_NAME,TASK,BATCH_SIZE,IMAGE_SIZE,CORES,INSTANCES,OLS,MOS,EXTRA,SET_SIZE,PRECISION,OBJECTIVE,THPS,LATENCY
+resnet-50,image-classification,1,224,14,1,1,"1,7"," -sdp-cluster-sizes=7,7 -multicast-weights -use-producer-dma=1",3,fp16,best-latency,,
+resnet-50,image-classification,2,224,12,1,2,"1,6"," -sdp-cluster-sizes=6,6 -multicast-weights -use-producer-dma=1",3,fp16,balanced,,
+resnet-50,image-classification,14,224,14,1,1,"1,1"," -sdp-cluster-sizes=7,7 -multicast-weights  -use-producer-dma=1",3,fp16,best-throughput,,
+resnet-152,image-classification,1,224,12,1,1,"6,6"," -sdp-cluster-sizes=6,6 -multicast-weights  -use-producer-dma=1 ",2,fp16,best-latency,,
+resnet-152,image-classification,4,224,12,1,2,"4,4"," -sdp-cluster-sizes=6,6 -multicast-weights  -use-producer-dma=1 ",2,fp16,balanced,,
+resnet-152,image-classification,14,224,14,1,2,"1,1"," -sdp-cluster-sizes=7,7 -multicast-weights  -use-producer-dma=1 ",4,fp16,best-throughput,,
+vit-base-patch16-224,image-classification,1,224,12,1,1,12, -multicast-weights,2,fp16,best-latency,,
+vit-base-patch16-224,image-classification,2,224,6,2,1,6, -multicast-weights,2,fp16,balanced,,
+vit-base-patch16-224,image-classification,4,224,4,3,2,1, -multicast-weights,4,fp16,best-throughput,,
+,,,,,,,,,,,,,
+alexnet,image-classification,15,224,1,14,2,1,  -aic-enable-depth-first -aic-depth-first-mem=32,2,fp16,best-throughput,11464,41.9
+densenet121,image-classification,15,224,1,14,4,1,  -aic-enable-depth-first -aic-depth-first-mem=16,3,fp16,best-throughput,8706.3,73.8
+densenet161,image-classification,15,224,1,14,1,1, -multicast-weights -aic-enable-depth-first,6,fp16,best-throughput,2555.8,498.3
+densenet169,image-classification,15,224,1,14,4,1, -aic-enable-depth-first,3,fp16,best-throughput,5781.4,111.3
+densenet201,image-classification,9,224,1,14,2,1, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,3561.7,71.5
+efficientnet_b0,image-classification,3,224,1,14,1,, -multicast-weights -aic-enable-depth-first,3,fp16,best-throughput,6969.6,27.9
+efficientnet_b1,image-classification,2,240,1,14,1,1, -multicast-weights -aic-enable-depth-first,3,fp16,best-throughput,4028,21.5
+efficientnet_b2,image-classification,2,260,1,14,4,, -aic-enable-depth-first,2,fp16,best-throughput,2693.4,21
+efficientnet_b3,image-classification,1,300,1,14,2,1,  ,4,fp16,best-throughput,1229.9,48.7
+efficientnet_b4,image-classification,1,380,2,7,2,2, ,3,fp16,best-throughput,590.7,38.8
+efficientnet_b5,image-classification,1,456,3,4,2,, ,2,fp16,best-throughput,248.8,33
+efficientnet_b6,image-classification,1,528,3,4,1,3, -multicast-weights,1,fp16,best-throughput,111.7,35.9
+efficientnet_b7,image-classification,1,600,7,2,2,7,,2,fp16,best-throughput,56.7,70.7
+efficientnet_v2_l,image-classification,1,480,2,7,2,2, ,1,fp16,best-throughput,243.5,29.5
+efficientnet_v2_m,image-classification,1,480,1,14,1,, ,1,fp16,best-throughput,524.7,28.3
+efficientnet_v2_s,image-classification,1,384,1,14,1,, -multicast-weights,4,fp16,best-throughput,1628.5,35.9
+inception_v3,image-classification,4,299,2,7,2,1, ,4,fp16,best-throughput,3410.2,33.8
+mnasnet0_5,image-classification,25,224,14,1,1,1, -multicast-weights,4,fp16,best-throughput,21488.4,4.8
+mnasnet0_75,image-classification,6,224,3,4,4,1, -multicast-weights -aic-enable-depth-first,4,fp16,best-throughput,19572.4,5
+mnasnet1_0,image-classification,8,224,4,3,4,, -multicast-weights,3,fp16,best-throughput,19882.3,3.7
+mnasnet1_3,image-classification,14,224,7,2,4,, ,5,fp16,best-throughput,17011.6,8.3
+mobilenet_v2,image-classification,14,224,2,7,4,, -aic-enable-depth-first,3,fp16,best-throughput,19322.6,15.3
+mobilenet_v3_large,image-classification,10,224,1,14,1,1, -multicast-weights -aic-enable-depth-first,3,fp16,best-throughput,16005.8,27.1
+mobilenet_v3_small,image-classification,8,224,4,3,1,1, -aic-enable-depth-first,4,fp16,best-throughput,20443.7,4.8
+resnet101,image-classification,14,224,7,2,2,1, -multicast-weights -use-producer-dma=1,4,fp16,best-throughput,4296,26.5
+resnet152,image-classification,13,224,1,14,4,1,  -aic-enable-depth-first -aic-depth-first-mem=16,2,fp16,best-throughput,2674.9,139.5
+resnet18,image-classification,10,224,2,7,4,1, -multicast-weights -use-producer-dma=1,5,fp16,best-throughput,17753.6,33.4
+resnet34,image-classification,8,224,1,14,4,1, -multicast-weights,5,fp16,best-throughput,10181.6,55.8
+resnet50,image-classification,13,224,7,2,2,1, -multicast-weights,3,fp16,best-throughput,7623,10.3
+resnext101_32x8d,image-classification,14,224,14,1,1,1, -multicast-weights -use-producer-dma=1,3,fp16,best-throughput,1787.2,23.7
+resnext101_64x4d,image-classification,7,224,7,2,1,1, -multicast-weights -use-producer-dma=1,2,fp16,best-throughput,1901.6,14.9
+resnext50_32x4d,image-classification,14,224,7,2,2,1, ,3,fp16,best-throughput,6768,12.6
+shufflenet_v2_x0_5,image-classification,32,224,12,1,1,1, -multicast-weights -aic-enable-depth-first,5,fp16,best-throughput,21500.4,7.6
+shufflenet_v2_x1_0,image-classification,4,224,1,14,1,, -multicast-weights,2,fp16,best-throughput,19482.1,5.4
+shufflenet_v2_x1_5,image-classification,16,224,2,7,4,1, ,2,fp16,best-throughput,16568.3,13.6
+shufflenet_v2_x2_0,image-classification,6,224,1,14,4,1, -multicast-weights,4,fp16,best-throughput,11930.9,28.3
+squeezenet1_0,image-classification,31,224,14,1,4,1, ,5,fp16,best-throughput,21053.5,7.5
+squeezenet1_1,image-classification,28,224,14,1,1,, -multicast-weights -use-producer-dma=1,4,fp16,best-throughput,21448.3,5.3
+vgg11,image-classification,15,224,1,14,4,1,  -aic-enable-depth-first -aic-depth-first-mem=16,4,fp16,best-throughput,4415.9,203.4
+vgg11_bn,image-classification,15,224,1,14,4,1, -aic-enable-depth-first,4,fp16,best-throughput,4266.1,213.8
+vgg13,image-classification,15,224,1,14,4,1, -multicast-weights -aic-enable-depth-first,4,fp16,best-throughput,3482.1,261.1
+vgg13_bn,image-classification,15,224,1,14,2,, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,3538,128.6
+vgg16,image-classification,15,224,1,14,1,1, -aic-enable-depth-first,2,fp16,best-throughput,2753.5,156.3
+vgg16_bn,image-classification,15,224,1,14,1,, -aic-enable-depth-first,3,fp16,best-throughput,2731.6,239
+vgg19,image-classification,15,224,1,14,2,1, -aic-enable-depth-first,2,fp16,best-throughput,2244.4,192.8
+vgg19_bn,image-classification,15,224,1,14,4,1, -aic-enable-depth-first,3,fp16,best-throughput,2329.1,273
+vit_b_16,image-classification,4,224,2,7,4,1, ,2,fp16,best-throughput,1241.4,45.7
+vit_b_32,image-classification,14,224,2,7,2,1, ,6,fp16,best-throughput,5431.9,110.6
+wide_resnet101_2,image-classification,14,224,7,2,2,1, -multicast-weights,2,fp16,best-throughput,1490.3,37.9
+wide_resnet50_2,image-classification,12,224,6,2,2,, ,6,fp16,best-throughput,2808.4,51.9
+,,,,,,,,,,,,,
+alexnet,image-classification,1,224,14,1,1,14, -multicast-weights,1,fp16,best-latency,730.7,1.4
+densenet121,image-classification,1,224,6,2,1,1, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,1513.7,1.3
+densenet161,image-classification,1,224,7,2,1,1, -multicast-weights,1,fp16,best-latency,661.3,3
+densenet169,image-classification,1,224,12,1,1,1, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,532.6,1.9
+densenet201,image-classification,1,224,12,1,1,2, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,473,2.1
+efficientnet_b0,image-classification,1,224,7,2,1,, -multicast-weights,1,fp16,best-latency,1802.6,1.2
+efficientnet_b1,image-classification,1,240,6,2,1,6, -multicast-weights,1,fp16,best-latency,1293.8,1.6
+efficientnet_b2,image-classification,1,260,7,2,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,1001.3,2
+efficientnet_b3,image-classification,1,300,7,2,1,, -multicast-weights,1,fp16,best-latency,756.2,2.7
+efficientnet_b4,image-classification,1,380,14,1,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,282.8,3.5
+efficientnet_b5,image-classification,1,456,12,1,2,12, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,124.9,8
+efficientnet_b6,image-classification,1,528,14,1,1,14, -multicast-weights,1,fp16,best-latency,61.4,16.3
+efficientnet_b7,image-classification,1,600,12,1,1,, ,1,fp16,best-latency,32.2,31
+efficientnet_v2_l,image-classification,1,480,12,1,1,, -multicast-weights,1,fp16,best-latency,99.9,10
+efficientnet_v2_m,image-classification,1,480,12,1,1,, ,1,fp16,best-latency,166.5,6
+efficientnet_v2_s,image-classification,1,384,7,2,1,, -aic-enable-depth-first,1,fp16,best-latency,649.2,3.1
+inception_v3,image-classification,1,299,7,2,1,1, -multicast-weights,1,fp16,best-latency,869.6,2.3
+mnasnet0_5,image-classification,1,224,7,2,1,7, ,1,fp16,best-latency,3508.7,0.6
+mnasnet0_75,image-classification,1,224,12,1,1,, ,1,fp16,best-latency,1658.9,0.6
+mnasnet1_0,image-classification,1,224,14,1,1,, ,1,fp16,best-latency,1567.7,0.6
+mnasnet1_3,image-classification,1,224,14,1,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,1357.8,0.8
+mobilenet_v2,image-classification,1,224,14,1,1,14, ,1,fp16,best-latency,1623.2,0.6
+mobilenet_v3_large,image-classification,1,224,7,2,1,4, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,2477.4,0.9
+mobilenet_v3_small,image-classification,1,224,7,2,1,1, ,1,fp16,best-latency,2827.8,0.8
+resnet101,image-classification,1,224,12,1,1,12, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,606.5,1.6
+resnet152,image-classification,1,224,12,1,1,12, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,450.3,2.2
+resnet18,image-classification,1,224,12,1,1,, ,1,fp16,best-latency,1890,0.6
+resnet34,image-classification,1,224,14,1,1,, ,1,fp16,best-latency,1379.5,0.8
+resnet50,image-classification,1,224,12,1,1,12, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,1075,1
+resnext101_32x8d,image-classification,1,224,12,1,1,, -multicast-weights,1,fp16,best-latency,444.2,2.2
+resnext101_64x4d,image-classification,1,224,12,1,2,, -multicast-weights,1,fp16,best-latency,404.4,2.4
+resnext50_32x4d,image-classification,1,224,12,1,1,12, -multicast-weights,1,fp16,best-latency,1179.9,0.9
+shufflenet_v2_x0_5,image-classification,1,224,3,4,1,1, -multicast-weights,1,fp16,best-latency,5791.9,0.8
+shufflenet_v2_x1_0,image-classification,1,224,7,2,1,7, -multicast-weights,1,fp16,best-latency,2153.7,1
+shufflenet_v2_x1_5,image-classification,1,224,4,3,1,4, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,2934.4,1.1
+shufflenet_v2_x2_0,image-classification,1,224,12,1,1,12, ,1,fp16,best-latency,810.8,1.2
+squeezenet1_0,image-classification,1,224,12,1,1,, ,1,fp16,best-latency,1792,0.6
+squeezenet1_1,image-classification,1,224,14,1,1,2, ,1,fp16,best-latency,1873.8,0.6
+vgg11,image-classification,1,224,14,1,1,4, -multicast-weights,1,fp16,best-latency,341.4,3
+vgg11_bn,image-classification,1,224,14,1,1,, ,1,fp16,best-latency,346.4,2.9
+vgg13,image-classification,1,224,12,1,1,4, ,1,fp16,best-latency,333.5,3
+vgg13_bn,image-classification,1,224,14,1,1,, -multicast-weights,1,fp16,best-latency,324,3.1
+vgg16,image-classification,1,224,12,1,1,12, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,297.2,3.4
+vgg16_bn,image-classification,1,224,14,1,1,1, ,1,fp16,best-latency,294.1,3.3
+vgg19,image-classification,1,224,12,1,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,285,3.6
+vgg19_bn,image-classification,1,224,12,1,1,, -multicast-weights,1,fp16,best-latency,286.4,3.5
+vit_b_16,image-classification,1,224,12,1,1,12, ,1,fp16,best-latency,355.1,2.9
+vit_b_32,image-classification,1,224,14,1,1,14, ,1,fp16,best-latency,509.1,2
+wide_resnet101_2,image-classification,1,224,12,1,1,12, ,1,fp16,best-latency,356,2.9
+wide_resnet50_2,image-classification,1,224,12,1,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,532.9,1.9
