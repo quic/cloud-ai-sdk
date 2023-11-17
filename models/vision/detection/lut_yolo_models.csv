@@ -1,0 +1,16 @@
+﻿MODEL_NAME,TASK,BATCH_SIZE,IMAGE_SIZE,CORES,INSTANCES,OLS,MOS,SET_SIZE,EXTRA,PRECISION,OBJECTIVE
+yolov5s,object-detection,1,640,7,2,2,,1,,fp16,best-latency
+yolov5s,object-detection,1,640,3,4,2,,1,,fp16,balanced
+yolov5s,object-detection,1,640,2,7,2,,2,,fp16,best-throughput
+yolov5m,object-detection,1,640,12,1,1,,1,,fp16,best-latency
+yolov5m,object-detection,1,640,12,1,1,,2,,fp16,balanced
+yolov5m,object-detection,1,640,2,7,2,,2,,fp16,best-throughput
+yolov5l,object-detection,1,640,12,1,1,,1,,fp16,best-latency
+yolov5l,object-detection,1,640,4,3,2,,1,,fp16,balanced
+yolov5l,object-detection,1,640,2,7,4,,2,,fp16,best-throughput
+yolov5x,object-detection,1,640,12,1,1,,1,,fp16,best-latency
+yolov5x,object-detection,1,640,7,2,2,,2,,fp16,balanced
+yolov5x,object-detection,1,640,2,7,4,,1,,fp16,best-throughput
+yolov7-e6e,object-detection,1,640,12,1,1,,1, -multicast-weights,fp16,best-latency
+yolov7-e6e,object-detection,1,640,4,3,2, ,1, -multicast-weights,fp16,balanced
+yolov7-e6e,object-detection,1,640,6,2,2, ,2, -multicast-weights,fp16,best-throughput
