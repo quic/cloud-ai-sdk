@@ -8,18 +8,14 @@ Tutorials are Jupyter notebools designed to walk the developer through the Cloud
 
 
 ### Pre-requisites
-Install qaic python package <br>
-`/opt/qti-aic/dev/python/qaic-env/bin/python3.8 install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl`
-
-### Jupyter Notebook Setup 
-
-`/opt/qti-aic/dev/python/qaic-env/bin/pip install ipykernel`
-
-`/opt/qti-aic/dev/python/qaic-env/bin/python -m ipykernel install --user --name qaic-env --display-name "qaic-env"`
-
-`source /opt/qti-aic/dev/python/qaic-env/bin/activate`
-
-Clone the Cloud AI repo and run `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`
-
-
-
+1. Clone this repo
+2. Create python3.8 venv and activate it.
+   `python3.8 -m venv jn_env`
+   `source jn_env/bin/activate`
+3. Install qaic
+   `pip install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl`
+4. Install Jupyter notebook
+   `pip install notebook`
+   `pip install urllib3==1.26.6`
+5. Run the notebook
+   `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser` 
