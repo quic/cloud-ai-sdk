@@ -1,0 +1,226 @@
+diff --git a/src/transformers/modeling_outputs.py b/src/transformers/modeling_outputs.py
+index aceec7a..e222b7a 100755
+--- a/src/transformers/modeling_outputs.py
++++ b/src/transformers/modeling_outputs.py
+@@ -157,6 +157,7 @@ class BaseModelOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.FloatTensor]=None
+
+
+ @dataclass
+@@ -617,6 +618,7 @@ class CausalLMOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.FloatTensor] = None
+
+
+ @dataclass
+diff --git a/src/transformers/models/gptj/modeling_gptj.py b/src/transformers/models/gptj/modeling_gptj.py
+index d7b0bce..0e66862 100644
+--- a/src/transformers/models/gptj/modeling_gptj.py
++++ b/src/transformers/models/gptj/modeling_gptj.py
+@@ -74,8 +74,10 @@ def rotate_every_two(x: torch.Tensor) -> torch.Tensor:
+
+
+ def apply_rotary_pos_emb(tensor: torch.Tensor, sin: torch.Tensor, cos: torch.Tensor) -> torch.Tensor:
+-    sin = torch.repeat_interleave(sin[:, :, None, :], 2, 3)
+-    cos = torch.repeat_interleave(cos[:, :, None, :], 2, 3)
++    *sin_shape, sin_last_shape = sin.shape
++    sin = sin.reshape(-1, 1).repeat(1, 2).reshape(*sin_shape, 1, 2*sin_last_shape)
++    *cos_shape, cos_last_shape = cos.shape
++    cos = cos.reshape(-1, 1).repeat(1, 2).reshape(*cos_shape, 1, 2*cos_last_shape)
+     return (tensor * cos) + (rotate_every_two(tensor) * sin)
+
+
+@@ -147,12 +149,16 @@ class GPTJAttention(nn.Module):
+         query,
+         key,
+         value,
++        kv_indices,
+         attention_mask=None,
+         head_mask=None,
+     ):
+         # compute causal mask from causal mask buffer
+         query_length, key_length = query.size(-2), key.size(-2)
+-        causal_mask = self.bias[:, :, key_length - query_length : key_length, :key_length]
++        if kv_indices is None:
++            causal_mask = self.bias[:, :, key_length - query_length : key_length, :key_length]
++        else:
++            causal_mask = self.bias[:, :, kv_indices, :key_length]
+
+         # Keep the attention weights computation in fp32 to avoid overflow issues
+         query = query.to(torch.float32)
+@@ -160,7 +166,7 @@ class GPTJAttention(nn.Module):
+
+         attn_weights = torch.matmul(query, key.transpose(-1, -2))
+
+-        mask_value = torch.finfo(attn_weights.dtype).min
++        mask_value = torch.finfo(torch.float16).min
+         # Need to be a tensor, otherwise we get error: `RuntimeError: expected scalar type float but found double`.
+         # Need to be on the same device, otherwise `RuntimeError: ..., x and y to be on the same device`
+         mask_value = torch.tensor(mask_value, dtype=attn_weights.dtype).to(attn_weights.device)
+@@ -195,6 +201,7 @@ class GPTJAttention(nn.Module):
+         self,
+         hidden_states: torch.FloatTensor,
+         layer_past: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         head_mask: Optional[torch.FloatTensor] = None,
+@@ -245,8 +252,15 @@ class GPTJAttention(nn.Module):
+         if layer_past is not None:
+             past_key = layer_past[0]
+             past_value = layer_past[1]
+-            key = torch.cat((past_key, key), dim=-2)
+-            value = torch.cat((past_value, value), dim=-2)
++            # key = torch.cat((past_key, key), dim=-2)
++            # value = torch.cat((past_value, value), dim=-2)
++            seq_length = key.shape[2]
++            assert value.shape[2] == seq_length
++            kv_indices = torch.arange(seq_length) + cache_index
++            past_key[:, :, kv_indices] = key
++            past_value[:, :, kv_indices] = value
++            key = past_key
++            value = past_value
+
+         if use_cache is True:
+             present = (key, value)
+@@ -254,7 +268,10 @@ class GPTJAttention(nn.Module):
+             present = None
+
+         # compute self-attention: V x Softmax(QK^T)
+-        attn_output, attn_weights = self._attn(query, key, value, attention_mask, head_mask)
++        if layer_past is not None:
++            attn_output, attn_weights = self._attn(query, key, value,kv_indices, attention_mask, head_mask)
++        else:
++            attn_output, attn_weights = self._attn(query, key, value, None,attention_mask, head_mask)
+
+         attn_output = self._merge_heads(attn_output, self.num_attention_heads, self.head_dim)
+         attn_output = self.out_proj(attn_output)
+@@ -298,6 +315,7 @@ class GPTJBlock(nn.Module):
+         self,
+         hidden_states: Optional[torch.FloatTensor],
+         layer_past: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         head_mask: Optional[torch.FloatTensor] = None,
+@@ -309,6 +327,7 @@ class GPTJBlock(nn.Module):
+         attn_outputs = self.attn(
+             hidden_states=hidden_states,
+             layer_past=layer_past,
++            cache_index=cache_index,
+             attention_mask=attention_mask,
+             position_ids=position_ids,
+             head_mask=head_mask,
+@@ -557,6 +576,7 @@ class GPTJModel(GPTJPreTrainedModel):
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         token_type_ids: Optional[torch.LongTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+@@ -581,6 +601,7 @@ class GPTJModel(GPTJPreTrainedModel):
+             input_shape = input_ids.size()
+             input_ids = input_ids.view(-1, input_shape[-1])
+             batch_size = input_ids.shape[0]
++            seq_length = input_ids.shape[1]
+         elif inputs_embeds is not None:
+             input_shape = inputs_embeds.size()[:-1]
+             batch_size = inputs_embeds.shape[0]
+@@ -601,15 +622,28 @@ class GPTJModel(GPTJPreTrainedModel):
+         else:
+             past_length = past_key_values[0][0].size(-2)
+
++        # if position_ids is None:
++        #     position_ids = torch.arange(past_length, input_shape[-1] + past_length, dtype=torch.long, device=device)
++        #     position_ids = position_ids.unsqueeze(0).view(-1, input_shape[-1])
++
+         if position_ids is None:
+-            position_ids = torch.arange(past_length, input_shape[-1] + past_length, dtype=torch.long, device=device)
+-            position_ids = position_ids.unsqueeze(0).view(-1, input_shape[-1])
++           if attention_mask is None:
++                position_ids = torch.arange(past_length, input_shape[-1] + past_length, dtype=torch.long, device=device)
++                position_ids = position_ids.unsqueeze(0).view(-1, input_shape[-1])
++           else:
++                position_ids = (torch.cumsum(attention_mask, 1) - 1) * attention_mask
++                if past_length > 0:
++                    position_ids = position_ids[:, cache_index].unsqueeze(1)
++
+
+         # Attention mask.
+         if attention_mask is not None:
+             if batch_size <= 0:
+                 raise ValueError("batch_size has to be defined and > 0")
+             attention_mask = attention_mask.view(batch_size, -1)
++            if cache_index is not None:
++                attention_mask[:, cache_index + seq_length - 1] = True
++                attention_mask_retained = attention_mask
+             # We create a 3D attention mask from a 2D tensor mask.
+             # Sizes are [batch_size, 1, 1, to_seq_length]
+             # So we can broadcast to [batch_size, num_heads, from_seq_length, to_seq_length]
+@@ -623,8 +657,8 @@ class GPTJModel(GPTJPreTrainedModel):
+             # Since we are adding it to the raw scores before the softmax, this is
+             # effectively the same as removing these entirely.
+             attention_mask = attention_mask.to(dtype=self.dtype)  # fp16 compatibility
+-            attention_mask = (1.0 - attention_mask) * torch.finfo(self.dtype).min
+-
++            # attention_mask = (1.0 - attention_mask) * torch.finfo(self.dtype).min
++            attention_mask = (1.0 - attention_mask) * torch.finfo(torch.float16).min
+         # Prepare head mask if needed
+         # 1.0 in head_mask indicate we keep the head
+         # attention_probs has shape bsz x num_attention_heads x N x N
+@@ -690,6 +724,7 @@ class GPTJModel(GPTJPreTrainedModel):
+                 outputs = block(
+                     hidden_states=hidden_states,
+                     layer_past=layer_past,
++                    cache_index=cache_index,
+                     attention_mask=attention_mask,
+                     position_ids=position_ids,
+                     head_mask=head_mask[i],
+@@ -725,6 +760,7 @@ class GPTJModel(GPTJPreTrainedModel):
+             past_key_values=presents,
+             hidden_states=all_hidden_states,
+             attentions=all_self_attentions,
++            attention_mask_RetainedState=attention_mask_retained if past_length>0  else None,
+         )
+
+
+@@ -833,6 +869,7 @@ class GPTJForCausalLM(GPTJPreTrainedModel):
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         token_type_ids: Optional[torch.LongTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+@@ -855,6 +892,7 @@ class GPTJForCausalLM(GPTJPreTrainedModel):
+         transformer_outputs = self.transformer(
+             input_ids,
+             past_key_values=past_key_values,
++            cache_index=cache_index,
+             attention_mask=attention_mask,
+             token_type_ids=token_type_ids,
+             position_ids=position_ids,
+@@ -875,7 +913,8 @@ class GPTJForCausalLM(GPTJPreTrainedModel):
+         # make sure sampling in fp16 works correctly and
+         # compute loss in fp32 to match with mesh-tf version
+         # https://github.com/EleutherAI/gpt-neo/blob/89ce74164da2fb16179106f54e2269b5da8db333/models/gpt2/gpt2.py#L179
+-        lm_logits = self.lm_head(hidden_states).to(torch.float32)
++        # lm_logits = self.lm_head(hidden_states).to(torch.float32)
++        lm_logits=self.lm_head(hidden_states[:,-1:]).to(torch.float32)
+
+         loss = None
+         if labels is not None:
+@@ -900,6 +939,7 @@ class GPTJForCausalLM(GPTJPreTrainedModel):
+             past_key_values=transformer_outputs.past_key_values,
+             hidden_states=transformer_outputs.hidden_states,
+             attentions=transformer_outputs.attentions,
++            attention_mask_RetainedState=transformer_outputs.attention_mask_RetainedState
+         )
+
+     @staticmethod

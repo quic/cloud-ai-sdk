@@ -1,0 +1,228 @@
+From 5c5388336bdae71c7547efa353bffa25ab49ddda Mon Sep 17 00:00:00 2001
+From: root <root@gb-blr-31.qualcomm.com>
+Date: Fri, 29 Sep 2023 11:15:42 +0000
+Subject: [PATCH] Add KV Changes to GPT2 Models CausalMask Fix
+
+---
+ src/transformers/modeling_outputs.py          |  8 +++-
+ src/transformers/models/gpt2/modeling_gpt2.py | 45 ++++++++++++++-----
+ 2 files changed, 42 insertions(+), 11 deletions(-)
+
+diff --git a/src/transformers/modeling_outputs.py b/src/transformers/modeling_outputs.py
+index aceec7abd..e490fe8fa 100755
+--- a/src/transformers/modeling_outputs.py
++++ b/src/transformers/modeling_outputs.py
+@@ -157,6 +157,7 @@ class BaseModelOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -189,8 +190,10 @@ class BaseModelOutputWithCrossAttentions(ModelOutput):
+     last_hidden_state: torch.FloatTensor = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
+-
++
+
+ @dataclass
+ class BaseModelOutputWithPoolingAndCrossAttentions(ModelOutput):
+@@ -284,6 +287,7 @@ class BaseModelOutputWithPastAndCrossAttentions(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[Tuple[torch.BoolTensor]]  =None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
+ 
+ 
+@@ -617,6 +621,7 @@ class CausalLMOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -660,6 +665,7 @@ class CausalLMOutputWithCrossAttentions(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
+ 
+ 
+diff --git a/src/transformers/models/gpt2/modeling_gpt2.py b/src/transformers/models/gpt2/modeling_gpt2.py
+index 8f0bb600c..ca430c65b 100644
+--- a/src/transformers/models/gpt2/modeling_gpt2.py
++++ b/src/transformers/models/gpt2/modeling_gpt2.py
+@@ -179,7 +179,7 @@ class GPT2Attention(nn.Module):
+         self.num_heads = self.num_heads - len(heads)
+         self.pruned_heads = self.pruned_heads.union(heads)
+ 
+-    def _attn(self, query, key, value, attention_mask=None, head_mask=None):
++    def _attn(self, query, key, value, kv_indices, attention_mask=None, head_mask=None):
+         attn_weights = torch.matmul(query, key.transpose(-1, -2))
+ 
+         if self.scale_attn_weights:
+@@ -194,8 +194,12 @@ class GPT2Attention(nn.Module):
+         if not self.is_cross_attention:
+             # if only "normal" attention layer implements causal mask
+             query_length, key_length = query.size(-2), key.size(-2)
+-            causal_mask = self.bias[:, :, key_length - query_length : key_length, :key_length]
+-            mask_value = torch.finfo(attn_weights.dtype).min
++            # causal_mask = self.bias[:, :, key_length - query_length : key_length, :key_length]
++            if kv_indices is None:
++                causal_mask = self.bias[:, :, key_length - query_length : key_length, :key_length]
++            else:
++                causal_mask = self.bias[:, :, kv_indices, :key_length]
++            mask_value = torch.finfo(torch.float16).min
+             # Need to be a tensor, otherwise we get error: `RuntimeError: expected scalar type float but found double`.
+             # Need to be on the same device, otherwise `RuntimeError: ..., x and y to be on the same device`
+             mask_value = torch.full([], mask_value, dtype=attn_weights.dtype).to(attn_weights.device)
+@@ -291,6 +295,7 @@ class GPT2Attention(nn.Module):
+         self,
+         hidden_states: Optional[Tuple[torch.FloatTensor]],
+         layer_past: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         head_mask: Optional[torch.FloatTensor] = None,
+         encoder_hidden_states: Optional[torch.Tensor] = None,
+@@ -316,19 +321,26 @@ class GPT2Attention(nn.Module):
+         value = self._split_heads(value, self.num_heads, self.head_dim)
+ 
+         if layer_past is not None:
+-            past_key, past_value = layer_past
+-            key = torch.cat((past_key, key), dim=-2)
+-            value = torch.cat((past_value, value), dim=-2)
++            past_key = layer_past[0]
++            past_value = layer_past[1]
++            seq_length = key.shape[2]
++
++            assert value.shape[2] == seq_length
++            kv_indices = torch.arange(seq_length) + cache_index
++            past_key[:, :, kv_indices] = key
++            past_value[:,:,kv_indices] = value
++            key = past_key
++            value = past_value
+ 
+         if use_cache is True:
+             present = (key, value)
+         else:
+             present = None
+ 
+-        if self.reorder_and_upcast_attn:
+-            attn_output, attn_weights = self._upcast_and_reordered_attn(query, key, value, attention_mask, head_mask)
++        if layer_past is not None:
++            attn_output, attn_weights = self._attn(query, key, value,kv_indices, attention_mask, head_mask)
+         else:
+-            attn_output, attn_weights = self._attn(query, key, value, attention_mask, head_mask)
++            attn_output, attn_weights = self._attn(query, key, value, None,attention_mask, head_mask)
+ 
+         attn_output = self._merge_heads(attn_output, self.num_heads, self.head_dim)
+         attn_output = self.c_proj(attn_output)
+@@ -378,6 +390,7 @@ class GPT2Block(nn.Module):
+         self,
+         hidden_states: Optional[Tuple[torch.FloatTensor]],
+         layer_past: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.Tensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         head_mask: Optional[torch.FloatTensor] = None,
+         encoder_hidden_states: Optional[torch.Tensor] = None,
+@@ -390,6 +403,7 @@ class GPT2Block(nn.Module):
+         attn_outputs = self.attn(
+             hidden_states,
+             layer_past=layer_past,
++            cache_index=cache_index,
+             attention_mask=attention_mask,
+             head_mask=head_mask,
+             use_cache=use_cache,
+@@ -754,6 +768,7 @@ class GPT2Model(GPT2PreTrainedModel):
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
++        cache_index: Optional[torch.Tensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         token_type_ids: Optional[torch.LongTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+@@ -780,6 +795,7 @@ class GPT2Model(GPT2PreTrainedModel):
+             input_shape = input_ids.size()
+             input_ids = input_ids.view(-1, input_shape[-1])
+             batch_size = input_ids.shape[0]
++            seq_length = input_ids.shape[1]
+         elif inputs_embeds is not None:
+             input_shape = inputs_embeds.size()[:-1]
+             batch_size = inputs_embeds.shape[0]
+@@ -807,6 +823,9 @@ class GPT2Model(GPT2PreTrainedModel):
+             if batch_size <= 0:
+                 raise ValueError("batch_size has to be defined and > 0")
+             attention_mask = attention_mask.view(batch_size, -1)
++            if cache_index is not None:
++                attention_mask[:, cache_index + seq_length - 1] = True
++                attention_mask_retained = attention_mask.clone()
+             # We create a 3D attention mask from a 2D tensor mask.
+             # Sizes are [batch_size, 1, 1, to_seq_length]
+             # So we can broadcast to [batch_size, num_heads, from_seq_length, to_seq_length]
+@@ -820,7 +839,7 @@ class GPT2Model(GPT2PreTrainedModel):
+             # Since we are adding it to the raw scores before the softmax, this is
+             # effectively the same as removing these entirely.
+             attention_mask = attention_mask.to(dtype=self.dtype)  # fp16 compatibility
+-            attention_mask = (1.0 - attention_mask) * torch.finfo(self.dtype).min
++            attention_mask = (1.0 - attention_mask) * torch.finfo(torch.float16).min
+ 
+         # If a 2D or 3D attention mask is provided for the cross-attention
+         # we need to make broadcastable to [batch_size, num_heads, seq_length, seq_length]
+@@ -900,6 +919,7 @@ class GPT2Model(GPT2PreTrainedModel):
+                 outputs = block(
+                     hidden_states,
+                     layer_past=layer_past,
++                    cache_index=cache_index,
+                     attention_mask=attention_mask,
+                     head_mask=head_mask[i],
+                     encoder_hidden_states=encoder_hidden_states,
+@@ -942,6 +962,7 @@ class GPT2Model(GPT2PreTrainedModel):
+             past_key_values=presents,
+             hidden_states=all_hidden_states,
+             attentions=all_self_attentions,
++            attention_mask_RetainedState=attention_mask_retained if past_length>0  else None,
+             cross_attentions=all_cross_attentions,
+         )
+ 
+@@ -1052,6 +1073,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
++        cache_index: Optional[torch.Tensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         token_type_ids: Optional[torch.LongTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+@@ -1076,6 +1098,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
+         transformer_outputs = self.transformer(
+             input_ids,
+             past_key_values=past_key_values,
++            cache_index=cache_index,
+             attention_mask=attention_mask,
+             token_type_ids=token_type_ids,
+             position_ids=position_ids,
+@@ -1095,6 +1118,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
+             torch.cuda.set_device(self.transformer.first_device)
+             hidden_states = hidden_states.to(self.lm_head.weight.device)
+ 
++        hidden_states = hidden_states[:, -1:]
+         lm_logits = self.lm_head(hidden_states)
+ 
+         loss = None
+@@ -1118,6 +1142,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
+             past_key_values=transformer_outputs.past_key_values,
+             hidden_states=transformer_outputs.hidden_states,
+             attentions=transformer_outputs.attentions,
++            attention_mask_RetainedState = transformer_outputs.attention_mask_RetainedState,
+             cross_attentions=transformer_outputs.cross_attentions,
+         )
+ 
+-- 
+2.41.0
