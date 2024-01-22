@@ -59,7 +59,7 @@ Models will be generated in the `Amber-kv` subdirectory.
 | 13B  | MX6  | FP16 and MX6 |
 
 #### Tested Configurations for AWS DL2q Instance 
-|# Parameters | Ctx_len  | seq_len aka input-len | Batch-Size | MX6/FP16 | 
+|# Parameters | Ctx_len  | seq_len aka input-len | Batch-Size | MX6/FP16 |
 | ------ | ------------- | ------------- | ----------------- | -------- | 
 |7B | 2048  | 256  | 1 | FP16 | 
 |7B | 2048 | 256 | 1 | MX6 | 
