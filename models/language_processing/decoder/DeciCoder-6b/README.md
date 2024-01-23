@@ -53,8 +53,7 @@ Generate the model into onnx format.
 ## Model Compilation for AIC100
 Compile the onnx format into bin file. Modify BS, PL, CL, CORES, and MX if needed.
 
-        sed -e "s/BS/${BS}/g" -e "s/PL/${PL}/g" -e "s/CL/${CL}/g" ./specializations_template.json > specializations.json		
-        bash compileModel.sh $MODEL_NAME $CORES $MX
+        bash compileModel.sh $MODEL_NAME $BS $PL $CL $CORES $MX
 
 ## Model Execution on AIC100
 Run the bin file on AIC100. Modify DEVICE_ID if needed.
