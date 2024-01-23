@@ -26,8 +26,8 @@ Create Python virtual environment and activate.
 
 Install the dependencies.
 
-        python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-        python -m pip install onnx==1.14.0 onnxruntime==1.15.1 onnxsim==0.4.31 protobuf==3.20.2 tiktoken
+        python -m pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
+        python -m pip install onnx==1.15.0 onnxruntime==1.16.3 onnxsim==0.4.35 tiktoken==0.5.2 protobuf==3.20.2 urllib3==1.26.6 
         git clone --branch v4.35.2 --depth 1 https://github.com/huggingface/transformers
         cd transformers
         git apply ../Llama2_4.35.2.patch
@@ -35,7 +35,7 @@ Install the dependencies.
         cd ..
 
 ## Model and Hardware Parameters
-Specify the model name and the compilation parameters. Model will be compiled using MX compression. Let MX="" if you want to avoid MX compression. BS, PL and CL are Batchsize, Prompt and Context Length respectively. 
+Specify the model repo/name and the compilation parameters. Model will be compiled using MX6 compression. Let MX="" if you want to avoid MX6 compression. BS, PL and CL are Batchsize, Prompt Length and Context Length respectively. 
 
         MODEL_REPO="Deci"
         MODEL_NAME="DeciCoder-6b"
