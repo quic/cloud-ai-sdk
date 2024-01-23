@@ -8,16 +8,18 @@ if [ -z "$1" ]; then
 fi
 
 model_name="$1"
-prompt_len=$(grep seq_len specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
-ctx_len=$(grep ctx_len specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
-num_cores="$2"
-num_blocks=$(grep 'value.' ${model_name}-kv/custom_io.yaml | tail -n1 | grep -Eo '[[:digit:]]+')
-with_or_no_mx="$3"
+batch_size="$2"
+prompt_len="$3"
+ctx_len="$4"
+num_cores="$5"
+with_or_no_mx="$6"
 
+# Generate a new specializations.json
+sed -e "s/BS/${batch_size}/g" -e "s/PL/${prompt_len}/g" -e "s/CL/${ctx_len}/g" ./specializations_template.json > specializations.json
 
-
-# Create qpc directory
+# Create qpc directory - Delete exisiting path 
 mkdir -p qpc
+rm -rf qpc/${model_name}-kv-${prompt_len}pl-${ctx_len}cl-${num_cores}c${with_or_no_mx}
 
 model_path="${model_name}-kv/generatedModels/${model_name}-kv_fp16_simplified.onnx"
 if [ ! -f "$model_path" ]; then
