@@ -1,25 +1,16 @@
-# -----------------------------------------------------------------------------
-#
-# Qualcomm Technologies, Inc. Proprietary
-# (c) 2023 Qualcomm Technologies, Inc. All rights reserved.
-#
-# All data and information contained in or disclosed by this document are
-# confidential and proprietary information of Qualcomm Technologies, Inc., and
-# all rights therein are expressly reserved. By accepting this material, the
-# recipient agrees that this material and the information contained therein
-# are held in confidence and in trust and will not be used, copied, reproduced
-# in whole or in part, nor its contents revealed in any manner to others
-# without the express written permission of Qualcomm Technologies, Inc.
-#
-# -----------------------------------------------------------------------------
+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
 
 import os
 from typing import Optional, Dict, List
+import shutil
 import numpy as np
 import torch
 import transformers
+import onnx
+from transformers.modeling_utils import load_sharded_checkpoint
 
-from generateModel import (
+from util import (
     arg_parser,
     fix_onnx_fp16,
     generate_input_files,
@@ -27,6 +18,13 @@ from generateModel import (
     run_model_on_ort,
     simplify_onnx,
 )
+
+seed = 0
+transformers.set_seed(int(seed))
+torch.random.manual_seed = seed
+
+cache_dir = os.path.join(os.path.realpath(os.path.dirname(__file__)), "hf_model_files")
+os.environ["TRANSFORMERS_CACHE"] = cache_dir
 
 
 def export_onnx(
@@ -77,14 +75,48 @@ def export_onnx(
     if "past_key.0" in input_names and "attention_mask" in input_names:
         dynamic_axes["attention_mask"] = {0: "batch_size", 1: "ctx_len"}
 
+    # return input_names, output_names, model_base_name
+    os.makedirs(f"{gen_models_path}_tmp", exist_ok=True)
     torch.onnx.export(
         pt_model,
         tuple(pt_inputs),
-        f"{gen_models_path}/{model_base_name}.onnx",
+        f"{gen_models_path}_tmp/{model_base_name}.onnx",
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic_axes,
+        opset_version=13,
     )
+    onnx.checker.check_model(f"{gen_models_path}_tmp/{model_base_name}.onnx")
+    loaded_model = onnx.load(f"{gen_models_path}_tmp/{model_base_name}.onnx")
+    shutil.rmtree(f"{gen_models_path}_tmp")
+    os.makedirs(f"{gen_models_path}", exist_ok=True)
+    print("Clearing files .. ")
+
+    # Save model to single weight file
+    onnx.save_model(
+        loaded_model,
+        f"{gen_models_path}/{model_base_name}.onnx",
+        save_as_external_data=True,
+        all_tensors_to_one_file=True,
+        location=f"{model_base_name}.onnxweights.data",
+        size_threshold=1024,
+        convert_attribute=False,
+    )
+    onnx.checker.check_model(f"{gen_models_path}/{model_base_name}.onnx")
+
+    # Run shape inference in intial model itself
+    onnx.shape_inference.infer_shapes_path(
+        f"{gen_models_path}/{model_base_name}.onnx",
+        f"{gen_models_path}/{model_base_name}.onnx",
+        True,
+        True,
+        True,
+    )
+
+    print(f"input names {input_names}")
+    print(f"output names {output_names}")
+    print(f"Initial Model Export Completed...{model_base_name}")
+    # return input_names, output_names, model_base_name
 
     return model_base_name
 
@@ -106,23 +138,24 @@ def main(
         model_path = model_base_name
 
     # Load tokenizer
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, padding_side="left")
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, padding_side="left", trust_remote_code=True)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
     # Load model
-    model = model_class.from_pretrained(model_name, use_cache=True, use_auth_token=use_auth_token)
+    model = model_class.from_pretrained(model_name, use_cache=True, use_auth_token=use_auth_token, trust_remote_code=True)
     model.eval()
 
     # Preprocess inputs
-    input_str = ["My name is Sarah.", "I live in London."]
+    input_str = ["insert your prompt here", "insert your prompt here"]
     if seq_len > 0:
         inputs = tokenizer(input_str, return_tensors="pt", padding=True)
         batch_size, prompt_len = inputs["input_ids"].shape
         inputs["input_ids"] = torch.concat(
             [
                 inputs["input_ids"],
-                torch.full((batch_size, seq_len - prompt_len), tokenizer.pad_token_id),
+                # torch.full((batch_size, seq_len - prompt_len), tokenizer.pad_token_id),
+                torch.full((batch_size, seq_len - prompt_len), 0),
             ],
             1,
         )
@@ -146,14 +179,15 @@ def main(
     assert "past_key_values" in output_names, "past_key_values not found in output"
 
     # Build inputs for next iteration from outputs
-    cache_index = torch.tensor(prompt_len)
+    cache_index = torch.tensor([prompt_len])
     # inputs["input_ids"] = pt_outputs.logits.detach().argmax(2)
     inputs["input_ids"] = tokenizer(["I have"] * 2, return_tensors="pt").input_ids[:, -2:]
     inputs["position_ids"] = inputs["attention_mask"].sum(1, keepdim=True)
     inputs["position_ids"] = inputs["position_ids"].repeat(1, 2) + torch.arange(2).view(1, 2)
     inputs["attention_mask"] = inputs["attention_mask"].bool()
     inputs["cache_index"] = cache_index
-
+    
+    # breakpoint()
     # Add past_key_values into inputs
     inputs["past_key_values"] = tuple(
         [(key.detach(), value.detach()) for key, value in pt_outputs.past_key_values]
@@ -162,6 +196,7 @@ def main(
     # Run PyTorch inference with past
     pt_outputs = model(**inputs)
     output_names = list(pt_outputs.keys())
+    # breakpoint()
 
     # Add pkv into output_names
     pkv = tuple([(key.detach(), value.detach()) for key, value in pt_outputs.past_key_values])
@@ -179,8 +214,9 @@ def main(
     # Export and simplify ONNX model
     gen_models_path = f"{model_path}/generatedModels"
     os.makedirs(gen_models_path, exist_ok=True)
+    # breakpoint()
     fp32_model_name = export_onnx(model, inputs, output_names, gen_models_path, model_base_name)
-    fp32_model_name = simplify_onnx(gen_models_path, fp32_model_name, mutable_initializer=True)
+    # fp32_model_name = simplify_onnx(gen_models_path, fp32_model_name, mutable_initializer=True)
 
     # Replace nested past_key_values inputs with separate KV tensors
     inputs.pop("past_key_values")
@@ -227,7 +263,17 @@ def main(
 
     # AICOutputs
     write_output_dir = f"{model_path}/AICOutputs"
+    os.makedirs(f"{write_output_dir}/FP32", exist_ok=True)
     os.makedirs(f"{write_output_dir}/FP16", exist_ok=True)
+
+    # Run on AIC in FP32
+    assert run_model_on_aic(
+        f"{gen_models_path}/{fp32_model_name}.onnx",
+        onnx_symbol_defs=onnx_symbol_defs,
+        input_list_file=input_list_file,
+        convert_to_fp16=False,
+        write_output_dir=f"{write_output_dir}/FP32",
+    ), "Compilation failed"
 
     # Run on AIC in FP16
     assert run_model_on_aic(
@@ -241,6 +287,12 @@ def main(
     # Verify outputs
     print("ONNXRT vs. AIC (MAD)")
     for oname, orto in zip(output_names, ort_outputs):
+        aico32 = np.fromfile(
+            f"{write_output_dir}/FP32/{oname}-activation-0-inf-0.bin", orto.dtype
+        ).reshape(orto.shape)
+        diff32 = np.abs(orto.astype(np.float32) - aico32.astype(np.float32)).max()
+        print(oname, "FP32:", diff32)
+
         aico16 = np.fromfile(
             f"{write_output_dir}/FP16/{oname}-activation-0-inf-0.bin", orto.dtype
         ).reshape(orto.shape)

@@ -1,0 +1,14 @@
+{
+	"specializations": [
+		{
+			"batch_size": "BS",
+			"seq_len": "PL",
+			"ctx_len": "CL"
+		},
+		{
+			"batch_size": "BS",
+			"seq_len": "1",
+			"ctx_len": "CL"
+		}
+	]
+}
