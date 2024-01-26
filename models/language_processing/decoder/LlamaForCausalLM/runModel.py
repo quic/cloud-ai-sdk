@@ -53,7 +53,6 @@ def main(
     model_name: str,
     qpc: str,
     prompt: List[str],
-    input_len: Optional[int] = None,
     stream: bool = True,
     device_id: List[int] = [0],
     enable_debug_logs: bool = False,
@@ -68,17 +67,26 @@ def main(
         [x[session.binding_index_map["input_ids"]][1][1] for x in session.allowed_shapes]
     )
     ctx_len = session.allowed_shapes[0][session.binding_index_map["attention_mask"]][1][1]
-    if input_len is None:
-        input_len = prompt_len
-    num_chunks = -(input_len // -prompt_len)  # ceil divide without float
-    input_len = num_chunks * prompt_len  # Convert input_len to a multiple of prompt_len
-    assert input_len <= ctx_len, "input_len should be less than ctx_len"
     # Skip inputs/outputs
     session.skip_buffers([x for x in session.input_names if x.startswith("past_")])
     session.skip_buffers([x for x in session.output_names if x.endswith("_RetainedState")])
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, padding_side="left")
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
+
+    max_prompt = max(prompt,key=len)
+    tok_max_prompt = tokenizer.encode(max_prompt)
+    if len(tok_max_prompt) > 1:
+        num_chunks = -(len(tok_max_prompt)// -prompt_len)
+        input_len= num_chunks * prompt_len
+    else:
+        num_chunks = 1
+        input_len= prompt_len
+
+
+    print("==============================Start of Inference=================================")
+    print("Input Prompt length = "+ str(input_len))
+    print("---------------------------------------------------------------------------")
     # Prepare inputs for first iteration
     start = perf_counter()
     inputs = tokenizer(prompt, return_tensors="np", padding="max_length", max_length=input_len)
@@ -173,7 +181,6 @@ if __name__ == "__main__":
         default="My name is",
         help="Input prompt(s) to generate for (pipe-separated)",
     )
-    argp.add_argument("--input-len", type=int, help="Input length")
     argp.add_argument(
         "--no-stream", action="store_false", dest="stream", help="Don't stream output text"
     )

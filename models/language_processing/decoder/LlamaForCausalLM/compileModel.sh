@@ -25,6 +25,7 @@ prec="$2"
 num_cores="$3"
 prompt_len=$(grep seq_len specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
 ctx_len=$(grep ctx_len specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
+batch_size=$(grep batch_size specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
 num_blocks=$(grep 'value.' ${model_name}/custom_io.yaml | tail -n1 | grep -Eo '[[:digit:]]+')
 
 # Create qpc directory
@@ -50,7 +51,7 @@ fi
 	-aic-num-cores=${num_cores} \
 	-custom-IO-list-file=${model_name}/custom_io.yaml \
 	-compile-only \
-	-aic-binary-dir=qpc/${model_name}-${prompt_len}pl-${ctx_len}cl-${num_cores}c \
+	-aic-binary-dir=qpc/${model_name}-${prompt_len}pl-${ctx_len}cl-${num_cores}c-${batch_size}BS \
 	${prec}
 
 
