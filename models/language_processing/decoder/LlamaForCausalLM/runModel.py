@@ -151,25 +151,20 @@ def main(
     for i in range(1 if stream else 0, batch_size):
         print()
         print(i, prompt[i], generated_texts[i])
-    prefill_perf = 1 / (loop_start - start)
+    prefill_perf = loop_start - start
     decode_perf = (cache_index.item() - input_len - 1) / (end - loop_start)
     total_perf = (cache_index.item() - input_len) / (end - start)
     print()
+    print("------------Performance---------------")
     if automation:
-        print()
-        print("input=", prompt)
         print("output=", generated_texts)
-        print("Prefill token/sec is=", round(prefill_perf * batch_size, 2))
-        print("Decode token/sec is=", round(decode_perf * batch_size, 2))
-        print("Total token/sec is=", round(total_perf * batch_size, 2))
+        print("Output Token/sec per Card =", round(decode_perf * batch_size, 2))
         return
-    print("Prefill:", round(prefill_perf, 2), "tok/s")
-    print("Decode:", round(decode_perf, 2), "tok/s")
-    print("E2E:", round(total_perf, 2), "tok/s")
-    if batch_size > 1:
-        print("Prefill (batch):", round(prefill_perf * batch_size, 2), "tok/s")
-        print("Decode (batch):", round(decode_perf * batch_size, 2), "tok/s")
-        print("E2E (batch):", round(total_perf * batch_size, 2), "tok/s")
+    print("Output Tokens/sec per Card =", round(decode_perf * batch_size, 2))
+    print("")
+    print("Note:An AI 100 Cloud instance/server typically consists of 2/4/8/16 or more accelrator cards. The Output Tokens/sec should be scaled linearly to get the Output Tokens/sec per instance/server. For example, the Output tokens/sec should be multiplied by 8 for an AWS DL2q instance.")
+    print("=========================END==============================")
+
 if __name__ == "__main__":
     import argparse
     argp = argparse.ArgumentParser()
