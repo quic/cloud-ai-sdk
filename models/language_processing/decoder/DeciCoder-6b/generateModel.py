@@ -9,6 +9,7 @@ import torch
 import transformers
 import onnx
 from transformers.modeling_utils import load_sharded_checkpoint
+from huggingface_hub import snapshot_download
 
 from util import (
     arg_parser,
@@ -143,6 +144,7 @@ def main(
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
     # Load model
+    snapshot_download(repo_id=model_name)
     model = model_class.from_pretrained(model_name, use_cache=True, use_auth_token=use_auth_token, trust_remote_code=True)
     model.eval()
 
