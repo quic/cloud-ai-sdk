@@ -63,10 +63,14 @@ def main(
     session = QAICInferenceSession(qpc, device_id, enable_debug_logs=enable_debug_logs)
     #session = QAICInferenceSession(qpc, device_id, enable_debug=enable_debug_logs)
     # Read prompt and ctx len from session
-    prompt_len = max(
-        [x[session.binding_index_map["input_ids"]][1][1] for x in session.allowed_shapes]
-    )
-    ctx_len = session.allowed_shapes[0][session.binding_index_map["attention_mask"]][1][1]
+    if  len(session.allowed_shapes)>0:
+        prompt_len = max(
+            [x[session.binding_index_map["input_ids"]][1][1] for x in session.allowed_shapes]
+        )
+        ctx_len = session.allowed_shapes[0][session.binding_index_map["attention_mask"]][1][1]
+    else:
+        prompt_len = 1
+        ctx_len = session.bindings[session.binding_index_map["attention_mask"]].dims[1]
     # Skip inputs/outputs
     session.skip_buffers([x for x in session.input_names if x.startswith("past_")])
     session.skip_buffers([x for x in session.output_names if x.endswith("_RetainedState")])
@@ -74,10 +78,10 @@ def main(
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    max_prompt = max(prompt,key=len)
-    tok_max_prompt = tokenizer.encode(max_prompt)
-    if len(tok_max_prompt) > 1:
-        num_chunks = -(len(tok_max_prompt)// -prompt_len)
+    tok_prompt = [tokenizer.encode(x) for x in prompt]
+    max_prompt_len = len(max(tok_prompt,key=len))
+    if max_prompt_len > 1:
+        num_chunks = -(max_prompt_len// -prompt_len)
         input_len= num_chunks * prompt_len
     else:
         num_chunks = 1
@@ -162,7 +166,7 @@ def main(
         return
     print("Output Tokens/sec per Card =", round(decode_perf * batch_size, 2))
     print("")
-    print("Note:An AI 100 Cloud instance/server typically consists of 2/4/8/16 or more accelrator cards. The Output Tokens/sec should be scaled linearly to get the Output Tokens/sec per instance/server. For example, the Output tokens/sec should be multiplied by 8 for an AWS DL2q instance.")
+    print("Note:An AI 100 Cloud instance/server typically consists of 2/4/8/16 or more accelerator cards. The Output Tokens/sec should be scaled linearly to get the Output Tokens/sec per instance/server. For example, the Output tokens/sec should be multiplied by 8 for an AWS DL2q instance.")
     print("=========================END==============================")
 
 if __name__ == "__main__":
