@@ -1,7 +1,7 @@
 {
     "specializations": [
         {
-            "batch_size": "128",
+            "batch_size": "64",
             "seq_len": "1",
             "ctx_len": "256"
         }
