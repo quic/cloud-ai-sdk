@@ -69,9 +69,11 @@ Models will be generated in the `Amber-kv` subdirectory.
 | ------ | ------------- | ------------- | ----------------- | -------- | ------ |
 |7B | 2048  | 256  | 1 | FP16 | use compileModel.sh |
 |7B | 2048 | 256 | 1 | MX6 | use compileModel.sh | 
-|7B | 2048 | 1 to 2048 | 1/2/4/8/16/32/64 | MX6 | use compileModel_pl1.sh |
+|7B | 2048 | 1 to 1536 | 1/2/4/8 | MX6 | use compileModel_pl1.sh |
+|7B | 256 | 1 to 256 | 1/2/4/8/16/32/64 | MX6 | use compileModel_pl1.sh |
+|7B | 256 | 1 to 256 | 1/2/4/8 | FP16| use compileModel_pl1.sh |
+|7B | 1536 | 1 to 1536 | 1/2 | FP16| use compileModel_pl1.sh |
 | 13B | 2048 | 256 | 1 | MX6 | use compileModel.sh |
-
 
 ## Model execution
 
