@@ -1,0 +1,7 @@
+torch==2.0.1
+torch --index-url https://download.pytorch.org/whl/cpu
+onnx==1.14.0
+onnxruntime==1.15.1
+onnxsim==0.4.31
+protobuf==3.20.2
+urllib3==1.26.6

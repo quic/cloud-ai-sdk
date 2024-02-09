@@ -1,0 +1,417 @@
+diff --git a/src/transformers/modeling_outputs.py b/src/transformers/modeling_outputs.py
+index aceec7a..e1fade1 100755
+--- a/src/transformers/modeling_outputs.py
++++ b/src/transformers/modeling_outputs.py
+@@ -157,6 +157,7 @@ class BaseModelOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -285,6 +286,7 @@ class BaseModelOutputWithPastAndCrossAttentions(ModelOutput):
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -617,6 +619,7 @@ class CausalLMOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -661,6 +664,7 @@ class CausalLMOutputWithCrossAttentions(ModelOutput):
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+diff --git a/src/transformers/models/mpt/modeling_mpt.py b/src/transformers/models/mpt/modeling_mpt.py
+index 0c608db..4460c09 100644
+--- a/src/transformers/models/mpt/modeling_mpt.py
++++ b/src/transformers/models/mpt/modeling_mpt.py
+@@ -55,46 +55,98 @@ MPT_PRETRAINED_MODEL_ARCHIVE_LIST = [
+ ]
+ 
+ 
+-# Copied from transformers.models.bloom.modeling_bloom._make_causal_mask
++# # Copied from transformers.models.bloom.modeling_bloom._make_causal_mask
+ def _make_causal_mask(
+-    input_ids_shape: torch.Size, device: torch.device, past_key_values_length: int
++    input_ids_shape: torch.Size, dtype: torch.dtype, device: torch.device, past_key_values_length: int = 0,
++    cache_index: Optional[torch.LongTensor] = None,
+ ) -> torch.BoolTensor:
+     """
+     Make causal mask used for self-attention.
+     """
+     batch_size, target_length = input_ids_shape
++    min_val = -32000
+     mask = torch.empty((target_length, target_length + past_key_values_length), dtype=torch.bool, device=device)
+     # ONNX doesn't support `torch.Tensor.triu` properly, thus we use this workaround
+     seq_ids = torch.arange(target_length, device=device)
+     mask[:, past_key_values_length:] = seq_ids[:, None] < seq_ids[None, :]
+ 
+     if past_key_values_length > 0:
+-        mask[:, :past_key_values_length] = False
++        if cache_index is None:
++            mask = torch.cat([torch.zeros(target_length, past_key_values_length, dtype=dtype, device=device), mask], dim=-1)
++        else:
++            query_indices = torch.arange(target_length) +  cache_index
++            key_indices = torch.arange(past_key_values_length)
++            mask_cond = key_indices.view(1,-1) > query_indices.view(-1,1)
++            mask = torch.where(mask_cond, torch.tensor(min_val, dtype=dtype), torch.tensor(0.0, dtype=dtype))
++            return mask[None, None, :, :].expand(batch_size, 1, target_length, past_key_values_length)
++    return mask[None, None, :, :].expand(batch_size, 1, target_length, target_length + past_key_values_length)
++
++
++# # Copied from transformers.models.bloom.modeling_bloom._expand_mask
++# def _expand_mask(mask: torch.Tensor, tgt_length: int) -> torch.BoolTensor:
++#     """
++#     Expands attention_mask from `[batch_size, src_length]` to `[batch_size, 1, tgt_length, src_length]`.
++#     """
++#     batch_size, src_length = mask.shape
++#     tgt_length = tgt_length if tgt_length is not None else src_length
++
++#     expanded_mask = ~(mask[:, None, None, :].to(torch.bool))
++#     return expanded_mask.expand(batch_size, 1, tgt_length, src_length)
++
++# Copied from transformers.models.bart.modeling_bart._make_causal_mask
++# def _make_causal_mask(
++#     input_ids_shape: torch.Size, dtype: torch.dtype, device: torch.device, past_key_values_length: int = 0, cache_index: Optional[torch.LongTensor] = None,
++# ):
++#     """
++#     Make causal mask used for bi-directional self-attention.
++#     """
++#     bsz, tgt_len = input_ids_shape
++#     min_val = -32000
++#     # mask = torch.full((tgt_len, tgt_len), torch.finfo(dtype).min, device=device)
++#     mask = torch.full((tgt_len, tgt_len), torch.tensor(min_val, device=device), device=device)
++#     mask_cond = torch.arange(mask.size(-1), device=device)
++#     mask.masked_fill_(mask_cond < (mask_cond + 1).view(mask.size(-1), 1), 0)
++#     mask = mask.to(dtype)
++
++#     if past_key_values_length > 0:
++#         if cache_index is None:
++#             mask = torch.cat([torch.zeros(tgt_len, past_key_values_length, dtype=dtype, device=device), mask], dim=-1)
++#         else:
++#             query_indices = torch.arange(tgt_len) +  cache_index
++#             key_indices = torch.arange(past_key_values_length)
++#             mask_cond = key_indices.view(1,-1) > query_indices.view(-1,1)
++#             mask = torch.where(mask_cond, torch.tensor(min_val, dtype=dtype), torch.tensor(0.0, dtype=dtype))
++#             return mask[None, None, :, :].expand(bsz, 1, tgt_len, past_key_values_length)
++#     return mask[None, None, :, :].expand(bsz, 1, tgt_len, tgt_len + past_key_values_length)
++
++
++# Copied from transformers.models.bart.modeling_bart._expand_mask
++def _expand_mask(mask: torch.Tensor, dtype: torch.dtype, tgt_len: Optional[int] = None):
++    """
++    Expands attention_mask from `[bsz, seq_len]` to `[bsz, 1, tgt_seq_len, src_seq_len]`.
++    """
++    bsz, src_len = mask.size()
++    tgt_len = tgt_len if tgt_len is not None else src_len
+ 
+-    expanded_mask = mask[None, None, :, :].expand(batch_size, 1, target_length, target_length + past_key_values_length)
+-    return expanded_mask
++    expanded_mask = mask[:, None, None, :].expand(bsz, 1, tgt_len, src_len).to(dtype)
+ 
++    inverted_mask = 1.0 - expanded_mask
+ 
+-# Copied from transformers.models.bloom.modeling_bloom._expand_mask
+-def _expand_mask(mask: torch.Tensor, tgt_length: int) -> torch.BoolTensor:
+-    """
+-    Expands attention_mask from `[batch_size, src_length]` to `[batch_size, 1, tgt_length, src_length]`.
+-    """
+-    batch_size, src_length = mask.shape
+-    tgt_length = tgt_length if tgt_length is not None else src_length
++    return inverted_mask.masked_fill(inverted_mask.to(torch.bool), -10000.0)
++    # return inverted_mask.masked_fill(inverted_mask.to(torch.bool), torch.finfo(dtype).min)
+ 
+-    expanded_mask = ~(mask[:, None, None, :].to(torch.bool))
+-    return expanded_mask.expand(batch_size, 1, tgt_length, src_length)
+ 
+ 
+-def build_mpt_alibi_tensor(num_heads, sequence_length, alibi_bias_max=8, device=None):
++def build_mpt_alibi_tensor(num_heads, sequence_length, attention_mask, alibi_bias_max=8, device=None):
+     r"""
+     Link to paper: https://arxiv.org/abs/2108.12409 - Alibi tensor is not causal as the original paper mentions, it
+     relies on a translation invariance of softmax for quick implementation. This implementation has been copied from
+     the alibi implementation of MPT source code that led to slightly different results than the Bloom alibi:
+     https://huggingface.co/mosaicml/mpt-7b/blob/main/attention.py#L292
+     """
+-    alibi = torch.arange(1 - sequence_length, 1, dtype=torch.int32, device=device).view(1, 1, 1, sequence_length)
++    # alibi = torch.arange(1 - sequence_length, 1, dtype=torch.int32, device=device).view(1, 1, 1, sequence_length)
++    # attention_mask= attention_mask.to(torch.int64)
++    alibi = ((attention_mask.long().cumsum(1) - attention_mask.long().sum(1, keepdim=True)) * attention_mask.long())[:, None, None]
+     num_heads_power_of_2 = 2 ** math.ceil(math.log2(num_heads))
+ 
+     base = torch.arange(1, num_heads_power_of_2 + 1, dtype=torch.float32, device=device)
+@@ -107,7 +159,7 @@ def build_mpt_alibi_tensor(num_heads, sequence_length, alibi_bias_max=8, device=
+         slopes = torch.concat([slopes[1::2], slopes[::2]])[:num_heads]
+ 
+     alibi = alibi * slopes
+-    return alibi.squeeze(0)
++    return alibi
+ 
+ 
+ class MptAttention(nn.Module):
+@@ -133,6 +185,8 @@ class MptAttention(nn.Module):
+         self,
+         hidden_states: torch.Tensor,
+         position_bias: torch.Tensor,
++        position_ids: Optional[torch.LongTensor] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         past_key_value: Optional[Tuple[torch.Tensor]] = None,
+         attention_mask: Optional[torch.Tensor] = None,
+     ):
+@@ -146,25 +200,33 @@ class MptAttention(nn.Module):
+ 
+         if past_key_value is not None:
+             if len(past_key_value) != 0:
+-                key_states = torch.cat([past_key_value[0], key_states], dim=2)
+-                value_states = torch.cat([past_key_value[1], value_states], dim=2)
++                # key_states = torch.cat([past_key_value[0], key_states], dim=2)
++                # value_states = torch.cat([past_key_value[1], value_states], dim=2)
++                seq_len = key_states.shape[2]
++                assert value_states.shape[2] == seq_len
++                kv_indices = torch.arange(seq_len) + cache_index
++                past_key_value[0][:, :, kv_indices] = key_states
++                past_key_value[1][:, :, kv_indices] = value_states
++                key_states=past_key_value[0]
++                value_states=past_key_value[1]
++
+             past_key_value = (key_states, value_states)
+         else:
+             past_key_value = (key_states, value_states)
+ 
+         attention_scores = torch.matmul(query_states, key_states.transpose(-1, -2)) * self.softmax_scale
+ 
+-        query_length = seq_length if past_key_value is None else seq_length + past_key_value[0].shape[2]
++        # query_length = seq_length if past_key_value is None else seq_length + past_key_value[0].shape[2]
+ 
+         if position_bias is not None:
+-            if len(position_bias.shape) != 3:
+-                raise ValueError(f"Expecting position_bias shape to be 3 dimensions, got {len(position_bias.shape)}")
+-            key_length = key_states.shape[-2]
++            # if len(position_bias.shape) != 3:
++            #     raise ValueError(f"Expecting position_bias shape to be 3 dimensions, got {len(position_bias.shape)}")
++            # key_length = key_states.shape[-2]
+ 
+-            position_bias_query_index = max(0, position_bias.size(1) - query_length)
+-            position_bias_key_index = max(0, position_bias.size(2) - key_length)
++            # position_bias_query_index = max(0, position_bias.size(1) - query_length)
++            # position_bias_key_index = max(0, position_bias.size(2) - key_length)
+ 
+-            position_bias = position_bias[:, position_bias_query_index:, position_bias_key_index:]
++            # position_bias = position_bias[:, position_bias_query_index:, position_bias_key_index:]
+ 
+             attention_scores = attention_scores + position_bias
+ 
+@@ -229,6 +291,8 @@ class MptBlock(nn.Module):
+         hidden_states: torch.Tensor,
+         position_bias: torch.Tensor,
+         attention_mask: torch.Tensor,
++        position_ids: Optional[torch.LongTensor] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         layer_past: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+         use_cache: bool = False,
+         output_attentions: bool = False,
+@@ -244,6 +308,8 @@ class MptBlock(nn.Module):
+             layernorm_output,
+             position_bias=position_bias,
+             attention_mask=attention_mask,
++            position_ids=position_ids,
++            cache_index=cache_index,
+             past_key_value=layer_past,
+         )
+ 
+@@ -413,34 +479,30 @@ class MptModel(MptPreTrainedModel):
+     def get_input_embeddings(self):
+         return self.wte
+ 
+-    def build_mpt_alibi_tensor(self, num_heads, sequence_length, alibi_bias_max=8, device=None):
+-        return build_mpt_alibi_tensor(num_heads, sequence_length, alibi_bias_max, device)
++    def build_mpt_alibi_tensor(self, num_heads, sequence_length,attention_mask, alibi_bias_max=8, device=None):
++        return build_mpt_alibi_tensor(num_heads, sequence_length, attention_mask,alibi_bias_max, device)
+ 
+-    def _prepare_attn_mask(
+-        self, attention_mask: torch.Tensor, input_shape: Tuple[int, int], past_key_values_length: int
+-    ) -> torch.BoolTensor:
++    def _prepare_attn_mask(self, attention_mask, input_shape, inputs_embeds, past_key_values_length, cache_index):
+         # create causal mask
+-        # [batch_size, seq_length] -> [batch_size, 1, tgt_length, src_length]
+-        if input_shape[1] + past_key_values_length != attention_mask.shape[1]:
+-            raise ValueError(
+-                "Attention mask shape should be (batch_size, seq_length + past_key_values_length)"
+-                f" but is {attention_mask.shape} with input_ids shape {input_shape} and past length"
+-                f" {past_key_values_length}."
+-            )
++        # [bsz, seq_len] -> [bsz, 1, tgt_seq_len, src_seq_len]
+         combined_attention_mask = None
+-        device = attention_mask.device
+-        _, src_length = input_shape
+-
+-        if src_length > 1:
++        if input_shape[-1] > 1:
+             combined_attention_mask = _make_causal_mask(
+-                input_shape, device=device, past_key_values_length=past_key_values_length
++                input_shape,
++                inputs_embeds.dtype,
++                device=inputs_embeds.device,
++                past_key_values_length=past_key_values_length,
++                cache_index=cache_index,
+             )
+ 
+-        # [batch_size, seq_length] -> [batch_size, 1, tgt_length, src_length]
+-        expanded_attn_mask = _expand_mask(attention_mask, tgt_length=src_length)
+-        combined_attention_mask = (
+-            expanded_attn_mask if combined_attention_mask is None else expanded_attn_mask | combined_attention_mask
+-        )
++        if attention_mask is not None:
++            # [bsz, seq_len] -> [bsz, 1, tgt_seq_len, src_seq_len]
++            expanded_attn_mask = _expand_mask(attention_mask, inputs_embeds.dtype, tgt_len=input_shape[-1]).to(
++                inputs_embeds.device
++            )
++            combined_attention_mask = (
++                expanded_attn_mask if combined_attention_mask is None else expanded_attn_mask + combined_attention_mask
++            )
+ 
+         return combined_attention_mask
+ 
+@@ -456,8 +518,10 @@ class MptModel(MptPreTrainedModel):
+     def forward(
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+-        past_key_values: Optional[Tuple[Tuple[torch.Tensor, torch.Tensor], ...]] = None,
+         attention_mask: Optional[torch.Tensor] = None,
++        position_ids: Optional[torch.LongTensor] = None,
++        past_key_values: Optional[Tuple[Tuple[torch.Tensor, torch.Tensor], ...]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         inputs_embeds: Optional[torch.LongTensor] = None,
+         use_cache: Optional[bool] = None,
+         output_attentions: Optional[bool] = None,
+@@ -505,17 +569,60 @@ class MptModel(MptPreTrainedModel):
+         if past_key_values[0] is not None:
+             past_key_values_length = past_key_values[0][0].shape[2]
+             seq_length_with_past = seq_length_with_past + past_key_values_length
++            if cache_index is not None:
++                seq_length_with_past = past_key_values_length
++
++        # if cache_index is not None:
++        #     attention_mask[:, cache_index + seq_length - 1] = True
++        #     attention_mask_RetainedState = attention_mask
++
++        # if cache_index is not None:
++        #     # print("cache_index", cache_index)
++        #     if position_ids is None:
++        #         if attention_mask is None:
++        #             device = input_ids.device if input_ids is not None else inputs_embeds.device
++        #             position_ids = torch.arange(
++        #                 past_key_values_length, seq_length + past_key_values_length, dtype=torch.long, device=device
++        #             )
++        #             position_ids = position_ids.unsqueeze(0).view(-1, seq_length)
++        #         else:
++        #             # we are always passing attention_mask
++        #             # print("attention_mask", attention_mask)
++        #             position_ids = (torch.cumsum(attention_mask, 1) - 1) * attention_mask
++        #             # print(position_ids)
++        #             # print("past_key_values_length", past_key_values_length)
++        #             if past_key_values_length > 0:
++        #                 position_ids = position_ids[:, cache_index].unsqueeze(1)
++        #                 # print("position ids not getting updated here", position_ids)
++
++        # # kv prefill
++        # if position_ids is None:
++        #     if attention_mask is None:
++        #         device = input_ids.device if input_ids is not None else inputs_embeds.device
++        #         position_ids = torch.arange(
++        #             past_key_values_length, seq_length + past_key_values_length, dtype=torch.long, device=device
++        #         )
++        #         position_ids = position_ids.unsqueeze(0).view(-1, seq_length)
++        #     else:
++        #         position_ids = (torch.cumsum(attention_mask, 1) - 1) * attention_mask
++
+         if attention_mask is None:
+             attention_mask = torch.ones((batch_size, seq_length_with_past), device=hidden_states.device)
+         else:
+             attention_mask = attention_mask.to(hidden_states.device)
+ 
+-        alibi = self.build_mpt_alibi_tensor(self.num_heads, self.config.max_seq_len, device=hidden_states.device)
++        if cache_index is not None:
++            attention_mask[:, cache_index + seq_length - 1] = True
++            attention_mask_RetainedState = attention_mask
++        attention_mask_RetainedState = attention_mask
++        alibi = self.build_mpt_alibi_tensor(self.num_heads, self.config.max_seq_len,attention_mask=attention_mask, device=hidden_states.device)
+ 
+         causal_mask = self._prepare_attn_mask(
+             attention_mask,
+             input_shape=(batch_size, seq_length),
++            inputs_embeds=inputs_embeds,
+             past_key_values_length=past_key_values_length,
++            cache_index=cache_index
+         )
+ 
+         for i, (block, layer_past) in enumerate(zip(self.blocks, past_key_values)):
+@@ -543,6 +650,8 @@ class MptModel(MptPreTrainedModel):
+                     hidden_states,
+                     layer_past=layer_past,
+                     attention_mask=causal_mask,
++                    position_ids=position_ids,
++                    cache_index=cache_index,
+                     use_cache=use_cache,
+                     output_attentions=output_attentions,
+                     position_bias=alibi,
+@@ -569,6 +678,7 @@ class MptModel(MptPreTrainedModel):
+             past_key_values=presents,
+             hidden_states=all_hidden_states,
+             attentions=all_self_attentions,
++            attention_mask_RetainedState= attention_mask_RetainedState
+         )
+ 
+ 
+@@ -633,8 +743,10 @@ class MptForCausalLM(MptPreTrainedModel):
+     def forward(
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+-        past_key_values: Optional[Tuple[Tuple[torch.Tensor, torch.Tensor], ...]] = None,
+         attention_mask: Optional[torch.Tensor] = None,
++        position_ids: Optional[torch.LongTensor] = None,
++        past_key_values: Optional[Tuple[Tuple[torch.Tensor, torch.Tensor], ...]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         inputs_embeds: Optional[torch.Tensor] = None,
+         labels: Optional[torch.Tensor] = None,
+         use_cache: Optional[bool] = None,
+@@ -654,6 +766,8 @@ class MptForCausalLM(MptPreTrainedModel):
+             input_ids,
+             past_key_values=past_key_values,
+             attention_mask=attention_mask,
++            position_ids=position_ids,
++            cache_index=cache_index,
+             inputs_embeds=inputs_embeds,
+             use_cache=use_cache,
+             output_attentions=output_attentions,
+@@ -662,7 +776,8 @@ class MptForCausalLM(MptPreTrainedModel):
+         )
+         hidden_states = transformer_outputs[0]
+ 
+-        lm_logits = self.lm_head(hidden_states)
++        lm_logits = self.lm_head(hidden_states[:,-1:])
++        # lm_logits = lm_logits.reshape()
+ 
+         loss = None
+         if labels is not None:
+@@ -688,6 +803,7 @@ class MptForCausalLM(MptPreTrainedModel):
+             past_key_values=transformer_outputs.past_key_values,
+             hidden_states=transformer_outputs.hidden_states,
+             attentions=transformer_outputs.attentions,
++            attention_mask_RetainedState=transformer_outputs.attention_mask_RetainedState
+         )
+ 
+     def _reorder_cache(
