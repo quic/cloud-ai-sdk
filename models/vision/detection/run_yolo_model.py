@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 import os
@@ -54,7 +54,7 @@ def gen_yaml(model_base_name, image_size):
         shape_params = [str(s.dim_param) for s in shape]
         dynamic_info.append([name, shape_params])    
     dynamic_info=str(dynamic_info).replace("'", '"')
-    yaml_file=Copyright+f'''
+    yaml_file=f'''
 
 MODEL:
     INFO:
