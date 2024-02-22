@@ -1,0 +1,356 @@
+diff --git a/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py b/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
+index 40c981a4..cf817b9e 100644
+--- a/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
++++ b/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
+@@ -14,7 +14,11 @@
+ 
+ import inspect
+ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+-
++import os
++import time
++from concurrent.futures import ThreadPoolExecutor
++import qaic
++import numpy as np
+ import torch
+ from transformers import (
+     CLIPImageProcessor,
+@@ -229,6 +233,12 @@ class StableDiffusionXLPipeline(
+         feature_extractor: CLIPImageProcessor = None,
+         force_zeros_for_empty_prompt: bool = True,
+         add_watermarker: Optional[bool] = None,
++        device_id: Optional[int] = 0,
++        device_id2: Optional[int] = None,
++        text_encoder_qpc: Optional[str] = "./qpc/text_encoder/programqpc.bin",
++        text_encoder_2_qpc: Optional[str] = "./qpc/text_encoder_2/programqpc.bin",
++        vae_decoder_qpc: Optional[str] = "./qpc/vae_decoder/programqpc.bin",
++        unet_qpc: Optional[str] = "./qpc/unet_bs2/programqpc.bin",
+     ):
+         super().__init__()
+ 
+@@ -255,6 +265,48 @@ class StableDiffusionXLPipeline(
+             self.watermark = StableDiffusionXLWatermarker()
+         else:
+             self.watermark = None
++        
++        assert os.path.isfile(unet_qpc) and unet_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for unet_qpc: found {unet_qpc = }"
++        if device_id2 is None: # use only one device for UNet
++            self.executor = None
++            self.unet_sess = qaic.Session(unet_qpc, # ensure that batchsize=2 QPC is used
++                                          num_activations=1, 
++                                          set_size=1, 
++                                          dev_id=device_id, 
++                                          oversubscription_name='group1')
++            self.unet_sess2 = None
++        else: # use two devices for UNet
++            assert device_id != device_id2, f"Two device IDs cannot be the same - found {device_id = }, {device_id2 = }!"
++            print(f"Spinning up 2 cards for parallel UNet execution")
++            # threadpool exec
++            self.executor = ThreadPoolExecutor()
++            self.unet_sess = qaic.Session(unet_qpc, # ensure that batchsize=1 QPC is used
++                                          num_activations=1, 
++                                          set_size=1, 
++                                          dev_id=device_id, 
++                                          oversubscription_name='group1')
++            self.unet_sess2 = qaic.Session(unet_qpc, # ensure that batchsize=1 QPC is used
++                                           num_activations=1, 
++                                           set_size=1, 
++                                           dev_id=device_id2)
++        assert os.path.isfile(vae_decoder_qpc) and vae_decoder_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for vae_decoder_qpc: found {vae_decoder_qpc = }"
++        self.vae_decoder_sess = qaic.Session(vae_decoder_qpc,
++                                             num_activations=1, 
++                                             set_size=1, 
++                                             dev_id=device_id, 
++                                             oversubscription_name='group1')
++        assert os.path.isfile(text_encoder_qpc) and text_encoder_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for text_encoder_qpc: found {text_encoder_qpc = }"
++        self.text_encoder_sess = qaic.Session(text_encoder_qpc,
++                                              num_activations=1, 
++                                              set_size=1, 
++                                              dev_id=device_id , 
++                                              oversubscription_name='group1')
++        assert os.path.isfile(text_encoder_2_qpc) and text_encoder_2_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for text_encoder_2_qpc: found {text_encoder_2_qpc = }"
++        self.text_encoder_2_sess = qaic.Session(text_encoder_2_qpc, 
++                                                num_activations=1, 
++                                                set_size=1, 
++                                                dev_id=device_id, 
++                                                oversubscription_name='group1')
+ 
+     # Copied from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.StableDiffusionPipeline.enable_vae_slicing
+     def enable_vae_slicing(self):
+@@ -377,7 +429,7 @@ class StableDiffusionXLPipeline(
+         # Define tokenizers and text encoders
+         tokenizers = [self.tokenizer, self.tokenizer_2] if self.tokenizer is not None else [self.tokenizer_2]
+         text_encoders = (
+-            [self.text_encoder, self.text_encoder_2] if self.text_encoder is not None else [self.text_encoder_2]
++            [self.text_encoder_sess, self.text_encoder_2_sess] if self.text_encoder is not None else [self.text_encoder_2_sess]
+         )
+ 
+         if prompt_embeds is None:
+@@ -387,7 +439,7 @@ class StableDiffusionXLPipeline(
+             # textual inversion: procecss multi-vector tokens if necessary
+             prompt_embeds_list = []
+             prompts = [prompt, prompt_2]
+-            for prompt, tokenizer, text_encoder in zip(prompts, tokenizers, text_encoders):
++            for idx, (prompt, tokenizer, text_encoder) in enumerate(zip(prompts, tokenizers, text_encoders)):
+                 if isinstance(self, TextualInversionLoaderMixin):
+                     prompt = self.maybe_convert_prompt(prompt, tokenizer)
+ 
+@@ -411,15 +463,27 @@ class StableDiffusionXLPipeline(
+                         f" {tokenizer.model_max_length} tokens: {removed_text}"
+                     )
+ 
+-                prompt_embeds = text_encoder(text_input_ids.to(device), output_hidden_states=True)
+-
+-                # We are only ALWAYS interested in the pooled output of the final text encoder
+-                pooled_prompt_embeds = prompt_embeds[0]
+-                if clip_skip is None:
+-                    prompt_embeds = prompt_embeds.hidden_states[-2]
+-                else:
+-                    # "2" because SDXL always indexes from the penultimate layer.
+-                    prompt_embeds = prompt_embeds.hidden_states[-(clip_skip + 2)]
++                ### AIC INFERENCE PART FOR PROMPT STARTS HERE ###
++                start_time = time.perf_counter()
++                inputname = 'input_ids'
++                # convert text_input_ids to numpy
++                i_shape, i_type = text_encoder.model_input_shape_dict[inputname]
++                # build input_id
++                input_dict = {inputname : text_input_ids.numpy().astype(i_type)}
++                # run session
++                output = text_encoder.run(input_dict)
++                
++                if idx == 0: # i.e., text_encoder
++                    hidden_state_name = f'hidden_states.{11}'
++                else: # i.e., text_encoder_2
++                    hidden_state_name = f'hidden_states.{31}'
++                    # restructure outputs
++                    o_shape, o_type = text_encoder.model_output_shape_dict['text_embeds']
++                    pooled_prompt_embeds = torch.from_numpy(np.frombuffer(output['text_embeds'], dtype=o_type).reshape(o_shape))
++                o_shape, o_type = text_encoder.model_output_shape_dict[hidden_state_name]
++                prompt_embeds = torch.from_numpy(np.frombuffer(output[hidden_state_name], dtype=o_type).reshape(o_shape))
++                print(f'Text encoder #{idx+1} positive prompt time : {1000.*(time.perf_counter()-start_time):.6f} ms')    
++                ### AIC INFERENCE PART FOR PROMPT ENDS HERE ###
+ 
+                 prompt_embeds_list.append(prompt_embeds)
+ 
+@@ -456,7 +520,7 @@ class StableDiffusionXLPipeline(
+                 uncond_tokens = [negative_prompt, negative_prompt_2]
+ 
+             negative_prompt_embeds_list = []
+-            for negative_prompt, tokenizer, text_encoder in zip(uncond_tokens, tokenizers, text_encoders):
++            for idx, (negative_prompt, tokenizer, text_encoder) in enumerate(zip(uncond_tokens, tokenizers, text_encoders)):
+                 if isinstance(self, TextualInversionLoaderMixin):
+                     negative_prompt = self.maybe_convert_prompt(negative_prompt, tokenizer)
+ 
+@@ -469,13 +533,28 @@ class StableDiffusionXLPipeline(
+                     return_tensors="pt",
+                 )
+ 
+-                negative_prompt_embeds = text_encoder(
+-                    uncond_input.input_ids.to(device),
+-                    output_hidden_states=True,
+-                )
+-                # We are only ALWAYS interested in the pooled output of the final text encoder
+-                negative_pooled_prompt_embeds = negative_prompt_embeds[0]
+-                negative_prompt_embeds = negative_prompt_embeds.hidden_states[-2]
++                
++                ### AIC INFERENCE PART FOR NEGATIVE PROMPT STARTS HERE ###
++                start_time = time.perf_counter()
++                inputname = 'input_ids'
++                # convert text_input_ids to numpy
++                i_shape, i_type = text_encoder.model_input_shape_dict[inputname]
++                # build input_id
++                input_dict = {inputname : uncond_input.input_ids.numpy().astype(i_type)}
++                # run session
++                output = text_encoder.run(input_dict)
++                
++                if idx == 0: # i.e., text_encoder
++                    hidden_state_name = f'hidden_states.{11}'
++                else: # i.e., text_encoder_2
++                    hidden_state_name = f'hidden_states.{31}'
++                    # restructure outputs
++                    o_shape, o_type = text_encoder.model_output_shape_dict['text_embeds']
++                    negative_pooled_prompt_embeds = torch.from_numpy(np.frombuffer(output['text_embeds'], dtype=o_type).reshape(o_shape))
++                o_shape, o_type = text_encoder.model_output_shape_dict[hidden_state_name]
++                negative_prompt_embeds = torch.from_numpy(np.frombuffer(output[hidden_state_name], dtype=o_type).reshape(o_shape))
++                print(f'Text encoder #{idx+1} negative prompt time : {1000.*(time.perf_counter()-start_time):.6f} ms')    
++                ### AIC INFERENCE PART FOR NEGATIVE PROMPT ENDS HERE ###
+ 
+                 negative_prompt_embeds_list.append(negative_prompt_embeds)
+ 
+@@ -1011,7 +1090,7 @@ class StableDiffusionXLPipeline(
+         lora_scale = (
+             self.cross_attention_kwargs.get("scale", None) if self.cross_attention_kwargs is not None else None
+         )
+-
++        text_encode_start_time = time.perf_counter()
+         (
+             prompt_embeds,
+             negative_prompt_embeds,
+@@ -1032,6 +1111,7 @@ class StableDiffusionXLPipeline(
+             lora_scale=lora_scale,
+             clip_skip=self.clip_skip,
+         )
++        print(f"Text encoding time = {1000.*(time.perf_counter() - text_encode_start_time):.3f} ms")
+ 
+         # 4. Prepare timesteps
+         timesteps, num_inference_steps = retrieve_timesteps(self.scheduler, num_inference_steps, device, timesteps)
+@@ -1120,65 +1200,84 @@ class StableDiffusionXLPipeline(
+             ).to(device=device, dtype=latents.dtype)
+ 
+         self._num_timesteps = len(timesteps)
+-        with self.progress_bar(total=num_inference_steps) as progress_bar:
+-            for i, t in enumerate(timesteps):
+-                # expand the latents if we are doing classifier free guidance
+-                latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
+-
+-                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+-
+-                # predict the noise residual
+-                added_cond_kwargs = {"text_embeds": add_text_embeds, "time_ids": add_time_ids}
+-                if ip_adapter_image is not None:
+-                    added_cond_kwargs["image_embeds"] = image_embeds
+-                noise_pred = self.unet(
+-                    latent_model_input,
+-                    t,
+-                    encoder_hidden_states=prompt_embeds,
+-                    timestep_cond=timestep_cond,
+-                    cross_attention_kwargs=self.cross_attention_kwargs,
+-                    added_cond_kwargs=added_cond_kwargs,
+-                    return_dict=False,
+-                )[0]
+-
+-                # perform guidance
+-                if self.do_classifier_free_guidance:
+-                    noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+-                    noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_text - noise_pred_uncond)
+-
+-                if self.do_classifier_free_guidance and self.guidance_rescale > 0.0:
+-                    # Based on 3.4. in https://arxiv.org/pdf/2305.08891.pdf
+-                    noise_pred = rescale_noise_cfg(noise_pred, noise_pred_text, guidance_rescale=self.guidance_rescale)
+-
+-                # compute the previous noisy sample x_t -> x_t-1
+-                latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs, return_dict=False)[0]
+-
+-                if callback_on_step_end is not None:
+-                    callback_kwargs = {}
+-                    for k in callback_on_step_end_tensor_inputs:
+-                        callback_kwargs[k] = locals()[k]
+-                    callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
+-
+-                    latents = callback_outputs.pop("latents", latents)
+-                    prompt_embeds = callback_outputs.pop("prompt_embeds", prompt_embeds)
+-                    negative_prompt_embeds = callback_outputs.pop("negative_prompt_embeds", negative_prompt_embeds)
+-                    add_text_embeds = callback_outputs.pop("add_text_embeds", add_text_embeds)
+-                    negative_pooled_prompt_embeds = callback_outputs.pop(
+-                        "negative_pooled_prompt_embeds", negative_pooled_prompt_embeds
+-                    )
+-                    add_time_ids = callback_outputs.pop("add_time_ids", add_time_ids)
+-                    negative_add_time_ids = callback_outputs.pop("negative_add_time_ids", negative_add_time_ids)
++        
++        start_time = time.perf_counter()
++        for i, t in enumerate(timesteps):
++            # expand the latents if we are doing classifier free guidance
++            latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
++
++            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
++
++            # predict the noise residual
++            added_cond_kwargs = {"text_embeds": add_text_embeds, "time_ids": add_time_ids}
++            if ip_adapter_image is not None:
++                added_cond_kwargs["image_embeds"] = image_embeds
++
++            inputname_list = ['sample', 'timestep', 'encoder_hidden_states', 'text_embeds', 'time_ids']
++            tensor_input_list = [latent_model_input, torch.Tensor([t]), prompt_embeds, added_cond_kwargs['text_embeds'], added_cond_kwargs["time_ids"]]
++            if self.unet_sess2 is None: # use one device with bs = 2
++                # Here we are reading out all the input and output shapes/types
++                input_dict = {inputname: tensor_input.numpy().astype(self.unet_sess.model_input_shape_dict[inputname][1])
++                    for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                }
++                o_shape, o_type = self.unet_sess.model_output_shape_dict['out_sample']
++                # Run the model on Qualcomm Cloud AI 100
++                output = self.unet_sess.run(input_dict)
++                # convert to Tensor.
++                noise_pred = torch.from_numpy(np.frombuffer(output['out_sample'], dtype=o_type).reshape(o_shape))
++            else: # use two devices each with bs = 1
++                input_dict = {inputname: tensor_input[0:1].numpy().astype(self.unet_sess.model_input_shape_dict[inputname][1]) if inputname != "timestep" else tensor_input.numpy().astype(self.unet_sess.model_input_shape_dict[inputname][1])
++                    for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                }
++                input_dict2 = {inputname: tensor_input[1:2].numpy().astype(self.unet_sess.model_input_shape_dict[inputname][1]) if inputname != "timestep" else tensor_input.numpy().astype(self.unet_sess.model_input_shape_dict[inputname][1])
++                    for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                }
++                future_1 = self.executor.submit(self.unet_sess.run, input_dict)
++                future_2 = self.executor.submit(self.unet_sess2.run, input_dict2) # does not block
++                o_shape, o_type = self.unet_sess.model_output_shape_dict['out_sample']
++                noise_pred = torch.from_numpy(np.concatenate((np.frombuffer(future_1.result()['out_sample'], dtype=o_type).reshape(o_shape),
++                                                            np.frombuffer(future_2.result()['out_sample'], dtype=o_type).reshape(o_shape)
++                                                            ),axis=0))
++
++            # perform guidance
++            if self.do_classifier_free_guidance:
++                noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
++                noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_text - noise_pred_uncond)
++
++            if self.do_classifier_free_guidance and self.guidance_rescale > 0.0:
++                # Based on 3.4. in https://arxiv.org/pdf/2305.08891.pdf
++                noise_pred = rescale_noise_cfg(noise_pred, noise_pred_text, guidance_rescale=self.guidance_rescale)
++
++            # compute the previous noisy sample x_t -> x_t-1
++            latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs, return_dict=False)[0]
++
++            if callback_on_step_end is not None:
++                callback_kwargs = {}
++                for k in callback_on_step_end_tensor_inputs:
++                    callback_kwargs[k] = locals()[k]
++                callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
++
++                latents = callback_outputs.pop("latents", latents)
++                prompt_embeds = callback_outputs.pop("prompt_embeds", prompt_embeds)
++                negative_prompt_embeds = callback_outputs.pop("negative_prompt_embeds", negative_prompt_embeds)
++                add_text_embeds = callback_outputs.pop("add_text_embeds", add_text_embeds)
++                negative_pooled_prompt_embeds = callback_outputs.pop(
++                    "negative_pooled_prompt_embeds", negative_pooled_prompt_embeds
++                )
++                add_time_ids = callback_outputs.pop("add_time_ids", add_time_ids)
++                negative_add_time_ids = callback_outputs.pop("negative_add_time_ids", negative_add_time_ids)
+ 
+-                # call the callback, if provided
+-                if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
+-                    progress_bar.update()
+-                    if callback is not None and i % callback_steps == 0:
+-                        step_idx = i // getattr(self.scheduler, "order", 1)
+-                        callback(step_idx, t, latents)
++            # call the callback, if provided
++            if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
++                if callback is not None and i % callback_steps == 0:
++                    step_idx = i // getattr(self.scheduler, "order", 1)
++                    callback(step_idx, t, latents)
+ 
+-                if XLA_AVAILABLE:
+-                    xm.mark_step()
++            if XLA_AVAILABLE:
++                xm.mark_step()
+ 
++        print(f'UNet total time : {1000.*(time.perf_counter()-start_time):.6f} ms')
++        
+         if not output_type == "latent":
+             # make sure the VAE is in float32 mode, as it overflows in float16
+             needs_upcasting = self.vae.dtype == torch.float16 and self.vae.config.force_upcast
+@@ -1186,8 +1285,16 @@ class StableDiffusionXLPipeline(
+             if needs_upcasting:
+                 self.upcast_vae()
+                 latents = latents.to(next(iter(self.vae.post_quant_conv.parameters())).dtype)
+-
+-            image = self.vae.decode(latents / self.vae.config.scaling_factor, return_dict=False)[0]
++            start_time = time.perf_counter()
++            input_dict = {'latent_sample': latents.numpy() / self.vae.config.scaling_factor}
++
++            o_shape, o_type = self.vae_decoder_sess.model_output_shape_dict['sample']
++            # Run the model on Qualcomm Cloud AI 100
++            output = self.vae_decoder_sess.run(input_dict)
++            # convert to Tensor.
++            image = torch.from_numpy(np.frombuffer(output['sample'], dtype=o_type).reshape(o_shape))   
++                    
++            print(f'Vae Decoder total time : {1000.*(time.perf_counter()-start_time):.6f} ms')
+ 
+             # cast back to fp16 if needed
+             if needs_upcasting:
