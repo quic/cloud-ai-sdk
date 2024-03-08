@@ -19,6 +19,7 @@
 ---
 
 *Latest News* 🔥
+- [Coming soon] Support for Mistral family of LLMs - e.g., [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1), [Zephyr-7b-beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)
 - [2024/03] Added [AI 100 Ultra recipe for Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
 - [2024/03] Added support for Speculative Decoding with LLMs - [CodeGen with Speculative Decoding](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder/CodeGen-With-Speculative-Decoding)
 - [2024/02] Added support for [Stable Diffusion XL](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image/stable_diffusion_xl)
