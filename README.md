@@ -1,7 +1,7 @@
 
 <p align="center">
   <picture>
-    <img alt="vLLM" src="images/Cloud_AI_100.png" width=50%><img alt="vLLM" src="https://s7d1.scene7.com/is/image/dmqualcommprod/Qualcomm-Cloud-AI-100-Ultra?$QC_Responsive$&fmt=png-alpha&wid=814" width=50%>
+    <img alt="vLLM" src="images/Cloud_AI_100.png" width=50%><img alt="vLLM" src="images/Qualcomm-Cloud-AI-100-Ultra.png" width=50%>
   </picture>
 </p>
 
