@@ -1,7 +1,7 @@
 
 <p align="center">
   <picture>
-    <img alt="Cloud AI 100" src="images/Cloud_AI_100.png" width=45%><img alt="Cloud AI 100 Ultra" src="images/Qualcomm-Cloud-AI-100-Ultra.png" width=45%>
+    <img alt="Cloud AI 100" src="images/Cloud_AI_100.png" width=100%>
   </picture>
 </p>
 
