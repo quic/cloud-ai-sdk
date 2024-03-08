@@ -23,13 +23,13 @@ This repository provides developers with 3 key resources
 ```
 # References 
 - [Cloud AI Home](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence) 
-- [User Guide](https://github.qualcomm.com/pages/quic/cloud-ai-sdk-pages/)
+- [User Guide](https://quic.github.io/cloud-ai-sdk-pages/)
 - [Cloud AI SDK Download](https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software)
-- [API reference](https://github.qualcomm.com/pages/quic/cloud-ai-sdk-pages/API/)
+- [API reference](https://quic.github.io/cloud-ai-sdk-pages/API/)
 
 
 # Disclaimer
-While this repository may provide documentation on how to run models on Qranium, this repository does NOT contain any of these models.  All models referenced in this documentation are independently provided by third parties at unaffiliated websites. Please be sure to review any third-party license terms at these websites; no license to any model is provided in this repository. This repository of documentation provides no warranty or assurances for any model so please also be sure to review all model cards, model descriptions, model limitations / intended uses, training data, biases, risks, and any other warnings given by the third party  model providers.
+While this repository may provide documentation on how to run models on Qualcomm Cloud AI platforms, this repository does NOT contain any of these models.  All models referenced in this documentation are independently provided by third parties at unaffiliated websites. Please be sure to review any third-party license terms at these websites; no license to any model is provided in this repository. This repository of documentation provides no warranty or assurances for any model so please also be sure to review all model cards, model descriptions, model limitations / intended uses, training data, biases, risks, and any other warnings given by the third party  model providers.
 
 ## License
 The documentation made available in this repository is licensed under the BSD 3-clause-Clear “New” or “Revised” License. Check out the [LICENSE](LICENSE) for more details.
