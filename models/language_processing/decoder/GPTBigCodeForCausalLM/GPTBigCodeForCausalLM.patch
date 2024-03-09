@@ -1,3 +1,14 @@
+From f6154866f7301c05b68354c6c36d10671a6b1324 Mon Sep 17 00:00:00 2001
+From: Ilango Rajagopal <irajagop@qti.qualcomm.com>
+Date: Tue, 9 Jan 2024 11:31:11 +0530
+Subject: [PATCH] GPT Bigcode: KV-cache retention
+
+---
+ src/transformers/modeling_attn_mask_utils.py  | 29 ++++----
+ src/transformers/modeling_outputs.py          |  2 +
+ .../gpt_bigcode/modeling_gpt_bigcode.py       | 71 ++++++++++---------
+ 3 files changed, 52 insertions(+), 50 deletions(-)
+
 diff --git a/src/transformers/modeling_attn_mask_utils.py b/src/transformers/modeling_attn_mask_utils.py
 index 734f443..3ea35c4 100755
 --- a/src/transformers/modeling_attn_mask_utils.py
@@ -338,3 +349,6 @@ index b6b03d0..66f9a20 100644
  
          loss = None
          if labels is not None:
+-- 
+2.41.0
+

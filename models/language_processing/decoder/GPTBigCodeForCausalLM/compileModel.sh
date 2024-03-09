@@ -2,44 +2,41 @@
 
 set -e
 
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-	echo "Usage: $0 <model_name> <mx6, fp16> <num_nsp>"
+if [ -z "$1" ]; then
+	echo "Usage: $0 <MODEL_NAME>"
 	exit 1
 fi
 
-if
-	[ "$2" != "mx6" ] && [ $2 != "fp16" ]; then
-	echo "Usage: $0 <model_name> <mx6, fp16> <num_nsp>"
-	echo "Precision must be either mx6 or fp16"
-	exit 1
+MODEL_NAME="$1"
+BS="$2"
+PL="$3"
+CL="$4"
+CORES="$5"
+SOCS="$6"
+FORMAT="$7"
+
+python prepare_mdp.py --cores $CORES --socs $SOCS
+
+sed -e "s/BS/${BS}/g" -e "s/PL/${PL}/g" -e "s/CL/${CL}/g" ./specializations_template.json  >  specializations.json	
+if [ $PL == 1 ]; then
+    sed -e "s/BS/${BS}/g" -e "s/PL/${PL}/g" -e "s/CL/${CL}/g" ./specializations_template_batch.json  >  specializations.json
 fi
 
-if (( $3 < 1 || $3 > 16 )); then
-	echo "Usage: $0 <model_name> <mx6, fp16> <num_nsp>"
-	echo "num_nsp must be integer in range 1-16"
-	exit 1
+if [ $FORMAT == "mx6" ]; then
+    EXTRA="-mxfp6-matmul"
 fi
 
-model_name="$1"
-prec="$2"
-num_cores="$3"
-prompt_len=$(grep seq_len specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
-ctx_len=$(grep ctx_len specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
-batch_size=$(grep batch_size specializations.json | head -n1 | grep -Eo '[[:digit:]]+')
-num_blocks=$(grep 'value.' ${model_name}/custom_io.yaml | tail -n1 | grep -Eo '[[:digit:]]+')
+if [ $SOCS != 1 ]; then
+    EXTRA="-mdp-load-partition-config=mdp.json $EXTRA"
+fi
 
 # Create qpc directory
 mkdir -p qpc
+rm -rf qpc/${MODEL_NAME}-${BS}bs-${PL}pl-${CL}cl-$((CORES*SOCS))c-${FORMAT}
 
-model_path="${model_name}/generatedModels/${model_name}_fp16_simplified.onnx"
+model_path="${MODEL_NAME}-kv/generatedModels/${MODEL_NAME}-kv_fp16_simplified.onnx"
 if [ ! -f "$model_path" ]; then
-	model_path="${model_name}/generatedModels/${model_name}.onnx"
-fi
-
-if [ "$2" = "mx6" ]; then
-	prec="-retained-state -mxfp6-matmul"
-else
-	prec="-retained-state"
+	model_path="${MODEL_NAME}-kv/generatedModels/${MODEL_NAME}-kv.onnx"
 fi
 
 /opt/qti-aic/exec/qaic-exec \
@@ -47,13 +44,11 @@ fi
 	-aic-hw \
 	-aic-hw-version=2.0 \
 	-network-specialization-config=specializations.json \
+	-retained-state \
 	-convert-to-fp16 \
-	-aic-num-cores=${num_cores} \
-	-custom-IO-list-file=${model_name}/custom_io.yaml \
+	-aic-num-cores=${CORES} \
+	-custom-IO-list-file=${MODEL_NAME}-kv/custom_io.yaml \
 	-compile-only \
-	-aic-binary-dir=qpc/${model_name}-${prompt_len}pl-${ctx_len}cl-${num_cores}c-${batch_size}BS-$2 \
-	${prec}
-
-
-
+	-aic-binary-dir=qpc/${MODEL_NAME}-${BS}bs-${PL}pl-${CL}cl-$((CORES*SOCS))c-${FORMAT} \
+	${EXTRA}
 
