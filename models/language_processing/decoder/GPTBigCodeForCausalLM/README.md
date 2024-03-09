@@ -59,7 +59,7 @@ Inference for models based on `GPTBigCodeForCausalLM` architecture can be execut
         
 7. Model execution.
 
-        python runModel.py --model-name $MODEL_REPO --qpc ./qpc/${MODEL_NAME}-${BS}bs-${PL}pl-${CL}cl-$((CORES*SOCS))c-${FORMAT} --device_id $DEVICE_ID --token $AUTH_TOKEN --prompt "Hello, my name is Sarah and"
+        python runModel.py --model-name $MODEL_REPO --qpc ./qpc/${MODEL_NAME}-${BS}bs-${PL}pl-${CL}cl-$((CORES*SOCS))c-${FORMAT} --device_id $DEVICE_ID --token $AUTH_TOKEN --prompt "place your prompt here"
 
 
 ### Model support  
