@@ -36,7 +36,7 @@ Inference for models based on `GPTBigCodeForCausalLM` architecture can be execut
         pip install .
         cd ..
         
-3. Specify the MODEL_NAME, MODEL_REPO, AUTH_TOKEN, BS (batch size), PL (prompt length), CL (context length), CORES (per SOC), DEVICE_ID, and SOCS in the init.sh. Let SOCS=4 or 1 if targetting Ultra or single devices. Let FORMAT="fp16" for fp16 format.
+3. Specify the MODEL_NAME, MODEL_REPO, AUTH_TOKEN, BS (batch size), PL (prompt length), CL (context length), CORES (per SOC), DEVICE_ID, and SOCS as the bash environment variables. Let SOCS=4 or 1 if targetting Ultra or single device respectively. Let FORMAT="fp16" for fp16 format.
 
         MODEL_REPO=bigcode/starcoder
         MODEL_NAME=starcoder
@@ -49,7 +49,7 @@ Inference for models based on `GPTBigCodeForCausalLM` architecture can be execut
         SOCS=1
         FORMAT=mx6
 
-5. Generate the model into onnx format. Then, skip to step 8 for benchmarking only. 
+5. ONNX Model generation. 
 		
         python generateONNX.py --model-name $MODEL_REPO --model-class AutoModelForCausalLM --auth-token $AUTH_TOKEN
 
