@@ -70,6 +70,7 @@ Inference for models based on `GPTBigCodeForCausalLM` architecture can be execut
 |15B | 8192  | 1  | 14 | mx6 | 
 |15B | 2048  | 1  | 56 | mx6 | 
 |15B | 1024  | 1  | 84 | mx6 | 
+|15B | 512  | 1  | 84 | mx6 | 
 
 ## References 
 - [LlamaForCausal execution on Cloud AI 100](https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Model-Architecture-Support/Large-Language-Models/llm/)
