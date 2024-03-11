@@ -15,12 +15,7 @@ CORES="$5"
 SOCS="$6"
 FORMAT="$7"
 
-python prepare_mdp.py --cores $CORES --socs $SOCS
-
-sed -e "s/BS/${BS}/g" -e "s/PL/${PL}/g" -e "s/CL/${CL}/g" ./specializations_template.json  >  specializations.json	
-if [ $PL == 1 ]; then
-    sed -e "s/BS/${BS}/g" -e "s/PL/${PL}/g" -e "s/CL/${CL}/g" ./specializations_template_batch.json  >  specializations.json
-fi
+python prepare_jsons.py --bs $BS --pl $PL --cl $CL --cores $CORES --socs $SOCS
 
 if [ $FORMAT == "mx6" ]; then
     EXTRA="-mxfp6-matmul"
