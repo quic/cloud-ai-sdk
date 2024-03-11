@@ -32,10 +32,12 @@
 ---
 
 ## About
+Qualcomm Cloud AI 100 provides a unique blend of high computational performance, low latency and low power utilization and is well suited for a broad range of applications based on computer vision, natural language processing, and Generative AI including LLMs. It was purpose-built for high performance, low-power AI processing in the cloud – public and private (for Enterprise AI applications). 
+
 This repository provides developers with 3 key resources
-- Models    - Recipes for CV and NLP models to run on Cloud AI platforms performantly
-- Tutorials - Tutorials cover the model onboarding, performance tuning and profiling aspects of inferencing on Cloud AI platforms 
-- Samples   - Sample code illustrating usage of APIs for inference on Cloud AI platforms 
+- Models    - Recipes for [CV](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/vision), [NLP/LLMs/GenAI](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing), [multi-model](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image) models to run on Cloud AI platforms performantly
+- Tutorials - [Tutorials](https://github.com/quic/cloud-ai-sdk/tree/1.12/tutorials) cover model onboarding, performance tuning and profiling aspects of inferencing across CV/NLP on Cloud AI platforms 
+- Samples   - Sample code illustrating usage of APIs - [Python](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/python) and [C++](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/cpp/cpp_qpc_inference) for inference on Cloud AI platforms 
 
 ## Supported Models
 ### [Generative AI - Large Language Models (LLMs)](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder)
@@ -68,30 +70,8 @@ This repository provides developers with 3 key resources
 - ShuffleNet (`shufflenet_v2_x0_5`, `shufflenet_v2_x1_0`, `shufflenet_v2_x1_5`, `shufflenet_v2_x2_0`)
 - SqueezeNet (`squeezenet1_0`, `squeezenet1_1`)
 
-## Directory structure 
-```
-|── models                  # Contains model recipes for various computer vision and natural language processing models 
-│   └── language_processing # encoder and decoder (LLMs) transformer models
-|   |   └── decoder
-|   |   └── encoder
-│   └── multimodal          # multimodal generative AI models
-|   |   └── text_to_image
-│   └── vision              # vision models (transformer-based and convolution-based)
-|       └── classification
-|       └── detection
-|── samples                 # End-to-end inference examples on Cloud AI using CPP and Python APIs
-│   └── cpp                 # CPP based APIs used inference
-│   └── python              # Python based APIs used for inference
-├── tutorials               # Jupyter Notebooks based quick start guides
-|   └── Computer-Vision
-|   |   └── Performance-Tuning-Beginner
-|   └── NLP
-|       └── Model-Onboarding-Beginner
-|       └── Performance-Tuning-Beginner
-|       └── Profiler-Intermediate 
-├── README.md
-
-```
+# Support 
+Use [GitHub Issues](https://github.com/quic/cloud-ai-sdk/issues) to raise questions or to provide feedback.  
 
 # Disclaimer
 While this repository may provide documentation on how to run models on Qualcomm Cloud AI platforms, this repository does NOT contain any of these models.  All models referenced in this documentation are independently provided by third parties at unaffiliated websites. Please be sure to review any third-party license terms at these websites; no license to any model is provided in this repository. This repository of documentation provides no warranty or assurances for any model so please also be sure to review all model cards, model descriptions, model limitations / intended uses, training data, biases, risks, and any other warnings given by the third party  model providers.
