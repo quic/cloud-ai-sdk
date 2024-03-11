@@ -32,6 +32,8 @@
 ---
 
 ## About
+Qualcomm Cloud AI 100 provides a unique blend of high computational performance, low latency and low power utilization for deep learning inference and is well suited for a broad range of applications based on computer vision, natural language processing, and Generative AI including LLMs. It was purpose-built for high performance, low-power AI processing in the cloud – public and private (for Enterprise AI applications). 
+
 This repository provides developers with 3 key resources
 - Models    - Recipes for [CV](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/vision), [NLP/LLMs/GenAI](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing), [multi-model](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image) models to run on Cloud AI platforms performantly
 - Tutorials - [Tutorials](https://github.com/quic/cloud-ai-sdk/tree/1.12/tutorials) cover model onboarding, performance tuning and profiling aspects of inferencing across CV/NLP on Cloud AI platforms 
