@@ -77,10 +77,14 @@ def main(
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, padding_side="left", trust_remote_code=True, token=token)
 
     # Read prompt and ctx len from session
-    prompt_len = max(
-        [x[session.binding_index_map["input_ids"]][1][1] for x in session.allowed_shapes]
-    )
-    ctx_len = session.allowed_shapes[0][session.binding_index_map["attention_mask"]][1][1]
+    if  len(session.allowed_shapes)>0:
+        prompt_len = max(
+            [x[session.binding_index_map["input_ids"]][1][1] for x in session.allowed_shapes]
+        )
+        ctx_len = session.allowed_shapes[0][session.binding_index_map["attention_mask"]][1][1]
+    else:
+        prompt_len = 1
+        ctx_len = session.bindings[session.binding_index_map["attention_mask"]].dims[1]
     if input_len is None:
         inputs = tokenizer(prompt, return_tensors="np")
         input_len = inputs.input_ids.shape[1]
