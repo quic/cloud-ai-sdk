@@ -7,7 +7,7 @@
 
 
 <p style="font-size: 20px" align="center">
-| <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/"><b>User Guide</b></a> | <a href="https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software"><b>Download SDK</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/API/"><b>API</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/blogs/"><b>Blog</b></a> |
+| <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/"><b>User Guide</b></a> | <a href="https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software"><b>Download SDK</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/API/"><b>API</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/blogs/AmberChat/"><b>Blog</b></a> |
 
 </p>
 
