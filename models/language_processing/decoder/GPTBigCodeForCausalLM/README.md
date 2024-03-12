@@ -60,5 +60,6 @@ Inference for models based on `GPTBigCodeForCausalLM` architecture can be execut
 |15B | 2048  | 1  | 56 | mx6 | 
 |15B | 1024  | 1  | 84 | mx6 | 
 
+
 ## References 
 - [Shared Micro-exponents](https://arxiv.org/abs/2302.08007)
