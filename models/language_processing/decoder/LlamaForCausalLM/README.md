@@ -97,7 +97,8 @@ This applies to the Cloud AI 100 [Ultra SKU](https://quic.github.io/cloud-ai-sdk
 	- `<MX>` : MX6 compression format use flag `-mxfp6-matmul`, keep it blank for FP16, which is default setting.
 
 ## Model execution
-
+- Increase device timeout
+  `echo 250 > /sys/module/qaic/parameters/control_resp_timeout_s`
 - Run the runModel.py script:
 
     ## Single SoC  
