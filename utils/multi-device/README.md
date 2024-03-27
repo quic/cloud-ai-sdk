@@ -1,10 +1,10 @@
 # Multi Device 
 
-This section provides the setup instructions for model sharding across multiple AI 100 devices (SoCs and Cards). More details provided [here]
+This section provides the setup instructions for model sharding across multiple AI 100 devices (SoCs and Cards). 
 
 ## Pre-requisites 
 
-- Server with Platform and APPS SDK versions > 1.13 installed. 
+- Server with Platform and APPS SDK versions >= 1.13 installed. 
 - PCIe switch for inter-card P2P communication
 
 ## Setup instructions 
