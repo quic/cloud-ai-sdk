@@ -1,0 +1,12 @@
+{
+ "request": [
+  {
+   "qid": -1,
+   "dev_config": {
+    "update_multi_device_partition_config_request": {
+     "enable": true
+    }
+   }
+  }
+ ]
+}
