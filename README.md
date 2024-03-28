@@ -71,7 +71,7 @@ This repository provides developers with 3 key resources
 - SqueezeNet (`squeezenet1_0`, `squeezenet1_1`)
 
 # Support 
-Use [GitHub Issues](https://github.com/quic/cloud-ai-sdk/issues) to raise questions or to provide feedback.  
+Use [GitHub Issues](https://github.com/quic/cloud-ai-sdk/issues) to request for model support, raise questions or to provide feedback.  
 
 # Disclaimer
 While this repository may provide documentation on how to run models on Qualcomm Cloud AI platforms, this repository does NOT contain any of these models.  All models referenced in this documentation are independently provided by third parties at unaffiliated websites. Please be sure to review any third-party license terms at these websites; no license to any model is provided in this repository. This repository of documentation provides no warranty or assurances for any model so please also be sure to review all model cards, model descriptions, model limitations / intended uses, training data, biases, risks, and any other warnings given by the third party  model providers.
