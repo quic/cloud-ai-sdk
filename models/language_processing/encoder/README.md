@@ -122,6 +122,7 @@ usage: run_nlp_model.py [-h] --model-name MODEL_NAME
 			[--extra EXTRA] 
 			[--time TIME] 
 			[--device {0,1,2,3,4,5,6,7}] 
+                        [--api-run]
 			[--run-only]
 
 Download, Compile, and Run encoder-type NLP models on randomly generated inputs
@@ -152,10 +153,17 @@ optional arguments:
   --time TIME           Duration (in seconds) for which to submit inferences. Default <20>
   --device, -d {0,1,2,3,4,5,6,7}
                         AIC100 device ID. Default <0>
+  --api-run, -a         Performs the inference using qaic session (high-level) and qaicrt(low-level) Python APIs. If this flag is not specified, qaic-runner CLI is used. 
   --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
 
 ```
 Examples:
+Use qaic session and qaicrt Python APIs 
+```commandline
+python run_nlp_model.py --model-name albert-base-v2 --objective best-throughput --api-run
+```
+
+Use qaic-runner CLI
 ```commandline
 python run_nlp_model.py -m Rostlab/prot_bert
 ```
@@ -165,6 +173,7 @@ python run_nlp_model.py -m bert-base-cased -t question-answering -o best-through
 ```commandline
 python run_nlp_model.py --model-name bert-base-uncased --objective best-latency
 ```
+
 The TASK and hardware configuration will be either associated to the corresponding row in the lut_nlp_models.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_nlp_models.csv, pick a corresponding task, or switch to default.
 
 After download, compile, and run is complete, the working directory of the selected model is as follows. 
