@@ -18,4 +18,6 @@ Tutorials are Jupyter notebools designed to walk the developer through the Cloud
    `pip install notebook`
    `pip install urllib3==1.26.6`
 5. Run the notebook
-   `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser` 
+   `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`
+   You should see `http://ip-xx-yyy-zzz-aaa.us-west-2.compute.internal:8888/tree?token=<token#>`.
+   On the local machine, type `http://xx.yyy.zzz.aaa:8888/tree?token=<token#>` to run the tutorial notebooks. 
