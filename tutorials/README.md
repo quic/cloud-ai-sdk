@@ -20,4 +20,4 @@ Tutorials are Jupyter notebools designed to walk the developer through the Cloud
 5. Run the notebook
    `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`.<br>
    You should see `http://ip-xx-yyy-zzz-aaa.us-west-2.compute.internal:8888/tree?token=<token#>`.<br>
-   On the local machine, type `http://xx.yyy.zzz.aaa:8888/tree?token=<token#>` to run the tutorial notebooks. 
+   On the local machine, type `http://xx.yyy.zzz.aaa:8888/tree?token=<token#>` on a browser to run the tutorial notebooks. 
