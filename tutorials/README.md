@@ -10,14 +10,14 @@ Tutorials are Jupyter notebools designed to walk the developer through the Cloud
 ### Pre-requisites
 1. Clone this repo
 2. Create python3.8 venv and activate it.
-   `python3.8 -m venv jn_env`
-   `source jn_env/bin/activate`
+   `python3.8 -m venv jn_env` <br>
+   `source jn_env/bin/activate` <br>
 3. Install qaic
    `pip install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl`
 4. Install Jupyter notebook
    `pip install notebook`
    `pip install urllib3==1.26.6`
 5. Run the notebook
-   `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`
-   You should see `http://ip-xx-yyy-zzz-aaa.us-west-2.compute.internal:8888/tree?token=<token#>`.
+   `jupyter notebook --allow-root --ip 0.0.0.0 --no-browser`.<br>
+   You should see `http://ip-xx-yyy-zzz-aaa.us-west-2.compute.internal:8888/tree?token=<token#>`.<br>
    On the local machine, type `http://xx.yyy.zzz.aaa:8888/tree?token=<token#>` to run the tutorial notebooks. 
