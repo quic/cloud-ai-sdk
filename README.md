@@ -7,7 +7,7 @@
 
 
 <p style="font-size: 20px" align="center">
-| <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/"><b>User Guide</b></a> | <a href="https://www.qualcomm.com/products/technology/processors/cloud-artificial-intelligence/cloud-ai-100#Software"><b>Download SDK</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/API/"><b>API</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/blogs/AmberChat/"><b>Blog</b></a> |
+| <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/"><b>User Guide</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Installation/"><b>Download SDK</b></a> | <a href="https://quic.github.io/cloud-ai-sdk-pages/latest/blogs/Train_Anywhere/train_anywhere/"><b>Blog</b></a> |
 
 </p>
 
@@ -19,7 +19,7 @@
 ---
 
 *Latest News* 🔥
-- [Coming soon] Support for Mistral family of LLMs - e.g., [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1), [Zephyr-7b-beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)
+- [2024/04] Qualcomm released [efficient transformers](https://github.com/quic/efficient-transformers) for seamless deployment of pre-trained LLMs. 
 - [2024/03] Added [AI 100 Ultra recipe for Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
 - [2024/03] Added support for Speculative Decoding with LLMs - [CodeGen with Speculative Decoding](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder/CodeGen-With-Speculative-Decoding)
 - [2024/02] Added support for [Stable Diffusion XL](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image/stable_diffusion_xl)
@@ -35,20 +35,13 @@
 Qualcomm Cloud AI 100 provides a unique blend of high computational performance, low latency and low power utilization for deep learning inference and is well suited for a broad range of applications based on computer vision, natural language processing, and Generative AI including LLMs. It was purpose-built for high performance, low-power AI processing in the cloud – public and private (for Enterprise AI applications). 
 
 This repository provides developers with 3 key resources
-- Models    - Recipes for [CV](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/vision), [NLP/LLMs/GenAI](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing), [multimodal](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image) models to run on Cloud AI platforms performantly
+- Models    - Recipes for [CV](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/vision), [NLP/LLMs/GenAI](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing), [multimodal](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image) models to run on Cloud AI platforms performantly. For LLMs, see [efficient-transformers](https://github.com/quic/efficient-transformers)
 - Tutorials - [Tutorials](https://github.com/quic/cloud-ai-sdk/tree/1.12/tutorials) cover model onboarding, performance tuning, and profiling aspects of inferencing across CV/NLP on Cloud AI platforms 
 - Samples   - Sample code illustrating usage of APIs - [Python](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/python) and [C++](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/cpp/cpp_qpc_inference) for inference on Cloud AI platforms 
 
 ## Supported Models
-### [Generative AI - Large Language Models (LLMs)](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder)
-- DeciLM (`Deci/DeciLM-7B`, `Deci/DeciLM-7B-instruct`, etc.)
-- DeciCoder (`Deci/DeciCoder-1B`, `Deci/DeciCoder-6B`, etc.)
-- GPT-2 (`gpt2`, `gpt2-xl`, etc.)
-- GPT BigCode (`bigcode/starcoder`, `bigcode/gpt_bigcode-santacoder`, etc.)
-- GPT-J (`EleutherAI/gpt-j-6b`, `nomic-ai/gpt4all-j`, etc.)
-- LLaMA & LLaMA-2 (`meta-llama/Llama-2-7b-hf`, `meta-llama/Llama-2-13b-hf`, `meta-llama/Llama-2-70b-hf`, etc.)
-- Mistral (`mistralai/Mistral-7B-v0.1`, `mistralai/Mistral-7B-Instruct-v0.1`, etc.)
-- MPT (`mosaicml/mpt-7b`, `mosaicml/mpt-30b`, etc.)
+### [Generative AI - Large Language Models (LLMs)]
+see [efficient-transformers](https://github.com/quic/efficient-transformers)
 
 ### [Generative AI - Text-to-Image Models](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image)
 - Stable Diffusion (`stabilityai/stable-diffusion-xl-base-1.0`, `stabilityai/stable-diffusion-2-1`, `runwayml/stable-diffusion-v1-5`, etc.)
