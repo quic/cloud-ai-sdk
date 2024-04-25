@@ -40,7 +40,7 @@ This repository provides developers with 3 key resources
 - Samples   - Sample code illustrating usage of APIs - [Python](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/python) and [C++](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/cpp/cpp_qpc_inference) for inference on Cloud AI platforms 
 
 ## Supported Models
-### [Generative AI - Large Language Models (LLMs)]
+### Generative AI - Large Language Models (LLMs)
 see [efficient-transformers](https://github.com/quic/efficient-transformers)
 
 ### [Generative AI - Text-to-Image Models](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image)
