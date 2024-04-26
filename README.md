@@ -41,7 +41,7 @@ This repository provides developers with 3 key resources
 
 ## Supported Models
 ### Generative AI - Large Language Models (LLMs)
-see [efficient-transformers](https://github.com/quic/efficient-transformers)
+- See [efficient-transformers](https://github.com/quic/efficient-transformers)
 
 ### [Generative AI - Text-to-Image Models](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image)
 - Stable Diffusion (`stabilityai/stable-diffusion-xl-base-1.0`, `stabilityai/stable-diffusion-2-1`, `runwayml/stable-diffusion-v1-5`, etc.)
