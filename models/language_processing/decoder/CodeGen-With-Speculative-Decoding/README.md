@@ -157,15 +157,15 @@ Cloud AI 100 supports speculative decoding. Speculative decoding has two parts t
 **Run the runSpeculativeDecoding.sh script:**
 		
 ```
-bash runSpeculativeDecoding.sh --model-repo <model-repo-name> --tlm-model-name <tlm-model-name> --dlm-model-name <dlm-model-name> --tlm-precision <mx6 or fp16> --dlm-precision <mx6 or fp16> --num-cores-tlm <1-16> --num-cores-dlm <1-16> --pl <prompt-length> --cl <context-length> --spec-length <spec-length> --exact-greedy --mq --device-ids <device-id(s)> --model-family <model-family-name> --prompt "<enter-prompt>"
+bash runSpeculativeDecoding.sh --model-repo <model-repo-name> --tlm-model-name <tlm-model-name> --dlm-model-name <dlm-model-name> --tlm-precision <mx6 or fp16> --dlm-precision <mx6 or fp16> --num-cores-tlm <1-16> --num-cores-dlm <1-16> --pl <prompt-length> --cl <context-length> --spec-length <spec-length> --mq --tlm-device-ids <device-id(s)> --dlm-device-ids <device-id(s)> --model-family <model-family-name> --prompt-file <path-to-text-prompt-file>
 ```
 
 Example: <br>
 
 ```
-sudo bash runSpeculativeDecoding.sh --model-repo Salesforce --tlm-model-name codegen-6B-mono --dlm-model-name codegen-350M-mono  --tlm-precision mx6 --dlm-precision fp16 --num-cores-dlm 4 --num-cores-tlm 10 --pl 32 --cl 256 --spec-length 7 --exact-greedy --device-ids 0 --model-family codegen --prompt " "
+sudo bash runSpeculativeDecoding.sh --model-repo Salesforce --tlm-model-name codegen-6B-mono --dlm-model-name codegen-350M-mono --tlm-precision mx6 --dlm-precision fp16 --num-cores-dlm 4 --num-cores-tlm 10 --pl 32 --cl 256 --spec-length 7 --tlm-device-ids 0 --dlm-device-ids 0 --model-family codegen --prompt-file ./codegen_prompts.txt
 ```
 
 **Note:** <br>
-- For multi-device configuration, pass `--mq` argumnet as well as number of device-ids based on compile configuration, example "--device-ids 0,1,2,3" for 4 devices in the above run command.
-- For any specific prompt, enter it with the --prompt "<enter-prompt>" argument in the above command.
+- For multi-device configuration, pass `--mq` argumnet as well as number of device ids based on compile configuration, example "--tlm-device-ids 0,1,2,3 and --dlm-device-ids 0,1,2,3" for 4 devices in the above run command.
+- For any specific prompt, create a new input prompt text file or enter it in the example (codegen_prompts.txt) file. Make sure prompt ends with `:<endofprompt>` as shown in the example file.

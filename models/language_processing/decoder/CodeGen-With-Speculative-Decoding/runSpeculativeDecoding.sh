@@ -8,8 +8,8 @@
 ##############################################################################
 
 if [ -z "$1" ]; then
-	echo "Usage: $0 --model-repo <model_repo> --prompt \"<input prompt>\" --tlm-model-name <tlm_model_name> --tlm-precision [mx6 | fp16] --dlm-precision [mx6 | fp16] --dlm-model-name <dlm_model_name> --spec-length <DLM speculation length> --num-cores-dlm <0-16> --num-cores-tlm <0-16> \
-  --pl <prompt length> --cl <context length> [--exact-greedy] [--mq] [--device-ids <comma-separated-device-ids>]"
+	echo "Usage: $0 --model-repo <model_repo> --tlm-model-name <tlm_model_name> --tlm-precision [mx6 | fp16] --dlm-precision [mx6 | fp16] --dlm-model-name <dlm_model_name> --spec-length <DLM speculation length> --num-cores-dlm <0-16> --num-cores-tlm <0-16> \
+  --pl <prompt length> --cl <context length> --prompts-file <path_to_txtfile_with_prompts> [--exact-greedy] [--mq] [--tlm-device-ids <comma-separated-device-ids>][--dlm-device-ids <comma-separated-device-ids>]"
 	exit 1
 fi
 
@@ -21,12 +21,13 @@ tlm_precision=
 dlm_precision=
 pl=
 cl=
+prompt_file=
 ncores_tlm=
 ncores_dlm=
 spec_length=
 exact_greedy=
-device_id=
-prompt_str=
+tlm_device_id=
+dlm_device_id=
 qpc_dir="./qpc"
 
 log_out_dir="./output_logs"
@@ -71,9 +72,14 @@ while [ $# -gt 0 ]; do
 			spec_length=$2
 			shift
 			;;
-		--device-ids)
+		--dlm-device-ids)
 			if [ $# -eq 1 ]; then echo "Error: missing $1 argument"; exit 1; fi
-			device_id=$2
+			dlm_device_id=$2
+			shift
+			;;
+		--tlm-device-ids)
+			if [ $# -eq 1 ]; then echo "Error: missing $1 argument"; exit 1; fi
+			tlm_device_id=$2
 			shift
 			;;
 		--num-cores-tlm)
@@ -96,13 +102,13 @@ while [ $# -gt 0 ]; do
 			cl=$2
 			shift
 			;;
-		--mq)
-			qpc_dir="./qpc_mq"
+		--prompt-file)
+			if [ $# -eq 1 ]; then echo "Error: missing $1 argument"; exit 1; fi
+			prompt_file=$2
 			shift
 			;;
-		--prompt)
-			if [ $# -eq 1 ]; then echo "Error: missing $1 argument"; exit 1; fi
-			prompt_str=$2
+		--mq)
+			qpc_dir="./qpc_mq"
 			shift
 			;;
 		--exact-greedy)
@@ -117,7 +123,6 @@ done
 
 if [ "z${tlm_precision}" == "z" ]; then tlm_precision="fp16"; fi
 if [ "z${dlm_precision}" == "z" ]; then dlm_precision="fp16"; fi
-if [ "z${prompt_str}" == "z" ]; then echo "Error: missing --prompt argument"; exit 1; fi
 if [ "z${tlm_model_name}" == "z" ]; then echo "Error: missing --tlm-model-name argument"; exit 1; fi
 if [ "z${dlm_model_name}" == "z" ]; then echo "Error: missing --dlm-model-name argument"; exit 1; fi
 if [ "z${model_repo}" == "z" ]; then echo "Error: missing --model-repo argument"; exit 1; fi
@@ -127,16 +132,16 @@ if [ "z${ncores_tlm}" == "z" ]; then echo "Error: missing --num-cores-tlm argume
 if [ "z${ncores_dlm}" == "z" ]; then echo "Error: missing --num-cores-dlm argument"; exit 1; fi
 if [ "z${pl}" == "z" ]; then echo "Error: missing --pl argument"; exit 1; fi
 if [ "z${cl}" == "z" ]; then echo "Error: missing --cl argument"; exit 1; fi
-
+if [ "z${prompt_file}" == "z" ]; then echo "Error: missing --prompt-file argument"; exit 1; fi
 if ! test -d $qpc_dir; then echo "Error: missing QPC directory: ${qpc_dir}"; exit 1; fi
-
+if ! test -f $prompt_file; then echo "Error: missing txt file with prompts: ${prompt_file}"; exit 1; fi
 full_model_path="${model_repo}/${tlm_model_name}"
 
-execute_run_cmd () {
-python ./speculativeDecoding.py $exact_greedy --model-family ${model_family} --model-name ${full_model_path} --tlm-qpc \
+runcmd () {
+python speculativeDecoding.py $exact_greedy --model-family ${model_family} --model-name ${full_model_path} --tlm-qpc \
 ${qpc_dir}/${tlm_model_name}-kv-${pl}pl-${cl}cl-${ncores_tlm}c-_${spec_length}speclen-${tlm_precision}-tlm --dlm-qpc \
-${qpc_dir}/${dlm_model_name}-kv-${pl}pl-${cl}cl-${ncores_dlm}c-speclen-${dlm_precision}-dlm --prompt "${prompt_str}" \
---prompt-len ${pl} --ctx-len ${cl} --max-spec-length ${spec_length} --device_id ${device_id}
+${qpc_dir}/${dlm_model_name}-kv-${pl}pl-${cl}cl-${ncores_dlm}c-speclen-${dlm_precision}-dlm \
+--prompt-len ${pl} --ctx-len ${cl} --max-spec-length ${spec_length} --dlm-device_id ${dlm_device_id} --tlm-device_id ${tlm_device_id} --prompt-file ${prompt_file}
 }
 
-execute_run_cmd
+runcmd
