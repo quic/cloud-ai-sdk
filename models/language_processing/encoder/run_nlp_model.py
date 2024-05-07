@@ -254,7 +254,7 @@ def main(args):
         print("*************************************************************************************\n\n", flush=True)
 
         # Generating the onnx model using Optimum - an extension of Transformers.
-        execute(["optimum-cli", "export", "onnx", "--model", f"{MODEL_NAME}", "./model", "--cache_dir", "./cache", "--task", f"{TASK}", "--opset", f"{OPSET}"], f"commands-{MOTIF}.txt", 'w')
+        execute(["optimum-cli", "export", "onnx", "--model", f"{MODEL_NAME}", "./model", "--cache_dir", "./cache", "--task", f"{TASK}", "--opset", f"{OPSET}", "--trust-remote-code"], f"commands-{MOTIF}.txt", 'w')
 
     # For now, assuming only one onnx is generated in the directory ./model
     for file in os.listdir("./model"):
