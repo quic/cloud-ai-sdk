@@ -100,7 +100,7 @@ source nlp_env/bin/activate
 ---
 ```commandline
 python -m pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
-python -m pip install fsspec==2024.2.0 wheel==0.42.0 sentence-transformers==2.6.1 onnx==1.15.0 onnxruntime==1.16.3 optimum==1.16.2 protobuf==3.20.2 urllib3==1.26.6
+python -m pip install fsspec==2024.2.0 wheel==0.42.0 sentence-transformers==2.6.1 onnx==1.15.0 onnxruntime==1.16.3 optimum==1.19.1 protobuf==5.26.1 urllib3==2.2.1
 python -m pip install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
 ```
 ## Syntax
