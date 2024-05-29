@@ -1,6 +1,6 @@
 # Whisper
 
-[Whisper](ihttps://github.com/openai/whisper) is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multi-task model that can perform multilingual speech recognition as well as speech translation and language identification.
+[Whisper](https://github.com/openai/whisper) is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multi-task model that can perform multilingual speech recognition as well as speech translation and language identification.
 
 ## Environment and dependencies
 
@@ -16,7 +16,7 @@ pip install -r requirements.txt
 python3 generateModel.py --model-name openai/whisper-base
 ```
 
-*Note* Similary we can generate based on other varaints, please check the variants here.<br>
+**Note** Similary we can generate based on other variants, please check the variants here.<br>
 https://github.com/openai/whisper#available-models-and-languages
 
 ## Model compilation
