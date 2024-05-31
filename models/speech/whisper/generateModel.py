@@ -3,65 +3,62 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 ####################################################################################################
 
+import os
 import argparse
-
 import numpy as np
 import torch
 from datasets import load_dataset
-from transformers import WhisperForConditionalGeneration, WhisperProcessor
+import whisper
 
-def main(model_name: str):
-    # load model and processor
-    processor = WhisperProcessor.from_pretrained(model_name)
-    model = WhisperForConditionalGeneration.from_pretrained(model_name)
-
+def main(model_name: str, output_dir: str):
+    cache_path = './cache'
     # load dummy dataset and read soundfiles
     ds = load_dataset(
         'hf-internal-testing/librispeech_asr_dummy', 'clean', split='validation'
     )
-    input_features = processor(
-        ds[0]['audio']['array'], return_tensors='pt'
-    ).input_features
 
-    # Generate logits
-    logits = model(input_features, decoder_input_ids=torch.tensor([[50258]])).logits
-    # take argmax and decode
+    audio_sample = ds[0]['audio']
 
-    predicted_ids = torch.argmax(logits, dim=-1)
-    transcription = processor.batch_decode(predicted_ids)
+    audio = whisper.load_audio(audio_sample['path']) # Read audio from file
+    audio_pad = whisper.pad_or_trim(audio) # Padding and trimming
 
+    # make log-Mel spectrogram and move to the same device as the model
+    input_features = whisper.log_mel_spectrogram(audio_pad) # convert to mel spectrogram
+    input_features = torch.unsqueeze(input_features, 0) # add batch dimension
+
+    model = whisper.load_model(model_name, download_root=cache_path)
+    audio_features = model.encoder(input_features)
     decoder_input_ids = torch.tensor([[50258]])
-    torch_outputs = model(input_features, decoder_input_ids=decoder_input_ids)
-    output_names = list(torch_outputs.keys())
 
-    pt_model_code = model.forward.__code__
-    pt_input_names = pt_model_code.co_varnames[1 : pt_model_code.co_argcount]
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    # Save the input files for AIC compilation.
-    # input_features.numpy().tofile('inputFiles/input_features.raw')
-    # decoder_input_ids.numpy().tofile('inputFiles/decoder_input_ids.raw')
-
-    onnx_model_name = f"{model_name.split('/')[1]}.onnx"
+    # Encoder model
     torch.onnx.export(
-        model,
-        (input_features, decoder_input_ids),
-        onnx_model_name,
-        input_names=pt_input_names,
-        output_names=output_names,
+        model.encoder,
+        (input_features),
+        os.path.join(output_dir, 'encoder_model.onnx'),
+        input_names=['input_features'],
+        output_names=['last_hidden_state'],
+        dynamic_axes={
+            'input_features': {0: 'batch_size', 1: 'feature_size', 2: 'encoder_sequence_length'},
+            'last_hidden_state': {0: 'batch_size'}
+        }
     )
 
-    # Run the OnnxRuntime Inference
-    #inputs = {'input_features': input_features, 'decoder_input_ids': decoder_input_ids}
-
-    #import onnxruntime
-
-    #ort_session = onnxruntime.InferenceSession(onnx_model_name)
-    #ort_outputs = ort_session.run(None, {k: v.numpy() for k, v in inputs.items()})
-
-    #for orto, oname in zip(ort_outputs, ort_session.get_outputs()):
-        #print(orto.shape, oname.name)
-        #orto.flatten().tofile(f'./AICOutputs/ort_full/{oname.name}.raw')
-
+    # Decoder model
+    torch.onnx.export(
+        model.decoder,
+        (decoder_input_ids, audio_features),
+        os.path.join(output_dir, 'decoder_model.onnx'),
+        input_names=['input_ids', 'encoder_hidden_states'],
+        output_names=['logits'],
+        dynamic_axes={
+            'input_ids': {0: 'batch_size', 1: 'decoder_sequence_length'},
+            'encoder_hidden_states': {0: 'batch_size', 1: 'encoder_sequence_length'},
+            'logits': {0: 'batch_size', 1: 'decoder_sequence_length'}
+        }
+    )
 
 if __name__ == '__main__':
     import argparse
@@ -71,6 +68,12 @@ if __name__ == '__main__':
         '--model-name',
         required=True,
         help='Model name to generate',
+    )
+    argp.add_argument(
+        '--output-dir',
+        required=False,
+        help='Path to store generated ONNX files',
+        default='./'
     )
     args = argp.parse_args()
     main(**vars(args))
