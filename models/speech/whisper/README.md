@@ -7,7 +7,8 @@
 ```commandline
 python3.8 -m venv whisper_env
 source whisper_env/bin/activate
-pip install -r requirements.txt
+pip3 install wheel
+pip3 install -r requirements.txt
 
 sudo apt-get install libsndfile1
 sudo apt-get install ffmpeg
