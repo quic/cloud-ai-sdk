@@ -1,11 +1,6 @@
-# Instructions to run SDXL on Cloud AI100 (Single SoC) with DeepCache
+# Instructions to run SDXL on Cloud AI100 with DeepCache
 
-The instructions below are to run the [Stable Diffusion XL model](stabilityai/stable-diffusion-xl-base-1.0) on Cloud AI100. Compile time parameters may need to be adjusted for different cards and different SDKs.
-
-First, clone the recipe for SDXL with DeepCache
-```
-git clone -b deepcache https://github.qualcomm.com/bonazhan/sdxl.git
-```
+The instructions below are to run the [Stable Diffusion XL model](stabilityai/stable-diffusion-xl-base-1.0) on Cloud AI100. 
 
 
 ## 1. Generate onnx files and compile for binaries
