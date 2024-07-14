@@ -86,8 +86,7 @@ def main(
         prompt_len = 1
         ctx_len = session.bindings[session.binding_index_map["attention_mask"]].dims[1]
     if input_len is None:
-        inputs = tokenizer(prompt, return_tensors="np")
-        input_len = inputs.input_ids.shape[1]
+        input_len =  max([len(x) for x in tokenizer(prompt, return_tensors="np").input_ids])
         
     num_chunks = -(input_len // -prompt_len)  # ceil divide without float
     input_len = num_chunks * prompt_len  # Convert input_len to a multiple of prompt_len
