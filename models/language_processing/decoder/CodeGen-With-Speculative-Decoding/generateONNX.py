@@ -147,7 +147,7 @@ def main(
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
     # Load model
-    model = model_class.from_pretrained(model_name, use_cache=True, use_auth_token=use_auth_token, trust_remote_code=True, force_download=True, resume_download=True)
+    model = model_class.from_pretrained(model_name, use_cache=True, use_auth_token=use_auth_token, trust_remote_code=True, resume_download=True)
     model.eval()
 
     # Preprocess inputs
