@@ -487,17 +487,17 @@ def parse_args():
     )
     parser.add_argument(
         "--cores", "-c", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Number of AIC100 cores to compile the model for. Default <2> ",
     )
     parser.add_argument(
         "--instances", "-i", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Number of model instances to run on AIC100. Default <7>",
     )
     parser.add_argument(
         "--ols", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Overlap split factor. Default <1>",
     )
     parser.add_argument(
