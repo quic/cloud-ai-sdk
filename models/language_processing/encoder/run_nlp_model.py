@@ -204,28 +204,28 @@ def main(args):
         SL        = int(user_lut_default(args.seq_length, row, 'SEQUENCE_LENGTH', '128'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',             '2'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',         '7'))
-        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '2')
-        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '1')
+        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '')
+        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',          '4')
-        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '-multicast-weights')
+        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '')
     elif OBJECTIVE == 'best-latency':
         BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',        '1'))
         SL        = int(user_lut_default(args.seq_length, row, 'SEQUENCE_LENGTH', '128'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',            '12'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',         '1'))
-        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '1')
-        MOS       =     user_lut_default(args.mos,        row, 'MOS',              '12')
+        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '')
+        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',          '1')
-        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '-multicast-weights')
+        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '')
     else:
         BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',        '2'))
         SL        = int(user_lut_default(args.seq_length, row, 'SEQUENCE_LENGTH', '128'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',             '6'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',         '2'))
-        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '1')
-        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '6')
+        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '')
+        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',          '1')
-        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '-multicast-weights')
+        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '')
         
     TIME = args.time
     OPSET = args.opset
@@ -243,7 +243,8 @@ def main(args):
     os.makedirs(INPUT_FOLDER, exist_ok=True)
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-    MOTIF = f"B{BS}-C{CORES}-A{INSTANCES}-OLS{OLS}"
+    MOTIF = f"B{BS}-C{CORES}-A{INSTANCES}"
+    if OLS != '': MOTIF = MOTIF + f"-OLS{OLS}"
     if MOS != '': MOTIF = MOTIF + f"-MOS{MOS}"
     MOTIF = MOTIF + f"-{OBJECTIVE}"
     MOTIF = MOTIF.replace(' ','')
@@ -284,7 +285,6 @@ def main(args):
                         f"-aic-hw",
                         f"-aic-hw-version=2.0",
                         f"-aic-num-cores={CORES}",
-                        f"-ols={OLS}",
                         f"-convert-to-fp16",
                         f"-compile-only",
                         f"-aic-binary-dir=./compiled-bin-fp16-{MOTIF}",
@@ -293,6 +293,8 @@ def main(args):
                         ]
         if MOS != '':
             cmd_elements.extend([f"-mos={MOS}"])
+        if OLS != '':
+            cmd_elements.extend([f"-ols={OLS}"])
         execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
 
     print("\n\n*************************************************************************************", flush=True)
