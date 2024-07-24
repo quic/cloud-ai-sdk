@@ -1,0 +1,78 @@
+diff --git a/DeepCache/sdxl/unet_2d_condition.py b/DeepCache/sdxl/unet_2d_condition.py
+index 6c97199..22124c5 100644
+--- a/DeepCache/sdxl/unet_2d_condition.py
++++ b/DeepCache/sdxl/unet_2d_condition.py
+@@ -591,6 +591,8 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+             self.position_net = PositionNet(
+                 positive_len=positive_len, out_dim=cross_attention_dim, feature_type=feature_type
+             )
++        self.cache_layer_id = 0
++        self.cache_block_id = 0
+ 
+     @property
+     def attn_processors(self) -> Dict[str, AttentionProcessor]:
+@@ -741,6 +743,7 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+         sample: torch.FloatTensor,
+         timestep: Union[torch.Tensor, float, int],
+         encoder_hidden_states: torch.Tensor,
++        replicate_prv_feature: Optional[List[torch.Tensor]],
+         class_labels: Optional[torch.Tensor] = None,
+         timestep_cond: Optional[torch.Tensor] = None,
+         attention_mask: Optional[torch.Tensor] = None,
+@@ -749,10 +752,6 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+         down_block_additional_residuals: Optional[Tuple[torch.Tensor]] = None,
+         mid_block_additional_residual: Optional[torch.Tensor] = None,
+         encoder_attention_mask: Optional[torch.Tensor] = None,
+-        quick_replicate: bool = False,
+-        replicate_prv_feature: Optional[List[torch.Tensor]] = None,
+-        cache_layer_id: Optional[int] = None,
+-        cache_block_id: Optional[int] = None,
+         return_dict: bool = True,
+     ) -> Union[UNet2DConditionOutput, Tuple]:
+         r"""
+@@ -954,8 +953,11 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+         is_controlnet = mid_block_additional_residual is not None and down_block_additional_residuals is not None
+         is_adapter = mid_block_additional_residual is None and down_block_additional_residuals is not None
+ 
++        cache_layer_id = self.cache_layer_id
++        cache_block_id = self.cache_block_id
+         down_block_res_samples = (sample,)
+-        if quick_replicate and replicate_prv_feature is not None:
++        if False:
++            print("Using cache...")
+             # Down
+             for i, downsample_block in enumerate(self.down_blocks):
+                 if i > cache_layer_id:
+@@ -1037,9 +1039,10 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+                         scale=lora_scale,
+                         enter_block_number=cache_block_id if i == len(self.up_blocks) - 1 - cache_layer_id else None,
+                     )
+-        
++
+             prv_f = replicate_prv_feature
+         else:
++            print("Initializing cache...")
+             for i, downsample_block in enumerate(self.down_blocks):
+                 if hasattr(downsample_block, "has_cross_attention") and downsample_block.has_cross_attention:
+                     # For t2i-adapter CrossAttnDownBlock2D
+@@ -1137,17 +1140,15 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+                         upsample_size=upsample_size,
+                         scale=lora_scale,
+                     )
+-                   
++
+                 #print(cache_layer_id, current_record_f is None, i == len(self.up_blocks) - cache_layer_id - 1)
+                 #print("Append prv_feature with shape:", sample.shape)
+                 if cache_layer_id is not None and current_record_f is not None and i == len(self.up_blocks) - cache_layer_id - 1:
+                     prv_f = current_record_f[-cache_block_id-1]
+-                
++
+         # 6. post-process
+         if self.conv_norm_out:
+             sample = self.conv_norm_out(sample)
+             sample = self.conv_act(sample)
+         sample = self.conv_out(sample)
+-        if not return_dict:
+-            return (sample, prv_f,)
+-        return UNet2DConditionOutput(sample=sample)
++        return (sample, prv_f,)

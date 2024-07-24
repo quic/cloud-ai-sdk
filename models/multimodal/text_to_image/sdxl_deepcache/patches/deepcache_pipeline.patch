@@ -1,0 +1,458 @@
+diff --git a/DeepCache/sdxl/pipeline_stable_diffusion_xl.py b/DeepCache/sdxl/pipeline_stable_diffusion_xl.py
+index 41decf9..615bd30 100644
+--- a/DeepCache/sdxl/pipeline_stable_diffusion_xl.py
++++ b/DeepCache/sdxl/pipeline_stable_diffusion_xl.py
+@@ -13,9 +13,12 @@
+ # limitations under the License.
+ 
+ import inspect
+-import os
+ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+-
++import os
++import time
++from concurrent.futures import ThreadPoolExecutor
++import qaic
++import numpy as np
+ import torch
+ from transformers import CLIPTextModel, CLIPTextModelWithProjection, CLIPTokenizer
+ 
+@@ -155,22 +158,32 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         scheduler: KarrasDiffusionSchedulers,
+         force_zeros_for_empty_prompt: bool = True,
+         add_watermarker: Optional[bool] = None,
++        device_id: Optional[int] = 0,
++        device_id2: Optional[int] = None,
++        text_encoder_qpc: Optional[str] = "./qpc/text_encoder/programqpc.bin",
++        text_encoder_2_qpc: Optional[str] = "./qpc/text_encoder_2/programqpc.bin",
++        vae_decoder_qpc: Optional[str] = "./qpc/vae_decoder/programqpc.bin",
++        unet_qpc: Optional[str] = "./qpc/unet_bs2/programqpc.bin",
++        unet_qpc_2: Optional[str] = "./qpc/unet_bs2/programqpc.bin",
+     ):
+         super().__init__()
+ 
+         self.register_modules(
+-            vae=vae,
+-            text_encoder=text_encoder,
+-            text_encoder_2=text_encoder_2,
+             tokenizer=tokenizer,
+             tokenizer_2=tokenizer_2,
+-            unet=unet,
+             scheduler=scheduler,
+         )
++
++        self.text_encoder_2_config = text_encoder_2.config
++        self.unet_config = unet.config
++        self.vae_config = vae.config
+         self.register_to_config(force_zeros_for_empty_prompt=force_zeros_for_empty_prompt)
+-        self.vae_scale_factor = 2 ** (len(self.vae.config.block_out_channels) - 1)
++        self.vae_scale_factor = 2 ** (len(self.vae_config.block_out_channels) - 1)
+         self.image_processor = VaeImageProcessor(vae_scale_factor=self.vae_scale_factor)
+-        self.default_sample_size = self.unet.config.sample_size
++        self.default_sample_size = unet.config.sample_size
++        self.expected_add_embed_dim = unet.add_embedding.linear_1.in_features
++
++        del unet, vae, text_encoder, text_encoder_2
+ 
+         add_watermarker = add_watermarker if add_watermarker is not None else is_invisible_watermark_available()
+ 
+@@ -179,6 +192,63 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         else:
+             self.watermark = None
+ 
++        assert os.path.isfile(unet_qpc) and unet_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for unet_qpc: found {unet_qpc = }"
++        if device_id2 is None: # use only one device for UNet
++            self.executor = None
++            self.unet_sess_big = qaic.Session(unet_qpc, # ensure that batchsize=2 QPC is used
++                                          num_activations=1,
++                                          set_size=1,
++                                          dev_id=device_id,
++                                          oversubscription_name='group1')
++            self.unet_sess_small = qaic.Session(unet_qpc_2, # ensure that batchsize=1 QPC is used
++                                           num_activations=1,
++                                           set_size=1,
++                                           dev_id=device_id,
++                                           oversubscription_name='group1')
++        else: # use two devices for UNet
++            assert device_id != device_id2, f"Two device IDs cannot be the same - found {device_id = }, {device_id2 = }!"
++            print(f"Spinning up 2 cards for DeepCache")
++            # threadpool exec
++            self.executor = ThreadPoolExecutor()
++            self.unet_sess_big_pos = qaic.Session(unet_qpc, # ensure that batchsize=1 QPC is used
++                                          num_activations=1,
++                                          set_size=1,
++                                          dev_id=device_id,
++                                          oversubscription_name='group1')
++            self.unet_sess_small_pos = qaic.Session(unet_qpc_2, # ensure that batchsize=1 QPC is used
++                                           num_activations=1,
++                                           set_size=1,
++                                           dev_id=device_id,
++                                           oversubscription_name='group1')
++            self.unet_sess_big_neg = qaic.Session(unet_qpc, # ensure that batchsize=1 QPC is used
++                                          num_activations=1,
++                                          set_size=1,
++                                          dev_id=device_id2,
++                                          oversubscription_name='group2')
++            self.unet_sess_small_neg = qaic.Session(unet_qpc_2, # ensure that batchsize=1 QPC is used
++                                           num_activations=1,
++                                           set_size=1,
++                                           dev_id=device_id2,
++                                           oversubscription_name='group2')
++        assert os.path.isfile(vae_decoder_qpc) and vae_decoder_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for vae_decoder_qpc: found {vae_decoder_qpc = }"
++        self.vae_decoder_sess = qaic.Session(vae_decoder_qpc,
++                                             num_activations=1,
++                                             set_size=1,
++                                             dev_id=device_id,
++                                             oversubscription_name='group1')
++        assert os.path.isfile(text_encoder_qpc) and text_encoder_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for text_encoder_qpc: found {text_encoder_qpc = }"
++        self.text_encoder_sess = qaic.Session(text_encoder_qpc,
++                                              num_activations=1,
++                                              set_size=1,
++                                              dev_id=device_id ,
++                                              oversubscription_name='group1')
++        assert os.path.isfile(text_encoder_2_qpc) and text_encoder_2_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for text_encoder_2_qpc: found {text_encoder_2_qpc = }"
++        self.text_encoder_2_sess = qaic.Session(text_encoder_2_qpc,
++                                                num_activations=1,
++                                                set_size=1,
++                                                dev_id=device_id,
++                                                oversubscription_name='group1')
++
+     # Copied from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.StableDiffusionPipeline.enable_vae_slicing
+     def enable_vae_slicing(self):
+         r"""
+@@ -287,7 +357,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         # Define tokenizers and text encoders
+         tokenizers = [self.tokenizer, self.tokenizer_2] if self.tokenizer is not None else [self.tokenizer_2]
+         text_encoders = (
+-            [self.text_encoder, self.text_encoder_2] if self.text_encoder is not None else [self.text_encoder_2]
++            [self.text_encoder_sess, self.text_encoder_2_sess] if self.text_encoder_sess is not None else [self.text_encoder_2_sess]
+         )
+ 
+         if prompt_embeds is None:
+@@ -295,7 +365,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+             # textual inversion: procecss multi-vector tokens if necessary
+             prompt_embeds_list = []
+             prompts = [prompt, prompt_2]
+-            for prompt, tokenizer, text_encoder in zip(prompts, tokenizers, text_encoders):
++            for idx, (prompt, tokenizer, text_encoder) in enumerate(zip(prompts, tokenizers, text_encoders)):
+                 if isinstance(self, TextualInversionLoaderMixin):
+                     prompt = self.maybe_convert_prompt(prompt, tokenizer)
+ 
+@@ -319,14 +389,27 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+                         f" {tokenizer.model_max_length} tokens: {removed_text}"
+                     )
+ 
+-                prompt_embeds = text_encoder(
+-                    text_input_ids.to(device),
+-                    output_hidden_states=True,
+-                )
+-
+-                # We are only ALWAYS interested in the pooled output of the final text encoder
+-                pooled_prompt_embeds = prompt_embeds[0]
+-                prompt_embeds = prompt_embeds.hidden_states[-2]
++                ### AIC INFERENCE PART FOR PROMPT STARTS HERE ###
++                start_time = time.perf_counter()
++                inputname = 'input_ids'
++                # convert text_input_ids to numpy
++                i_shape, i_type = text_encoder.model_input_shape_dict[inputname]
++                # build input_id
++                input_dict = {inputname : text_input_ids.numpy().astype(i_type)}
++                # run session
++                output = text_encoder.run(input_dict)
++
++                if idx == 0: # i.e., text_encoder
++                    hidden_state_name = f'hidden_states.{11}'
++                else: # i.e., text_encoder_2
++                    hidden_state_name = f'hidden_states.{31}'
++                    # restructure outputs
++                    o_shape, o_type = text_encoder.model_output_shape_dict['text_embeds']
++                    pooled_prompt_embeds = torch.from_numpy(np.frombuffer(output['text_embeds'], dtype=o_type).reshape(o_shape))
++                o_shape, o_type = text_encoder.model_output_shape_dict[hidden_state_name]
++                prompt_embeds = torch.from_numpy(np.frombuffer(output[hidden_state_name], dtype=o_type).reshape(o_shape))
++                print(f'Text encoder #{idx+1} positive prompt time : {1000.*(time.perf_counter()-start_time):.6f} ms')
++                ### AIC INFERENCE PART FOR PROMPT ENDS HERE ###
+ 
+                 prompt_embeds_list.append(prompt_embeds)
+ 
+@@ -359,7 +442,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+                 uncond_tokens = [negative_prompt, negative_prompt_2]
+ 
+             negative_prompt_embeds_list = []
+-            for negative_prompt, tokenizer, text_encoder in zip(uncond_tokens, tokenizers, text_encoders):
++            for idx, (negative_prompt, tokenizer, text_encoder) in enumerate(zip(uncond_tokens, tokenizers, text_encoders)):
+                 if isinstance(self, TextualInversionLoaderMixin):
+                     negative_prompt = self.maybe_convert_prompt(negative_prompt, tokenizer)
+ 
+@@ -372,19 +455,33 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+                     return_tensors="pt",
+                 )
+ 
+-                negative_prompt_embeds = text_encoder(
+-                    uncond_input.input_ids.to(device),
+-                    output_hidden_states=True,
+-                )
+-                # We are only ALWAYS interested in the pooled output of the final text encoder
+-                negative_pooled_prompt_embeds = negative_prompt_embeds[0]
+-                negative_prompt_embeds = negative_prompt_embeds.hidden_states[-2]
++                ### AIC INFERENCE PART FOR NEGATIVE PROMPT STARTS HERE ###
++                start_time = time.perf_counter()
++                inputname = 'input_ids'
++                # convert text_input_ids to numpy
++                i_shape, i_type = text_encoder.model_input_shape_dict[inputname]
++                # build input_id
++                input_dict = {inputname : uncond_input.input_ids.numpy().astype(i_type)}
++                # run session
++                output = text_encoder.run(input_dict)
++
++                if idx == 0: # i.e., text_encoder
++                    hidden_state_name = f'hidden_states.{11}'
++                else: # i.e., text_encoder_2
++                    hidden_state_name = f'hidden_states.{31}'
++                    # restructure outputs
++                    o_shape, o_type = text_encoder.model_output_shape_dict['text_embeds']
++                    negative_pooled_prompt_embeds = torch.from_numpy(np.frombuffer(output['text_embeds'], dtype=o_type).reshape(o_shape))
++                o_shape, o_type = text_encoder.model_output_shape_dict[hidden_state_name]
++                negative_prompt_embeds = torch.from_numpy(np.frombuffer(output[hidden_state_name], dtype=o_type).reshape(o_shape))
++                print(f'Text encoder #{idx+1} negative prompt time : {1000.*(time.perf_counter()-start_time):.6f} ms')
++                ### AIC INFERENCE PART FOR NEGATIVE PROMPT ENDS HERE ###
+ 
+                 negative_prompt_embeds_list.append(negative_prompt_embeds)
+ 
+             negative_prompt_embeds = torch.concat(negative_prompt_embeds_list, dim=-1)
+ 
+-        prompt_embeds = prompt_embeds.to(dtype=self.text_encoder_2.dtype, device=device)
++        prompt_embeds = prompt_embeds.to(device=device)
+         bs_embed, seq_len, _ = prompt_embeds.shape
+         # duplicate text embeddings for each generation per prompt, using mps friendly method
+         prompt_embeds = prompt_embeds.repeat(1, num_images_per_prompt, 1)
+@@ -393,7 +490,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         if do_classifier_free_guidance:
+             # duplicate unconditional embeddings for each generation per prompt, using mps friendly method
+             seq_len = negative_prompt_embeds.shape[1]
+-            negative_prompt_embeds = negative_prompt_embeds.to(dtype=self.text_encoder_2.dtype, device=device)
++            negative_prompt_embeds = negative_prompt_embeds.to(device=device)
+             negative_prompt_embeds = negative_prompt_embeds.repeat(1, num_images_per_prompt, 1)
+             negative_prompt_embeds = negative_prompt_embeds.view(batch_size * num_images_per_prompt, seq_len, -1)
+ 
+@@ -520,9 +617,9 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         add_time_ids = list(original_size + crops_coords_top_left + target_size)
+ 
+         passed_add_embed_dim = (
+-            self.unet.config.addition_time_embed_dim * len(add_time_ids) + self.text_encoder_2.config.projection_dim
++            self.unet_config.addition_time_embed_dim * len(add_time_ids) + self.text_encoder_2_config.projection_dim
+         )
+-        expected_add_embed_dim = self.unet.add_embedding.linear_1.in_features
++        expected_add_embed_dim = self.expected_add_embed_dim
+ 
+         if expected_add_embed_dim != passed_add_embed_dim:
+             raise ValueError(
+@@ -586,8 +683,6 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         negative_crops_coords_top_left: Tuple[int, int] = (0, 0),
+         negative_target_size: Optional[Tuple[int, int]] = None,
+         cache_interval: int = 1,
+-        cache_layer_id: int = None,
+-        cache_block_id: int = None,
+         uniform: bool = True,
+         pow: float = None,
+         center: int = None,
+@@ -749,7 +844,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         else:
+             batch_size = prompt_embeds.shape[0]
+ 
+-        device = self._execution_device
++        device = torch.device('cpu')
+ 
+         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
+         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
+@@ -760,6 +855,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         text_encoder_lora_scale = (
+             cross_attention_kwargs.get("scale", None) if cross_attention_kwargs is not None else None
+         )
++        text_encode_start_time = time.perf_counter()
+         (
+             prompt_embeds,
+             negative_prompt_embeds,
+@@ -779,6 +875,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+             negative_pooled_prompt_embeds=negative_pooled_prompt_embeds,
+             lora_scale=text_encoder_lora_scale,
+         )
++        print(f"Text encoding time = {1000.*(time.perf_counter() - text_encode_start_time):.3f} ms")
+ 
+         # 4. Prepare timesteps
+         self.scheduler.set_timesteps(num_inference_steps, device=device)
+@@ -786,7 +883,7 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+         timesteps = self.scheduler.timesteps
+ 
+         # 5. Prepare latent variables
+-        num_channels_latents = self.unet.config.in_channels
++        num_channels_latents = self.unet_config.in_channels
+         latents = self.prepare_latents(
+             batch_size * num_images_per_prompt,
+             num_channels_latents,
+@@ -850,9 +947,10 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+                     num_slow_step += 1
+                 
+                 interval_seq, pow = sample_from_quad_center(num_inference_steps, num_slow_step, center=center, pow=pow)#[0, 3, 6, 9, 12, 16, 22, 28, 35, 43,]
+-        #print(interval_seq)
+-        
+-        prv_features = None
++
++        start_time = time.perf_counter()
++        unet_time_device = 0
++        prv_features = torch.zeros(2, 320, 128, 128)
+         with self.progress_bar(total=num_inference_steps) as progress_bar:
+             for i, t in enumerate(timesteps):
+                 # expand the latents if we are doing classifier free guidance
+@@ -860,24 +958,99 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+ 
+                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+ 
+-                if i in interval_seq:
+-                    prv_features = None
+-                #print(t, prv_features is None)
+-
+                 # predict the noise residual
+                 added_cond_kwargs = {"text_embeds": add_text_embeds, "time_ids": add_time_ids}
+-                noise_pred, prv_features = self.unet(
+-                    latent_model_input,
+-                    t,
+-                    encoder_hidden_states=prompt_embeds,
+-                    cross_attention_kwargs=cross_attention_kwargs,
+-                    added_cond_kwargs=added_cond_kwargs,
+-                    replicate_prv_feature=prv_features,
+-                    quick_replicate= cache_interval>1,
+-                    cache_layer_id=cache_layer_id,
+-                    cache_block_id=cache_block_id,
+-                    return_dict=False,
+-                )
++
++                start_time_device = time.perf_counter()
++                if self.executor is None:
++                    print(f"skip (1 device): {not (i in interval_seq)}")
++                    if i in interval_seq:
++                        inputname_list = ['sample', 'timestep', 'encoder_hidden_states', 'text_embeds', 'time_ids']
++                        tensor_input_list = [
++                                latent_model_input, 
++                                torch.Tensor([t]), 
++                                prompt_embeds, 
++                                added_cond_kwargs['text_embeds'], 
++                                added_cond_kwargs["time_ids"]
++                        ]
++                        input_dict = {inputname: tensor_input.numpy().astype(self.unet_sess_big.model_input_shape_dict[inputname][1])
++                            for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                        }
++                        # Run the model on Qualcomm Cloud AI 100
++                        output = self.unet_sess_big.run(input_dict)
++                    else:
++                        inputname_list = ['sample', 'timestep', 'replicate_prv_feature', 'text_embeds', 'time_ids']
++                        tensor_input_list = [
++                                latent_model_input, 
++                                torch.Tensor([t]), 
++                                prv_features,
++                                added_cond_kwargs['text_embeds'], 
++                                added_cond_kwargs["time_ids"]
++                        ]
++                        input_dict = {inputname: tensor_input.numpy().astype(self.unet_sess_small.model_input_shape_dict[inputname][1])
++                            for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                        }
++                        o_shape, o_type = self.unet_sess_small.model_output_shape_dict['out_sample']
++                        #p_shape, p_type = self.unet_sess_2.model_output_shape_dict['replicate_prv_feature_RetainedState']
++                        # Run the model on Qualcomm Cloud AI 100
++                        output = self.unet_sess_small.run(input_dict)
++
++                    o_shape, o_type = self.unet_sess_big.model_output_shape_dict['out_sample']
++                    p_shape, p_type = self.unet_sess_big.model_output_shape_dict['replicate_prv_feature_RetainedState']
++
++                    noise_pred = torch.from_numpy(np.frombuffer(output['out_sample'], dtype=o_type).reshape(o_shape))
++                    prv_features = torch.from_numpy(np.frombuffer(output['replicate_prv_feature_RetainedState'], dtype=p_type).reshape(p_shape))
++                else:
++                    #print(f"skip (2 devices): {not (i in interval_seq)}")
++                    if i in interval_seq:
++                        inputname_list = ['sample', 'timestep', 'encoder_hidden_states', 'text_embeds', 'time_ids']
++                        tensor_input_list = [
++                                latent_model_input, 
++                                torch.Tensor([t]), 
++                                prompt_embeds, 
++                                added_cond_kwargs['text_embeds'], 
++                                added_cond_kwargs["time_ids"]
++                        ]
++                        input_dict = {inputname: tensor_input[0:1].numpy().astype(self.unet_sess_big_pos.model_input_shape_dict[inputname][1]) if inputname != "timestep" else tensor_input.numpy().astype(self.unet_sess_big_pos.model_input_shape_dict[inputname][1])
++                            for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                        }
++                        input_dict2 = {inputname: tensor_input[1:2].numpy().astype(self.unet_sess_big_neg.model_input_shape_dict[inputname][1]) if inputname != "timestep" else tensor_input.numpy().astype(self.unet_sess_big_neg.model_input_shape_dict[inputname][1])
++                            for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                        }
++                        # Run the model on Qualcomm Cloud AI 100
++                        future_1 = self.executor.submit(self.unet_sess_big_pos.run, input_dict)
++                        future_2 = self.executor.submit(self.unet_sess_big_neg.run, input_dict2)
++                    else:
++                        inputname_list = ['sample', 'timestep', 'replicate_prv_feature', 'text_embeds', 'time_ids']
++                        tensor_input_list = [
++                                latent_model_input, 
++                                torch.Tensor([t]), 
++                                prv_features,
++                                added_cond_kwargs['text_embeds'], 
++                                added_cond_kwargs["time_ids"]
++                        ]
++                        input_dict = {inputname: tensor_input[0:1].numpy().astype(self.unet_sess_small_pos.model_input_shape_dict[inputname][1]) if inputname != "timestep" else tensor_input.numpy().astype(self.unet_sess_small_pos.model_input_shape_dict[inputname][1])
++                            for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                        }
++                        input_dict2 = {inputname: tensor_input[1:2].numpy().astype(self.unet_sess_small_neg.model_input_shape_dict[inputname][1]) if inputname != "timestep" else tensor_input.numpy().astype(self.unet_sess_small_neg.model_input_shape_dict[inputname][1])
++                            for inputname, tensor_input in zip(inputname_list, tensor_input_list)
++                        }
++                        # Run the model on Qualcomm Cloud AI 100
++                        future_1 = self.executor.submit(self.unet_sess_small_pos.run, input_dict)
++                        future_2 = self.executor.submit(self.unet_sess_small_neg.run, input_dict2)
++
++                    o_shape, o_type = self.unet_sess_big_pos.model_output_shape_dict['out_sample']
++                    p_shape, p_type = self.unet_sess_big_pos.model_output_shape_dict['replicate_prv_feature_RetainedState']
++
++                    noise_pred = torch.from_numpy(np.concatenate((np.frombuffer(future_1.result()['out_sample'], dtype=o_type).reshape(o_shape),
++                                                            np.frombuffer(future_2.result()['out_sample'], dtype=o_type).reshape(o_shape)
++                                                            ),axis=0))
++                    prv_features = torch.from_numpy(np.concatenate((np.frombuffer(future_1.result()['replicate_prv_feature_RetainedState'], dtype=p_type).reshape(p_shape),
++                                                            np.frombuffer(future_2.result()['replicate_prv_feature_RetainedState'], dtype=p_type).reshape(p_shape)
++                                                            ),axis=0))
++                end_time_device = time.perf_counter()
++                unet_time_device += (end_time_device - start_time_device)
++                print(f'UNet (device) time at step {i}: {1000.*(end_time_device - start_time_device):.6f} ms')
+ 
+                 # perform guidance
+                 if do_classifier_free_guidance:
+@@ -896,20 +1069,31 @@ class StableDiffusionXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoad
+                     progress_bar.update()
+                     if callback is not None and i % callback_steps == 0:
+                         callback(i, t, latents)
++        print(f'UNet total time (device) : {1000.* unet_time_device:.6f} ms')
++        print(f'UNet total time : {1000.*(time.perf_counter()-start_time):.6f} ms')
+ 
+         if not output_type == "latent":
+             # make sure the VAE is in float32 mode, as it overflows in float16
+-            needs_upcasting = self.vae.dtype == torch.float16 and self.vae.config.force_upcast
++            needs_upcasting = False
+ 
+             if needs_upcasting:
+                 self.upcast_vae()
+                 latents = latents.to(next(iter(self.vae.post_quant_conv.parameters())).dtype)
+ 
+-            image = self.vae.decode(latents / self.vae.config.scaling_factor, return_dict=False)[0]
++            start_time = time.perf_counter()
++            input_dict = {'latent_sample': latents.numpy() / self.vae_config.scaling_factor}
+ 
+-            # cast back to fp16 if needed
+-            if needs_upcasting:
+-                self.vae.to(dtype=torch.float16)
++            o_shape, o_type = self.vae_decoder_sess.model_output_shape_dict['sample']
++            # Run the model on Qualcomm Cloud AI 100
++            output = self.vae_decoder_sess.run(input_dict)
++            # convert to Tensor.
++            image = torch.from_numpy(np.frombuffer(output['sample'], dtype=o_type).reshape(o_shape))
++
++            print(f'Vae Decoder total time : {1000.*(time.perf_counter()-start_time):.6f} ms')
++
++            ## cast back to fp16 if needed
++            #if needs_upcasting:
++            #    self.vae.to(dtype=torch.float16)
+         else:
+             image = latents
+ 
