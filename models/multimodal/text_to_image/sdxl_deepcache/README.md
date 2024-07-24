@@ -30,7 +30,7 @@ mkdir diffusers_onnx
 cd diffusers_onnx
 git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git
 cd diffusers
-git apply --reject --whitespace=fix ../../patches/attention.patch
+git apply --reject --whitespace=fix ../../patches/attention_patch.patch
 pip install .
 cd ..
 ```
