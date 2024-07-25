@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+####################################################################################################
+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+####################################################################################################
+
 # model configs
 MODEL_PATH="stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT="\"A cinematic shot of a baby racoon wearing an intricate italian priest robe.\""
