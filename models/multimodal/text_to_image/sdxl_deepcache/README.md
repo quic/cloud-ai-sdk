@@ -31,7 +31,7 @@ git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.gi
 cd diffusers
 git apply --reject --whitespace=fix ../../patches/attention_patch.patch
 pip install .
-cd ..
+cd ../..
 ```
 
 4. Install DeepCache for ONNX file generation (deep UNet) 
@@ -75,9 +75,8 @@ bash run_config_shallow.sh
 ```
 python3.8 -m venv env_pipeline
 source ./env_pipeline/bin/activate
-pip install networkx==3.1
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install onnx==1.12.0 onnxruntime accelerate transformers wheel
+pip install -r requirements.txt
+pip install wheel
 pip install --force-reinstall /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
 ```
 
@@ -88,16 +87,17 @@ cd diffusers_pipeline
 git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git
 cd diffusers
 pip install .
-cd ..
+cd ../..
 ```
 
 3. Install DeepCache and prepare the pipeline for inference
 ```
+rm -rf DeepCache
 git clone https://github.com/horseee/DeepCache.git
 cd DeepCache
-git apply --reject --whitespace=fix ../../patches/deepcache_pipeline.patch
+git apply --reject --whitespace=fix ../patches/deepcache_pipeline.patch
 pip install .
-cd ../..
+cd ..
 ```
 
 4. Run the SDXL inference with 'sudo' flag if needed to access the AI100 devices. 
