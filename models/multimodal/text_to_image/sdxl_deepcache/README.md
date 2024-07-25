@@ -12,9 +12,8 @@ The instructions below are to run the [Stable Diffusion XL model](stabilityai/st
 ```
 python3.8 -m venv env_onnx
 source ./env_onnx/bin/activate
-pip install networkx==3.1
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install onnx==1.12.0 onnxruntime accelerate transformers wheel
+pip install -r requirements.txt
+pip install wheel
 ```
 
 2.  Setup environments
