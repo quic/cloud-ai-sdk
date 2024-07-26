@@ -61,7 +61,7 @@ bash run_config_deep.sh
 
 7. Modify the UNet to be the shallow version
 ```
-sed -i '959s/False/True/' env_onnx/lib/python3.8/site-packages/DeepCache/sdxl/unet_2d_condition.py
+sed -i '963s/False/True/' env_onnx/lib/python3.8/site-packages/DeepCache/sdxl/unet_2d_condition.py
 ```
 
 8. Generate ONNX file and compile shallow UNet for DeepCache
