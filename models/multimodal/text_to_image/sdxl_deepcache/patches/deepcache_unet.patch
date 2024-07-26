@@ -1,8 +1,19 @@
 diff --git a/DeepCache/sdxl/unet_2d_condition.py b/DeepCache/sdxl/unet_2d_condition.py
-index 6c97199..22124c5 100644
+index 6c97199..f6865c6 100644
 --- a/DeepCache/sdxl/unet_2d_condition.py
 +++ b/DeepCache/sdxl/unet_2d_condition.py
-@@ -591,6 +591,8 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+@@ -11,6 +11,10 @@
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
++#
++# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
++# SPDX-License-Identifier: BSD-3-Clause-Clear
++# Not a Contribution 
+ from dataclasses import dataclass
+ from typing import Any, Dict, List, Optional, Tuple, Union
+ 
+@@ -591,6 +595,8 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
              self.position_net = PositionNet(
                  positive_len=positive_len, out_dim=cross_attention_dim, feature_type=feature_type
              )
@@ -11,7 +22,7 @@ index 6c97199..22124c5 100644
  
      @property
      def attn_processors(self) -> Dict[str, AttentionProcessor]:
-@@ -741,6 +743,7 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+@@ -741,6 +747,7 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
          sample: torch.FloatTensor,
          timestep: Union[torch.Tensor, float, int],
          encoder_hidden_states: torch.Tensor,
@@ -19,7 +30,7 @@ index 6c97199..22124c5 100644
          class_labels: Optional[torch.Tensor] = None,
          timestep_cond: Optional[torch.Tensor] = None,
          attention_mask: Optional[torch.Tensor] = None,
-@@ -749,10 +752,6 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+@@ -749,10 +756,6 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
          down_block_additional_residuals: Optional[Tuple[torch.Tensor]] = None,
          mid_block_additional_residual: Optional[torch.Tensor] = None,
          encoder_attention_mask: Optional[torch.Tensor] = None,
@@ -30,7 +41,7 @@ index 6c97199..22124c5 100644
          return_dict: bool = True,
      ) -> Union[UNet2DConditionOutput, Tuple]:
          r"""
-@@ -954,8 +953,11 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+@@ -954,8 +957,11 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
          is_controlnet = mid_block_additional_residual is not None and down_block_additional_residuals is not None
          is_adapter = mid_block_additional_residual is None and down_block_additional_residuals is not None
  
@@ -43,7 +54,7 @@ index 6c97199..22124c5 100644
              # Down
              for i, downsample_block in enumerate(self.down_blocks):
                  if i > cache_layer_id:
-@@ -1037,9 +1039,10 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+@@ -1037,9 +1043,10 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
                          scale=lora_scale,
                          enter_block_number=cache_block_id if i == len(self.up_blocks) - 1 - cache_layer_id else None,
                      )
@@ -55,7 +66,7 @@ index 6c97199..22124c5 100644
              for i, downsample_block in enumerate(self.down_blocks):
                  if hasattr(downsample_block, "has_cross_attention") and downsample_block.has_cross_attention:
                      # For t2i-adapter CrossAttnDownBlock2D
-@@ -1137,17 +1140,15 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+@@ -1137,17 +1144,15 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
                          upsample_size=upsample_size,
                          scale=lora_scale,
                      )
