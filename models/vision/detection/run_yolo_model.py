@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+# Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 import os
@@ -54,7 +54,7 @@ def gen_yaml(model_base_name, image_size):
         shape_params = [str(s.dim_param) for s in shape]
         dynamic_info.append([name, shape_params])    
     dynamic_info=str(dynamic_info).replace("'", '"')
-    yaml_file=f'''
+    yaml_file=Copyright+f'''
 
 MODEL:
     INFO:
@@ -193,34 +193,6 @@ def fix_onnx_fp16(gen_models_path,  model_base_name):
     return model_base_name
 
 
-
-def get_yolov4_model(batch_size, include_nms):
-    if not os.path.exists('yolov3'):
-        os.system('git clone --branch archive https://github.com/ultralytics/yolov3.git')
-
-    path = os.path.join('./', 'yolov3')
-    os.chdir(path)
-    
-    os.system('curl -L -o yolov4.weights https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights')
-    os.system('git apply --reject --whitespace=fix ../../yoloV4WithoutModels.patch')
-
-    os.system(f'python3 detect.py --cfg cfg/yolov4-relu.cfg --weights ./yolov4.weights')
-
-    path = os.path.join('./', '..')
-    os.chdir(path) 
-    
-    os.makedirs('./model', exist_ok=True)
-    os.system(f'mv -v yolov3/yolov4_608_608_without_ABP_NMS.onnx model/.')
-
-    if include_nms: 
-        os.system(f'rm -rf model_with_smart_nms')
-        gen_yaml('yolov4_608_608_without_ABP_NMS', 608)
-        os.system('python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml') 
-        os.system(f'mv -v model_with_smart_nms/yolov4_608_608_without_ABP_NMS_preparator_aic100.onnx model_with_smart_nms/yolov4_608_608_with_smartnms_leaky_relu_bs.onnx')
-        os.system(f'mv -v model_with_smart_nms/yolov4_608_608_without_ABP_NMS_smartnms_config.yaml model_with_smart_nms/yolov4_608_608_with_smartnms_leaky_relu_bs_config.yaml')
-        
-    return 
-
 def get_yolov5_model(yolo_name, image_size, opset, include_nms):
     if not os.path.exists('yolov5'):
         os.system('git clone https://github.com/ultralytics/yolov5.git')
@@ -354,8 +326,6 @@ def main(args):
             get_yolov7_model(MODEL_NAME, IS, INCLUDE_NMS)
         elif (YOLO_VERSION == '5'):
             get_yolov5_model(MODEL_NAME, IS, OPSET, INCLUDE_NMS)
-        elif (YOLO_VERSION == '4'):
-            get_yolov4_model(BS, INCLUDE_NMS)
 
     # For now, assuming only one onnx is generated in the directory ./model
     
@@ -463,7 +433,7 @@ def parse_args():
     parser.add_argument(
         "--model-name", "-m",
         required=True,
-        choices=["yolov4", "yolov5s", "yolov5m",
+        choices=["yolov5s", "yolov5m",
                  "yolov5l", "yolov5x", "yolov7", "yolov7-tiny",
                  "yolov7x", "yolov7-w6", "yolov7-e6",
                  "yolov7-d6", "yolov7-e6e"],

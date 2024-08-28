@@ -1,12 +1,11 @@
 ## Description
 ---
 
-Download the yolov4, yolov5, and yolov7 models, prepare for the Qualcomm AIC100, compile for high-thoughput, min-latency, or balanced throughput with fp16 precision, run the model on a generated random sample, and obtain the benchmarking results and output values.
+Download the yolov5, and yolov7 models, prepare for the Qualcomm AIC100, compile for high-thoughput, min-latency, or balanced throughput with fp16 precision, run the model on a generated random sample, and obtain the benchmarking results and output values.
 
 ## Source of the models
 ---
 The models are downloaded from (https://github.com/ultralytics/yolov5). This script has been tested for the following requested models:
-* yolov4
 * yolov5s
 * yolov5m
 * yolov5l
@@ -38,7 +37,7 @@ Copy the run_yolo_model.py and the lut_yolo_models.csv to a working directory. P
 
 ```commandline
 
-usage: run_yolo_model.py [-h] --model-name {yolov4,yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
+usage: run_yolo_model.py [-h] --model-name {yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
              [--objective {best-latency,best-throughput,balanced}] 
 	     [--opset OPSET] 
 	     [--batch-size BATCH_SIZE]
@@ -60,7 +59,7 @@ Download, Compile, and Run YOLO models on randomly generated inputs
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model-name, -m {yolov4,yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
+  --model-name, -m {yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
                         Model name to download.
   --objective, -o {best-latency,best-throughput,balanced}
                         Running for best-latency, best-throughput, or balanced

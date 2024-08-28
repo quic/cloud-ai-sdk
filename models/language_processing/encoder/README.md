@@ -99,7 +99,9 @@ source nlp_env/bin/activate
 ## Framework and version
 ---
 ```commandline
-pip install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 optimum==1.8 pandas==2.0.2 urllib3==1.26.6
+python -m pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install fsspec==2024.2.0 wheel==0.42.0 sentence-transformers==2.6.1 onnx==1.15.0 onnxruntime==1.16.3 optimum==1.19.1 protobuf==5.26.1 urllib3==2.2.1
+python -m pip install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
 ```
 ## Syntax
 ---
@@ -121,6 +123,7 @@ usage: run_nlp_model.py [-h] --model-name MODEL_NAME
 			[--extra EXTRA] 
 			[--time TIME] 
 			[--device {0,1,2,3,4,5,6,7}] 
+                        [--api-run]
 			[--run-only]
 
 Download, Compile, and Run encoder-type NLP models on randomly generated inputs
@@ -151,10 +154,17 @@ optional arguments:
   --time TIME           Duration (in seconds) for which to submit inferences. Default <20>
   --device, -d {0,1,2,3,4,5,6,7}
                         AIC100 device ID. Default <0>
+  --api-run, -a         Performs the inference using qaic session (high-level) and qaicrt(low-level) Python APIs. If this flag is not specified, qaic-runner CLI is used. 
   --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
 
 ```
 Examples:
+Use qaic session and qaicrt Python APIs 
+```commandline
+python run_nlp_model.py --model-name albert-base-v2 --objective best-throughput --api-run
+```
+
+Use qaic-runner CLI
 ```commandline
 python run_nlp_model.py -m Rostlab/prot_bert
 ```
@@ -164,6 +174,7 @@ python run_nlp_model.py -m bert-base-cased -t question-answering -o best-through
 ```commandline
 python run_nlp_model.py --model-name bert-base-uncased --objective best-latency
 ```
+
 The TASK and hardware configuration will be either associated to the corresponding row in the lut_nlp_models.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_nlp_models.csv, pick a corresponding task, or switch to default.
 
 After download, compile, and run is complete, the working directory of the selected model is as follows. 

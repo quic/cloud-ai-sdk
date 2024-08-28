@@ -1,0 +1,1309 @@
+diff --git a/src/diffusers/__init__.py b/src/diffusers/__init__.py
+index fc63ef9d..6ed0c2f0 100644
+--- a/src/diffusers/__init__.py
++++ b/src/diffusers/__init__.py
+@@ -16,6 +16,7 @@ from .utils import (
+     is_transformers_available,
+ )
+ 
++from .pipelines import AICRuntimeModel
+ 
+ # Lazy Import based on
+ # https://github.com/huggingface/transformers/blob/main/src/transformers/__init__.py
+@@ -62,6 +63,9 @@ except OptionalDependencyNotAvailable:
+ else:
+     _import_structure["pipelines"].extend(["OnnxRuntimeModel"])
+ 
++_import_structure["pipelines"].extend(["AICRuntimeModel"])
++_import_structure["pipelines"].extend(["OnnxDeciDiffusionPipeline"])
++
+ try:
+     if not is_torch_available():
+         raise OptionalDependencyNotAvailable()
+@@ -133,6 +137,7 @@ else:
+             "DEISMultistepScheduler",
+             "DPMSolverMultistepInverseScheduler",
+             "DPMSolverMultistepScheduler",
++            "SqueezedDPMSolverMultistepScheduler",
+             "DPMSolverSinglestepScheduler",
+             "EulerAncestralDiscreteScheduler",
+             "EulerDiscreteScheduler",
+@@ -313,6 +318,7 @@ else:
+             "OnnxStableDiffusionPipeline",
+             "OnnxStableDiffusionUpscalePipeline",
+             "StableDiffusionOnnxPipeline",
++            "OnnxDeciDiffusionPipeline",
+         ]
+     )
+ 
+@@ -483,6 +489,7 @@ if TYPE_CHECKING:
+             DEISMultistepScheduler,
+             DPMSolverMultistepInverseScheduler,
+             DPMSolverMultistepScheduler,
++            SqueezedDPMSolverMultistepScheduler,
+             DPMSolverSinglestepScheduler,
+             EulerAncestralDiscreteScheduler,
+             EulerDiscreteScheduler,
+@@ -634,6 +641,7 @@ if TYPE_CHECKING:
+             OnnxStableDiffusionPipeline,
+             OnnxStableDiffusionUpscalePipeline,
+             StableDiffusionOnnxPipeline,
++            OnnxDeciDiffusionPipeline,
+         )
+ 
+     try:
+diff --git a/src/diffusers/models/attention.py b/src/diffusers/models/attention.py
+index 892d44a0..45dac7ce 100644
+--- a/src/diffusers/models/attention.py
++++ b/src/diffusers/models/attention.py
+@@ -22,7 +22,7 @@ from .activations import get_activation
+ from .attention_processor import Attention
+ from .embeddings import CombinedTimestepLabelEmbeddings
+ from .lora import LoRACompatibleLinear
+-
++from ..utils import GroupNormCustom, gelu_custom, silu_custom
+ 
+ @maybe_allow_in_graph
+ class GatedSelfAttentionDense(nn.Module):
+@@ -439,5 +439,6 @@ class AdaGroupNorm(nn.Module):
+         scale, shift = emb.chunk(2, dim=1)
+ 
+         x = F.group_norm(x, self.num_groups, eps=self.eps)
++        # x = GroupNormCustom.apply(x, F.group_norm.num_channels, F.group_norm.num_groups, F.group_norm.weight, F.group_norm.bias, F.group_norm.eps)
+         x = x * (1 + scale) + shift
+         return x
+diff --git a/src/diffusers/models/attention_processor.py b/src/diffusers/models/attention_processor.py
+index 06533e31..6a11d886 100644
+--- a/src/diffusers/models/attention_processor.py
++++ b/src/diffusers/models/attention_processor.py
+@@ -22,7 +22,7 @@ from ..utils import deprecate, logging
+ from ..utils.import_utils import is_xformers_available
+ from ..utils.torch_utils import maybe_allow_in_graph
+ from .lora import LoRACompatibleLinear, LoRALinearLayer
+-
++from ..utils import GroupNormCustom, gelu_custom, silu_custom
+ 
+ logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
+ 
+@@ -161,7 +161,7 @@ class Attention(nn.Module):
+         # but only if it has the default `scale` argument. TODO remove scale_qk check when we move to torch 2.1
+         if processor is None:
+             processor = (
+-                AttnProcessor2_0() if hasattr(F, "scaled_dot_product_attention") and self.scale_qk else AttnProcessor()
++                AttnProcessor()
+             )
+         self.set_processor(processor)
+ 
+@@ -251,7 +251,7 @@ class Attention(nn.Module):
+         else:
+             if is_lora:
+                 attn_processor_class = (
+-                    LoRAAttnProcessor2_0 if hasattr(F, "scaled_dot_product_attention") else LoRAAttnProcessor
++                    LoRAAttnProcessor
+                 )
+                 processor = attn_processor_class(
+                     hidden_size=self.processor.hidden_size,
+@@ -276,9 +276,7 @@ class Attention(nn.Module):
+                 # torch.nn.functional.scaled_dot_product_attention for native Flash/memory_efficient_attention
+                 # but only if it has the default `scale` argument. TODO remove scale_qk check when we move to torch 2.1
+                 processor = (
+-                    AttnProcessor2_0()
+-                    if hasattr(F, "scaled_dot_product_attention") and self.scale_qk
+-                    else AttnProcessor()
++                    AttnProcessor()
+                 )
+ 
+         self.set_processor(processor)
+@@ -299,7 +297,7 @@ class Attention(nn.Module):
+             # torch.nn.functional.scaled_dot_product_attention for native Flash/memory_efficient_attention
+             # but only if it has the default `scale` argument. TODO remove scale_qk check when we move to torch 2.1
+             processor = (
+-                AttnProcessor2_0() if hasattr(F, "scaled_dot_product_attention") and self.scale_qk else AttnProcessor()
++                AttnProcessor()
+             )
+ 
+         self.set_processor(processor)
+@@ -455,15 +453,21 @@ class Attention(nn.Module):
+             baddbmm_input = attention_mask
+             beta = 1
+ 
+-        attention_scores = torch.baddbmm(
+-            baddbmm_input,
+-            query,
+-            key.transpose(-1, -2),
+-            beta=beta,
+-            alpha=self.scale,
+-        )
++        # attention_scores = torch.baddbmm(
++            # baddbmm_input,
++            # query,
++            # key.transpose(-1, -2),
++            # beta=beta,
++            # alpha=self.scale,
++        # )
+         del baddbmm_input
+ 
++        key = key * self.scale
++        attention_scores = torch.bmm(query, key.transpose(-1,-2))
++
++
++
++
+         if self.upcast_softmax:
+             attention_scores = attention_scores.float()
+ 
+@@ -565,8 +569,9 @@ class AttnProcessor:
+         )
+         attention_mask = attn.prepare_attention_mask(attention_mask, sequence_length, batch_size)
+ 
+-        if attn.group_norm is not None:
+-            hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        # if attn.group_norm is not None:
++            # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++            # hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states, scale=scale)
+ 
+@@ -718,7 +723,8 @@ class AttnAddedKVProcessor:
+         elif attn.norm_cross:
+             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
+ 
+-        hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states, scale=scale)
+         query = attn.head_to_batch_dim(query)
+@@ -778,7 +784,8 @@ class AttnAddedKVProcessor2_0:
+         elif attn.norm_cross:
+             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
+ 
+-        hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states, scale=scale)
+         query = attn.head_to_batch_dim(query, out_dim=4)
+@@ -844,7 +851,8 @@ class XFormersAttnAddedKVProcessor:
+         elif attn.norm_cross:
+             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
+ 
+-        hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states)
+         query = attn.head_to_batch_dim(query)
+@@ -933,7 +941,8 @@ class XFormersAttnProcessor:
+             attention_mask = attention_mask.expand(-1, query_tokens, -1)
+ 
+         if attn.group_norm is not None:
+-            hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++            # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++            hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states, scale=scale)
+ 
+@@ -1011,7 +1020,8 @@ class AttnProcessor2_0:
+             attention_mask = attention_mask.view(batch_size, attn.heads, -1, attention_mask.shape[-1])
+ 
+         if attn.group_norm is not None:
+-            hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++            # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++            hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states, scale=scale)
+ 
+@@ -1193,7 +1203,8 @@ class SlicedAttnProcessor:
+         attention_mask = attn.prepare_attention_mask(attention_mask, sequence_length, batch_size)
+ 
+         if attn.group_norm is not None:
+-            hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++            # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++            hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states)
+         dim = query.shape[-1]
+@@ -1276,7 +1287,8 @@ class SlicedAttnAddedKVProcessor:
+         elif attn.norm_cross:
+             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
+ 
+-        hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        # hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
++        hidden_states = GroupNormCustom.apply(hidden_states, self.group_norm.num_channels, self.group_norm.num_groups, self.group_norm.weight, self.group_norm.bias, self.group_norm.eps)
+ 
+         query = attn.to_q(hidden_states)
+         dim = query.shape[-1]
+diff --git a/src/diffusers/models/autoencoder_kl.py b/src/diffusers/models/autoencoder_kl.py
+index 21c8f64f..d6970257 100644
+--- a/src/diffusers/models/autoencoder_kl.py
++++ b/src/diffusers/models/autoencoder_kl.py
+@@ -260,6 +260,7 @@ class AutoencoderKL(ModelMixin, ConfigMixin, FromOriginalVAEMixin):
+             h = self.encoder(x)
+ 
+         moments = self.quant_conv(h)
++        return moments
+         posterior = DiagonalGaussianDistribution(moments)
+ 
+         if not return_dict:
+diff --git a/src/diffusers/models/resnet.py b/src/diffusers/models/resnet.py
+index ac66e227..14a75edc 100644
+--- a/src/diffusers/models/resnet.py
++++ b/src/diffusers/models/resnet.py
+@@ -24,7 +24,7 @@ from .activations import get_activation
+ from .attention import AdaGroupNorm
+ from .attention_processor import SpatialNorm
+ from .lora import LoRACompatibleConv, LoRACompatibleLinear
+-
++from ..utils import GroupNormCustom, gelu_custom, silu_custom
+ 
+ class Upsample1D(nn.Module):
+     """A 1D upsampling layer with an optional convolution.
+@@ -603,7 +603,8 @@ class ResnetBlock2D(nn.Module):
+         if self.time_embedding_norm == "ada_group" or self.time_embedding_norm == "spatial":
+             hidden_states = self.norm1(hidden_states, temb)
+         else:
+-            hidden_states = self.norm1(hidden_states)
++            # hidden_states = self.norm1(hidden_states)
++            hidden_states = GroupNormCustom.apply(hidden_states, self.norm1.num_channels, self.norm1.num_groups, self.norm1.weight, self.norm1.bias, self.norm1.eps)
+ 
+         hidden_states = self.nonlinearity(hidden_states)
+ 
+diff --git a/src/diffusers/models/transformer_2d.py b/src/diffusers/models/transformer_2d.py
+index 4819d3be..86ce7edf 100644
+--- a/src/diffusers/models/transformer_2d.py
++++ b/src/diffusers/models/transformer_2d.py
+@@ -20,7 +20,7 @@ from torch import nn
+ 
+ from ..configuration_utils import ConfigMixin, register_to_config
+ from ..models.embeddings import ImagePositionalEmbeddings
+-from ..utils import BaseOutput, deprecate
++from ..utils import BaseOutput, deprecate, GroupNormCustom
+ from .attention import BasicTransformerBlock
+ from .embeddings import PatchEmbed
+ from .lora import LoRACompatibleConv, LoRACompatibleLinear
+@@ -282,7 +282,8 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
+             batch, _, height, width = hidden_states.shape
+             residual = hidden_states
+ 
+-            hidden_states = self.norm(hidden_states)
++            # hidden_states = self.norm(hidden_states)
++            hidden_states = GroupNormCustom.apply(hidden_states, self.norm.num_channels, self.norm.num_groups, self.norm.weight, self.norm.bias, self.norm.eps)
+             if not self.use_linear_projection:
+                 hidden_states = self.proj_in(hidden_states, lora_scale)
+                 inner_dim = hidden_states.shape[1]
+diff --git a/src/diffusers/models/unet_2d_blocks.py b/src/diffusers/models/unet_2d_blocks.py
+index d6066e92..7472ed26 100644
+--- a/src/diffusers/models/unet_2d_blocks.py
++++ b/src/diffusers/models/unet_2d_blocks.py
+@@ -18,7 +18,7 @@ import torch
+ import torch.nn.functional as F
+ from torch import nn
+ 
+-from ..utils import is_torch_version, logging
++from ..utils import is_torch_version, logging, GroupNormCustom, silu_custom
+ from .activations import get_activation
+ from .attention import AdaGroupNorm
+ from .attention_processor import Attention, AttnAddedKVProcessor, AttnAddedKVProcessor2_0
+@@ -2567,7 +2567,8 @@ class AttnSkipUpBlock2D(nn.Module):
+             skip_sample = 0
+ 
+         if self.resnet_up is not None:
+-            skip_sample_states = self.skip_norm(hidden_states)
++            # skip_sample_states = self.skip_norm(hidden_states)
++            skip_sample_states = GroupNormCustom.apply(hidden_states, self.skip_norm.num_channels, self.skip_norm.num_groups, self.skip_norm.weight, self.skip_norm.bias, self.skip_norm.eps)
+             skip_sample_states = self.act(skip_sample_states)
+             skip_sample_states = self.skip_conv(skip_sample_states)
+ 
+@@ -2662,7 +2663,8 @@ class SkipUpBlock2D(nn.Module):
+             skip_sample = 0
+ 
+         if self.resnet_up is not None:
+-            skip_sample_states = self.skip_norm(hidden_states)
++            # skip_sample_states = self.skip_norm(hidden_states)
++            skip_sample_states = GroupNormCustom.apply(hidden_states, self.skip_norm.num_channels, self.skip_norm.num_groups, self.skip_norm.weight, self.skip_norm.bias, self.skip_norm.eps)
+             skip_sample_states = self.act(skip_sample_states)
+             skip_sample_states = self.skip_conv(skip_sample_states)
+ 
+diff --git a/src/diffusers/models/unet_2d_condition.py b/src/diffusers/models/unet_2d_condition.py
+index 136de970..60b7d166 100644
+--- a/src/diffusers/models/unet_2d_condition.py
++++ b/src/diffusers/models/unet_2d_condition.py
+@@ -20,7 +20,7 @@ import torch.utils.checkpoint
+ 
+ from ..configuration_utils import ConfigMixin, register_to_config
+ from ..loaders import UNet2DConditionLoadersMixin
+-from ..utils import BaseOutput, logging
++from ..utils import BaseOutput, logging, GroupNormCustom, silu_custom, gelu_custom
+ from .activations import get_activation
+ from .attention_processor import (
+     ADDED_KV_ATTENTION_PROCESSORS,
+@@ -590,7 +590,7 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+             )
+ 
+     @property
+-    def attn_processors(self) -> Dict[str, AttentionProcessor]:
++    def attn_processors(self) -> Dict[str, AttnProcessor]:
+         r"""
+         Returns:
+             `dict` of attention processors: A dictionary containing all attention processors used in the model with
+@@ -599,7 +599,7 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+         # set recursively
+         processors = {}
+ 
+-        def fn_recursive_add_processors(name: str, module: torch.nn.Module, processors: Dict[str, AttentionProcessor]):
++        def fn_recursive_add_processors(name: str, module: torch.nn.Module, processors: Dict[str, AttnProcessor]):
+             if hasattr(module, "get_processor"):
+                 processors[f"{name}.processor"] = module.get_processor(return_deprecated_lora=True)
+ 
+@@ -614,7 +614,7 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+         return processors
+ 
+     def set_attn_processor(
+-        self, processor: Union[AttentionProcessor, Dict[str, AttentionProcessor]], _remove_lora=False
++        self, processor: Union[AttnProcessor, Dict[str, AttnProcessor]], _remove_lora=False
+     ):
+         r"""
+         Sets the attention processor to use to compute attention.
+@@ -1038,7 +1038,8 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
+ 
+         # 6. post-process
+         if self.conv_norm_out:
+-            sample = self.conv_norm_out(sample)
++            # sample = self.conv_norm_out(sample)
++            sample = GroupNormCustom.apply(sample, self.conv_norm_out.num_channels, self.conv_norm_out.num_groups, self.conv_norm_out.weight, self.conv_norm_out.bias, self.conv_norm_out.eps)
+             sample = self.conv_act(sample)
+         sample = self.conv_out(sample)
+ 
+diff --git a/src/diffusers/models/vae.py b/src/diffusers/models/vae.py
+index 36983eef..1be0be89 100644
+--- a/src/diffusers/models/vae.py
++++ b/src/diffusers/models/vae.py
+@@ -19,7 +19,7 @@ import torch
+ import torch.nn as nn
+ 
+ from ..utils import BaseOutput, is_torch_version
+-from ..utils.torch_utils import randn_tensor
++from ..utils.torch_utils import randn_tensor, GroupNormCustom, silu_custom, gelu_custom
+ from .activations import get_activation
+ from .attention_processor import SpatialNorm
+ from .unet_2d_blocks import AutoencoderTinyBlock, UNetMidBlock2D, get_down_block, get_up_block
+@@ -144,7 +144,8 @@ class Encoder(nn.Module):
+             sample = self.mid_block(sample)
+ 
+         # post-process
+-        sample = self.conv_norm_out(sample)
++        # sample = self.conv_norm_out(sample)
++        sample = GroupNormCustom.apply(sample, self.conv_norm_out.num_channels, self.conv_norm_out.num_groups, self.conv_norm_out.weight, self.conv_norm_out.bias, self.conv_norm_out.eps)
+         sample = self.conv_act(sample)
+         sample = self.conv_out(sample)
+ 
+@@ -273,7 +274,8 @@ class Decoder(nn.Module):
+ 
+         # post-process
+         if latent_embeds is None:
+-            sample = self.conv_norm_out(sample)
++            # sample = self.conv_norm_out(sample)
++            sample = GroupNormCustom.apply(sample, self.conv_norm_out.num_channels, self.conv_norm_out.num_groups, self.conv_norm_out.weight, self.conv_norm_out.bias, self.conv_norm_out.eps)
+         else:
+             sample = self.conv_norm_out(sample, latent_embeds)
+         sample = self.conv_act(sample)
+@@ -520,7 +522,8 @@ class MaskConditionDecoder(nn.Module):
+ 
+         # post-process
+         if latent_embeds is None:
+-            sample = self.conv_norm_out(sample)
++            # sample = self.conv_norm_out(sample)
++            sample = GroupNormCustom.apply(sample, self.conv_norm_out.num_channels, self.conv_norm_out.num_groups, self.conv_norm_out.weight, self.conv_norm_out.bias, self.conv_norm_out.eps)
+         else:
+             sample = self.conv_norm_out(sample, latent_embeds)
+         sample = self.conv_act(sample)
+diff --git a/src/diffusers/pipelines/__init__.py b/src/diffusers/pipelines/__init__.py
+index 8bf0a98d..7a238cc2 100644
+--- a/src/diffusers/pipelines/__init__.py
++++ b/src/diffusers/pipelines/__init__.py
+@@ -13,6 +13,7 @@ from ..utils import (
+     is_transformers_available,
+ )
+ 
++from .aic_utils import AICRuntimeModel
+ 
+ # These modules contain pipelines from multiple libraries/frameworks
+ _dummy_objects = {}
+@@ -179,6 +180,8 @@ except OptionalDependencyNotAvailable:
+     _dummy_objects.update(get_objects_from_module(dummy_onnx_objects))
+ else:
+     _import_structure["onnx_utils"] = ["OnnxRuntimeModel"]
++_import_structure["aic_utils"] = ["AICRuntimeModel"]
++
+ try:
+     if not (is_torch_available() and is_transformers_available() and is_onnx_available()):
+         raise OptionalDependencyNotAvailable()
+@@ -195,6 +198,7 @@ else:
+             "OnnxStableDiffusionPipeline",
+             "OnnxStableDiffusionUpscalePipeline",
+             "StableDiffusionOnnxPipeline",
++            "OnnxDeciDiffusionPipeline",
+         ]
+     )
+ try:
+@@ -401,6 +405,7 @@ if TYPE_CHECKING:
+                 OnnxStableDiffusionPipeline,
+                 OnnxStableDiffusionUpscalePipeline,
+                 StableDiffusionOnnxPipeline,
++                OnnxDeciDiffusionPipeline,
+             )
+ 
+         try:
+diff --git a/src/diffusers/pipelines/aic_utils.py b/src/diffusers/pipelines/aic_utils.py
+new file mode 100644
+index 00000000..a6451f8e
+--- /dev/null
++++ b/src/diffusers/pipelines/aic_utils.py
+@@ -0,0 +1,153 @@
++##############################################################################
++#
++# Copyright (c) 2019-2022 Qualcomm Technologies, Inc.
++# All Rights Reserved.
++# Confidential and Proprietary - Qualcomm Technologies, Inc.
++#
++# All data and information contained in or disclosed by this document are
++# confidential and proprietary information of Qualcomm Technologies, Inc., and
++# all rights therein are expressly reserved. By accepting this material, the
++# recipient agrees that this material and the information contained therein
++# are held in confidence and in trust and will not be used, copied, reproduced
++# in whole or in part, nor its contents revealed in any manner to others
++# without the express written permission of Qualcomm Technologies, Inc.
++#
++##############################################################################
++
++import os
++import sys
++from typing import List
++
++import numpy as np
++
++sys.path.append("/opt/qti-aic/dev/lib/x86_64/")
++sys.path.append('/opt/qti-aic/dev/python/')
++
++import QAicApi_pb2 as aicapi
++
++
++from qaicrt import (
++    BufferIoTypeEnum,
++    Context,
++    ExecObj,
++    Program,
++    QAicProgramProperties,
++    QBuffer,
++    QIDList,
++    Qpc,
++    QStatus,
++)
++
++
++class AICRuntimeModel:
++    def from_pretrained(binary_path, **kwargs):
++        # kwargs would include following keys:
++        # device_id, binary_path, output_shape_dict, submit_retry_count,
++        # submit_timeout
++        self = AICRuntimeModel()
++        self.binary_path = binary_path
++        self.device_id = kwargs["device_id"]
++        model_name = kwargs['model_name']
++        self.model_name = model_name
++        self.context = kwargs['context']
++        self.program_group = kwargs['program_group']
++        #self.binary_path = kwargs["binary_path"]
++        if not os.path.isdir(self.binary_path):
++            print("Binary directory not found.")
++            exit()
++
++        if not os.path.isfile(self.binary_path + "/programqpc.bin"):
++            print("programqpc.bin not found at given binary path.")
++            exit()
++
++        self.dev_list = QIDList()
++        self.dev_list.append(self.device_id)
++        self.context = kwargs['context'] #Context(self.dev_list)
++        self.qpc = Qpc(self.binary_path)
++        #Get Output shapes from qpc
++        status, qdata = self.qpc.getIoDescriptor()
++        self.iodesc = aicapi.IoDesc()
++        self.iodesc.ParseFromString(qdata)
++        self.bindings = self.iodesc.io_sets[0].bindings
++        self.outputs_shape_dict = {}
++        self.outputs_dtype_dict = {}
++        np_type_dict = {0: np.float32,
++                        1: np.float16,
++                        2: np.int8,
++                        3: np.uint8,
++                        4: np.int16,
++                        5: np.int32,
++                        6: np.int32,
++                        7: np.int64,
++                        8: bool}
++        for binding in self.bindings:
++            if binding.dir == 1:
++                self.outputs_shape_dict[binding.name] = np.array(binding.dims)
++                self.outputs_dtype_dict[binding.name] = np_type_dict[binding.type]
++
++        if self.qpc == None:
++            print("Unable to open program container: " + self.binary_path)
++            sys.exit(1)
++
++        self.buf_mappings = self.qpc.getBufferMappings()
++        self.properties = QAicProgramProperties()
++        self.properties.SubmitNumRetries = kwargs["submit_retry_count"]
++        self.properties.SubmitRetryTimeoutMs = kwargs["submit_timeout"]
++        #self.program = Program(self.context, self.dev_list[0], self.qpc, self.properties)
++        #print(self.program_group)
++        status, self.program = self.program_group.addProgram(self.qpc)
++        #self.execObj = ExecObj(self.context, self.program)
++        print(self.model_name,'is loaded')
++        return self
++    def __call__(self, **inputs):
++        outputs = self.run(list(inputs.values()))
++        return outputs
++
++    def run(self, input_data: List[np.array]):
++        # input_data : contains list of inputs in a sequence expected by model
++        if not hasattr(self,'execObj'):
++            try:
++                self.execObj = ExecObj(self.context, self.program)
++            except Exception as e:
++                print(e)
++        raw_buffers = []
++        for inp_data in input_data:
++            raw_buffers.append(inp_data.tobytes())
++
++        for mapping in self.buf_mappings:
++            if mapping.ioType == BufferIoTypeEnum.BUFFER_IO_TYPE_OUTPUT:
++                raw_buffers.append(bytearray(mapping.size))
++
++        qbuf_list = []
++        for buffer in raw_buffers:
++            qbuf_list.append(QBuffer(buffer))
++
++        self.execObj.setData(qbuf_list)
++        #self.execObj.run(qbuf_list)
++        self.program_group.enqueue(self.execObj)
++        self.execObj.waitForCompletion()
++        status, execObjData = self.execObj.getData()
++
++        if status != QStatus.QS_SUCCESS:
++            print("Error in QAic execution. Exiting....")
++            exit()
++
++        num_inputs = len(input_data)
++        num_outputs = len(self.outputs_shape_dict)
++        model_output = []
++
++        for idx, (data, (output_name, output_shape)) in enumerate(zip(
++            execObjData[num_inputs : num_inputs + num_outputs],
++            self.outputs_shape_dict.items(),
++        )):
++            output_buffer = bytearray(data)
++            #if self.model_name=='safety_checker' and idx==1:
++            #    output_data = np.frombuffer(output_buffer, dtype=(bool))
++            #else:
++            output_data = np.frombuffer(output_buffer, dtype=self.outputs_dtype_dict[output_name])
++            output_data = output_data.reshape(
++                output_shape
++            )
++            model_output.append(output_data)
++
++        return model_output
+diff --git a/src/diffusers/pipelines/pipeline_utils.py b/src/diffusers/pipelines/pipeline_utils.py
+index 0eb68490..4045242c 100644
+--- a/src/diffusers/pipelines/pipeline_utils.py
++++ b/src/diffusers/pipelines/pipeline_utils.py
+@@ -89,6 +89,7 @@ LOADABLE_CLASSES = {
+         "SchedulerMixin": ["save_pretrained", "from_pretrained"],
+         "DiffusionPipeline": ["save_pretrained", "from_pretrained"],
+         "OnnxRuntimeModel": ["save_pretrained", "from_pretrained"],
++        "AICRuntimeModel": ["save_pretrained", "from_pretrained"],
+     },
+     "transformers": {
+         "PreTrainedTokenizer": ["save_pretrained", "from_pretrained"],
+@@ -385,6 +386,7 @@ def load_sub_model(
+     variant: str,
+     low_cpu_mem_usage: bool,
+     cached_folder: Union[str, os.PathLike],
++    **kwargs
+ ):
+     """Helper method to load the module `name` from `library_name` and `class_name`"""
+     # retrieve class candidates
+@@ -422,6 +424,15 @@ def load_sub_model(
+     if issubclass(class_obj, diffusers.OnnxRuntimeModel):
+         loading_kwargs["provider"] = provider
+         loading_kwargs["sess_options"] = sess_options
++    if issubclass(class_obj, diffusers.AICRuntimeModel):
++        loading_kwargs['model_name'] = name
++        loading_kwargs['device_id'] = device_map
++        loading_kwargs['submit_timeout'] = 5000
++        loading_kwargs['submit_retry_count'] = 5
++        loading_kwargs['program_group'] = kwargs['program_group']
++        loading_kwargs['context'] = kwargs['context']
++
++
+ 
+     is_diffusers_model = issubclass(class_obj, diffusers.ModelMixin)
+ 
+@@ -1122,6 +1133,7 @@ class DiffusionPipeline(ConfigMixin, PushToHubMixin):
+                     variant=variant,
+                     low_cpu_mem_usage=low_cpu_mem_usage,
+                     cached_folder=cached_folder,
++                    **kwargs
+                 )
+                 logger.info(
+                     f"Loaded {name} as {class_name} from `{name}` subfolder of {pretrained_model_name_or_path}."
+diff --git a/src/diffusers/pipelines/stable_diffusion/__init__.py b/src/diffusers/pipelines/stable_diffusion/__init__.py
+index 57dff856..3c841f30 100644
+--- a/src/diffusers/pipelines/stable_diffusion/__init__.py
++++ b/src/diffusers/pipelines/stable_diffusion/__init__.py
+@@ -104,6 +104,7 @@ except OptionalDependencyNotAvailable:
+ else:
+     _import_structure["pipeline_onnx_stable_diffusion"] = [
+         "OnnxStableDiffusionPipeline",
++        "OnnxDeciDiffusionPipeline",
+         "StableDiffusionOnnxPipeline",
+     ]
+     _import_structure["pipeline_onnx_stable_diffusion_img2img"] = ["OnnxStableDiffusionImg2ImgPipeline"]
+@@ -200,6 +201,7 @@ if TYPE_CHECKING:
+             OnnxStableDiffusionInpaintPipeline,
+             OnnxStableDiffusionInpaintPipelineLegacy,
+             OnnxStableDiffusionPipeline,
++            OnnxDeciDiffusionPipeline,
+             OnnxStableDiffusionUpscalePipeline,
+             StableDiffusionOnnxPipeline,
+         )
+diff --git a/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion.py b/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion.py
+index 6c8ff7fe..1b0584d0 100644
+--- a/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion.py
++++ b/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion.py
+@@ -29,6 +29,18 @@ from . import StableDiffusionPipelineOutput
+ 
+ logger = logging.get_logger(__name__)
+ 
++def rescale_noise_cfg(noise_cfg, noise_pred_text, guidance_rescale=0.0):
++    """
++    Rescale `noise_cfg` according to `guidance_rescale`. Based on findings of [Common Diffusion Noise Schedules and
++    Sample Steps are Flawed](https://arxiv.org/pdf/2305.08891.pdf). See Section 3.4
++    """
++    std_text = noise_pred_text.std(axis=tuple(range(1, noise_pred_text.ndim)), keepdims=True)
++    std_cfg = noise_cfg.std(axis=tuple(range(1, noise_cfg.ndim)), keepdims=True)
++    # rescale the results from guidance (fixes overexposure)
++    noise_pred_rescaled = noise_cfg * (std_text / std_cfg)
++    # mix with the original results from guidance by factor guidance_rescale to avoid "plain looking" images
++    noise_cfg = guidance_rescale * noise_pred_rescaled + (1 - guidance_rescale) * noise_cfg
++    return noise_cfg
+ 
+ class OnnxStableDiffusionPipeline(DiffusionPipeline):
+     vae_encoder: OnnxRuntimeModel
+@@ -280,6 +292,7 @@ class OnnxStableDiffusionPipeline(DiffusionPipeline):
+         return_dict: bool = True,
+         callback: Optional[Callable[[int, int, np.ndarray], None]] = None,
+         callback_steps: int = 1,
++        safety_checker_flag: bool = False,
+     ):
+         r"""
+         Function invoked when calling the pipeline for generation.
+@@ -394,10 +407,14 @@ class OnnxStableDiffusionPipeline(DiffusionPipeline):
+         if accepts_eta:
+             extra_step_kwargs["eta"] = eta
+ 
+-        timestep_dtype = next(
+-            (input.type for input in self.unet.model.get_inputs() if input.name == "timestep"), "tensor(float)"
+-        )
+-        timestep_dtype = ORT_TO_NP_TYPE[timestep_dtype]
++        # timestep_dtype = next(
++            # (input.type for input in self.unet.model.get_inputs() if input.name == "timestep"), "tensor(float)"
++        # )
++        # timestep_dtype = ORT_TO_NP_TYPE[timestep_dtype]
++        timestep_dtype = np.int64
++        import time
++        unet_time = 0
++        sched_time = 0
+ 
+         for i, t in enumerate(self.progress_bar(self.scheduler.timesteps)):
+             # expand the latents if we are doing classifier free guidance
+@@ -406,8 +423,11 @@ class OnnxStableDiffusionPipeline(DiffusionPipeline):
+             latent_model_input = latent_model_input.cpu().numpy()
+ 
+             # predict the noise residual
+-            timestep = np.array([t], dtype=timestep_dtype)
++            # timestep = np.array([t], dtype=timestep_dtype)
++            timestep = np.array([t]*2*latents.shape[0] if do_classifier_free_guidance else [i]*latents.shape[0], dtype=timestep_dtype)
++            curr_unet_time = time.time()
+             noise_pred = self.unet(sample=latent_model_input, timestep=timestep, encoder_hidden_states=prompt_embeds)
++            unet_time += (time.time()-curr_unet_time)
+             noise_pred = noise_pred[0]
+ 
+             # perform guidance
+@@ -416,10 +436,12 @@ class OnnxStableDiffusionPipeline(DiffusionPipeline):
+                 noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
+ 
+             # compute the previous noisy sample x_t -> x_t-1
++            curr_sched_time = time.time()
+             scheduler_output = self.scheduler.step(
+                 torch.from_numpy(noise_pred), t, torch.from_numpy(latents), **extra_step_kwargs
+             )
+             latents = scheduler_output.prev_sample.numpy()
++            sched_time += (time.time()-curr_sched_time)
+ 
+             # call the callback, if provided
+             if callback is not None and i % callback_steps == 0:
+@@ -428,14 +450,20 @@ class OnnxStableDiffusionPipeline(DiffusionPipeline):
+         latents = 1 / 0.18215 * latents
+         # image = self.vae_decoder(latent_sample=latents)[0]
+         # it seems likes there is a strange result for using half-precision vae decoder if batchsize>1
+-        image = np.concatenate(
+-            [self.vae_decoder(latent_sample=latents[i : i + 1])[0] for i in range(latents.shape[0])]
+-        )
++        #image = np.concatenate(
++        #    [self.vae_decoder(latent_sample=latents[i : i + 1])[0] for i in range(latents.shape[0])]
++        #)
++        vae_decoder_time = time.time()
++        image = self.vae_decoder(latent_sample=latents)[0]
++        vae_decoder_time = time.time()-vae_decoder_time
++        print('20 runs unet time',unet_time)
++        print('20 runs scheduler time',sched_time)
++        print('1 run vae time',vae_decoder_time)
+ 
+         image = np.clip(image / 2 + 0.5, 0, 1)
+         image = image.transpose((0, 2, 3, 1))
+ 
+-        if self.safety_checker is not None:
++        if self.safety_checker is not None and safety_checker_flag:
+             safety_checker_input = self.feature_extractor(
+                 self.numpy_to_pil(image), return_tensors="np"
+             ).pixel_values.astype(image.dtype)
+@@ -445,8 +473,12 @@ class OnnxStableDiffusionPipeline(DiffusionPipeline):
+                 image_i, has_nsfw_concept_i = self.safety_checker(
+                     clip_input=safety_checker_input[i : i + 1], images=image[i : i + 1]
+                 )
+-                images.append(image_i)
+-                has_nsfw_concept.append(has_nsfw_concept_i[0])
++                if image_i.dtype==np.float32:
++                    images.append(image_i)
++                    has_nsfw_concept.append(has_nsfw_concept_i[0])
++                else:
++                    images.append(has_nsfw_concept_i)
++                    has_nsfw_concept.append(image_i[0])
+             image = np.concatenate(images)
+         else:
+             has_nsfw_concept = None
+@@ -484,3 +516,255 @@ class StableDiffusionOnnxPipeline(OnnxStableDiffusionPipeline):
+             safety_checker=safety_checker,
+             feature_extractor=feature_extractor,
+         )
++
++
++class OnnxDeciDiffusionPipeline(OnnxStableDiffusionPipeline):
++    deci_default_squeeze_mode = "10,6"
++    deci_default_number_of_iterations = 16
++    deci_default_guidance_rescale = 0.8
++    deci_default_guidance_scale = 7.5
++
++    def __init__(
++            self,
++            vae_encoder: OnnxRuntimeModel,
++            vae_decoder: OnnxRuntimeModel,
++            text_encoder: OnnxRuntimeModel,
++            tokenizer: CLIPTokenizer,
++            unet: OnnxRuntimeModel,
++            scheduler: Union[DDIMScheduler, PNDMScheduler, LMSDiscreteScheduler],
++            safety_checker: OnnxRuntimeModel,
++            feature_extractor: CLIPImageProcessor,
++            requires_safety_checker: bool = True,
++    ):
++        super().__init__(
++            vae_encoder=vae_encoder,
++            vae_decoder=vae_decoder,
++            text_encoder=text_encoder,
++            tokenizer=tokenizer,
++            unet=unet,
++            scheduler=scheduler,
++            safety_checker=safety_checker,
++            feature_extractor=feature_extractor,
++            requires_safety_checker=requires_safety_checker,
++        )
++
++    def __call__(
++            self,
++            prompt: Union[str, List[str]] = None,
++            height: Optional[int] = 512,
++            width: Optional[int] = 512,
++            num_inference_steps: Optional[int] = deci_default_number_of_iterations,
++            guidance_scale: Optional[float] = deci_default_guidance_scale,
++            negative_prompt: Optional[Union[str, List[str]]] = None,
++            num_images_per_prompt: Optional[int] = 1,
++            eta: Optional[float] = 0.0,
++            generator: Optional[np.random.RandomState] = None,
++            latents: Optional[np.ndarray] = None,
++            prompt_embeds: Optional[np.ndarray] = None,
++            negative_prompt_embeds: Optional[np.ndarray] = None,
++            output_type: Optional[str] = "pil",
++            return_dict: bool = True,
++            callback: Optional[Callable[[int, int, np.ndarray], None]] = None,
++            callback_steps: int = 1,
++            safety_checker_flag: bool = False,
++            guidance_rescale: Optional[float] = deci_default_guidance_rescale,
++    ):
++        r"""
++        Function invoked when calling the pipeline for generation.
++
++        Args:
++            prompt (`str` or `List[str]`, *optional*):
++                The prompt or prompts to guide the image generation. If not defined, one has to pass `prompt_embeds`.
++                instead.
++            image (`PIL.Image.Image` or List[`PIL.Image.Image`] or `torch.FloatTensor`):
++                `Image`, or tensor representing an image batch which will be upscaled. *
++            num_inference_steps (`int`, *optional*, defaults to 50):
++                The number of denoising steps. More denoising steps usually lead to a higher quality image at the
++                expense of slower inference.
++            guidance_scale (`float`, *optional*, defaults to 7.5):
++                Guidance scale as defined in [Classifier-Free Diffusion Guidance](https://arxiv.org/abs/2207.12598).
++                `guidance_scale` is defined as `w` of equation 2. of [Imagen
++                Paper](https://arxiv.org/pdf/2205.11487.pdf). Guidance scale is enabled by setting `guidance_scale >
++                1`. Higher guidance scale encourages to generate images that are closely linked to the text `prompt`,
++                usually at the expense of lower image quality.
++            negative_prompt (`str` or `List[str]`, *optional*):
++                The prompt or prompts not to guide the image generation. If not defined, one has to pass
++                `negative_prompt_embeds`. instead. Ignored when not using guidance (i.e., ignored if `guidance_scale`
++                is less than `1`).
++            num_images_per_prompt (`int`, *optional*, defaults to 1):
++                The number of images to generate per prompt.
++            eta (`float`, *optional*, defaults to 0.0):
++                Corresponds to parameter eta (η) in the DDIM paper: https://arxiv.org/abs/2010.02502. Only applies to
++                [`schedulers.DDIMScheduler`], will be ignored for others.
++            generator (`np.random.RandomState`, *optional*):
++                One or a list of [numpy generator(s)](TODO) to make generation deterministic.
++            latents (`np.ndarray`, *optional*):
++                Pre-generated noisy latents, sampled from a Gaussian distribution, to be used as inputs for image
++                generation. Can be used to tweak the same generation with different prompts. If not provided, a latents
++                tensor will ge generated by sampling using the supplied random `generator`.
++            prompt_embeds (`np.ndarray`, *optional*):
++                Pre-generated text embeddings. Can be used to easily tweak text inputs, *e.g.* prompt weighting. If not
++                provided, text embeddings will be generated from `prompt` input argument.
++            negative_prompt_embeds (`np.ndarray`, *optional*):
++                Pre-generated negative text embeddings. Can be used to easily tweak text inputs, *e.g.* prompt
++                weighting. If not provided, negative_prompt_embeds will be generated from `negative_prompt` input
++                argument.
++            output_type (`str`, *optional*, defaults to `"pil"`):
++                The output format of the generate image. Choose between
++                [PIL](https://pillow.readthedocs.io/en/stable/): `PIL.Image.Image` or `np.array`.
++            return_dict (`bool`, *optional*, defaults to `True`):
++                Whether or not to return a [`~pipelines.stable_diffusion.StableDiffusionPipelineOutput`] instead of a
++                plain tuple.
++            callback (`Callable`, *optional*):
++                A function that will be called every `callback_steps` steps during inference. The function will be
++                called with the following arguments: `callback(step: int, timestep: int, latents: torch.FloatTensor)`.
++            callback_steps (`int`, *optional*, defaults to 1):
++                The frequency at which the `callback` function will be called. If not specified, the callback will be
++                called at every step.
++
++        Returns:
++            [`~pipelines.stable_diffusion.StableDiffusionPipelineOutput`] or `tuple`:
++            [`~pipelines.stable_diffusion.StableDiffusionPipelineOutput`] if `return_dict` is True, otherwise a `tuple.
++            When returning a tuple, the first element is a list with the generated images, and the second element is a
++            list of `bool`s denoting whether the corresponding generated image likely represents "not-safe-for-work"
++            (nsfw) content, according to the `safety_checker`.
++        """
++
++        # check inputs. Raise error if not correct
++        self.check_inputs(
++            prompt, height, width, callback_steps, negative_prompt, prompt_embeds, negative_prompt_embeds
++        )
++
++        # define call parameters
++        if prompt is not None and isinstance(prompt, str):
++            batch_size = 1
++        elif prompt is not None and isinstance(prompt, list):
++            batch_size = len(prompt)
++        else:
++            batch_size = prompt_embeds.shape[0]
++
++        if generator is None:
++            generator = np.random
++
++        # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
++        # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
++        # corresponds to doing no classifier free guidance.
++        do_classifier_free_guidance = guidance_scale > 1.0
++
++        prompt_embeds = self._encode_prompt(
++            prompt,
++            num_images_per_prompt,
++            do_classifier_free_guidance,
++            negative_prompt,
++            prompt_embeds=prompt_embeds,
++            negative_prompt_embeds=negative_prompt_embeds,
++        )
++
++        # get the initial random noise unless the user supplied it
++        latents_dtype = prompt_embeds.dtype
++        latents_shape = (batch_size * num_images_per_prompt, 4, height // 8, width // 8)
++        if latents is None:
++            latents = generator.randn(*latents_shape).astype(latents_dtype)
++        elif latents.shape != latents_shape:
++            raise ValueError(f"Unexpected latents shape, got {latents.shape}, expected {latents_shape}")
++
++        # set timesteps
++        self.scheduler.set_timesteps(num_inference_steps)
++        num_inference_steps = len(self.scheduler.timesteps)
++
++        latents = latents * np.float64(self.scheduler.init_noise_sigma)
++
++        # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
++        # eta (η) is only used with the DDIMScheduler, it will be ignored for other schedulers.
++        # eta corresponds to η in DDIM paper: https://arxiv.org/abs/2010.02502
++        # and should be between [0, 1]
++        accepts_eta = "eta" in set(inspect.signature(self.scheduler.step).parameters.keys())
++        extra_step_kwargs = {}
++        if accepts_eta:
++            extra_step_kwargs["eta"] = eta
++
++        # timestep_dtype = next(
++        # (input.type for input in self.unet.model.get_inputs() if input.name == "timestep"), "tensor(float)"
++        # )
++        # timestep_dtype = ORT_TO_NP_TYPE[timestep_dtype]
++        timestep_dtype = np.int64
++        import time
++        unet_time = 0
++        sched_time = 0
++
++        for i, t in enumerate(self.progress_bar(self.scheduler.timesteps)):
++            # expand the latents if we are doing classifier free guidance
++            latent_model_input = np.concatenate([latents] * 2) if do_classifier_free_guidance else latents
++            latent_model_input = self.scheduler.scale_model_input(torch.from_numpy(latent_model_input), t)
++            latent_model_input = latent_model_input.cpu().numpy()
++
++            # predict the noise residual
++            # timestep = np.array([t], dtype=timestep_dtype)
++            timestep = np.array([t] * 2 * latents.shape[0] if do_classifier_free_guidance else [i] * latents.shape[0], dtype=timestep_dtype)
++            curr_unet_time = time.time()
++            noise_pred = self.unet(sample=latent_model_input, timestep=timestep, encoder_hidden_states=prompt_embeds)
++            unet_time += (time.time() - curr_unet_time)
++            noise_pred = noise_pred[0]
++
++            # perform guidance
++            if do_classifier_free_guidance:
++                noise_pred_uncond, noise_pred_text = np.split(noise_pred, 2)
++                noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
++                if guidance_rescale > 0.0:
++                    noise_pred = rescale_noise_cfg(noise_pred, noise_pred_text, guidance_rescale=guidance_rescale)
++
++            # compute the previous noisy sample x_t -> x_t-1
++            curr_sched_time = time.time()
++            scheduler_output = self.scheduler.step(
++                torch.from_numpy(noise_pred), t, torch.from_numpy(latents), **extra_step_kwargs
++            )
++            latents = scheduler_output.prev_sample.numpy()
++            sched_time += (time.time() - curr_sched_time)
++
++            # call the callback, if provided
++            if callback is not None and i % callback_steps == 0:
++                callback(i, t, latents)
++
++        latents = 1 / 0.18215 * latents
++        # image = self.vae_decoder(latent_sample=latents)[0]
++        # it seems likes there is a strange result for using half-precision vae decoder if batchsize>1
++        # image = np.concatenate(
++        #    [self.vae_decoder(latent_sample=latents[i : i + 1])[0] for i in range(latents.shape[0])]
++        # )
++        vae_decoder_time = time.time()
++        image = self.vae_decoder(latent_sample=latents)[0]
++        vae_decoder_time = time.time() - vae_decoder_time
++        print(f'{num_inference_steps} runs unet time', unet_time)
++        print(f'{num_inference_steps} runs scheduler time', sched_time)
++        print('1 run vae time', vae_decoder_time)
++
++        image = np.clip(image / 2 + 0.5, 0, 1)
++        image = image.transpose((0, 2, 3, 1))
++
++        if self.safety_checker is not None and safety_checker_flag:
++            safety_checker_input = self.feature_extractor(
++                self.numpy_to_pil(image), return_tensors="np"
++            ).pixel_values.astype(image.dtype)
++
++            images, has_nsfw_concept = [], []
++            for i in range(image.shape[0]):
++                image_i, has_nsfw_concept_i = self.safety_checker(
++                    clip_input=safety_checker_input[i: i + 1], images=image[i: i + 1]
++                )
++                if image_i.dtype == np.float32:
++                    images.append(image_i)
++                    has_nsfw_concept.append(has_nsfw_concept_i[0])
++                else:
++                    images.append(has_nsfw_concept_i)
++                    has_nsfw_concept.append(image_i[0])
++            image = np.concatenate(images)
++        else:
++            has_nsfw_concept = None
++
++        if output_type == "pil":
++            image = self.numpy_to_pil(image)
++
++        if not return_dict:
++            return (image, has_nsfw_concept)
++
++        return StableDiffusionPipelineOutput(images=image, nsfw_content_detected=has_nsfw_concept)
+\ No newline at end of file
+diff --git a/src/diffusers/schedulers/__init__.py b/src/diffusers/schedulers/__init__.py
+index bbd943e5..d2cec960 100644
+--- a/src/diffusers/schedulers/__init__.py
++++ b/src/diffusers/schedulers/__init__.py
+@@ -45,7 +45,7 @@ else:
+     _import_structure["scheduling_ddpm_parallel"] = ["DDPMParallelScheduler"]
+     _import_structure["scheduling_ddpm_wuerstchen"] = ["DDPMWuerstchenScheduler"]
+     _import_structure["scheduling_deis_multistep"] = ["DEISMultistepScheduler"]
+-    _import_structure["scheduling_dpmsolver_multistep"] = ["DPMSolverMultistepScheduler"]
++    _import_structure["scheduling_dpmsolver_multistep"] = ["DPMSolverMultistepScheduler", "SqueezedDPMSolverMultistepScheduler"]
+     _import_structure["scheduling_dpmsolver_multistep_inverse"] = ["DPMSolverMultistepInverseScheduler"]
+     _import_structure["scheduling_dpmsolver_singlestep"] = ["DPMSolverSinglestepScheduler"]
+     _import_structure["scheduling_euler_ancestral_discrete"] = ["EulerAncestralDiscreteScheduler"]
+@@ -133,7 +133,7 @@ if TYPE_CHECKING:
+         from .scheduling_ddpm_parallel import DDPMParallelScheduler
+         from .scheduling_ddpm_wuerstchen import DDPMWuerstchenScheduler
+         from .scheduling_deis_multistep import DEISMultistepScheduler
+-        from .scheduling_dpmsolver_multistep import DPMSolverMultistepScheduler
++        from .scheduling_dpmsolver_multistep import DPMSolverMultistepScheduler, SqueezedDPMSolverMultistepScheduler
+         from .scheduling_dpmsolver_multistep_inverse import DPMSolverMultistepInverseScheduler
+         from .scheduling_dpmsolver_singlestep import DPMSolverSinglestepScheduler
+         from .scheduling_euler_ancestral_discrete import EulerAncestralDiscreteScheduler
+diff --git a/src/diffusers/schedulers/scheduling_dpmsolver_multistep.py b/src/diffusers/schedulers/scheduling_dpmsolver_multistep.py
+index babba220..36eabf90 100644
+--- a/src/diffusers/schedulers/scheduling_dpmsolver_multistep.py
++++ b/src/diffusers/schedulers/scheduling_dpmsolver_multistep.py
+@@ -15,6 +15,7 @@
+ # DISCLAIMER: This file is strongly influenced by https://github.com/LuChengTHU/dpm-solver
+ 
+ import math
++from functools import partial
+ from typing import List, Optional, Tuple, Union
+ 
+ import numpy as np
+@@ -745,3 +746,110 @@ class DPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
+ 
+     def __len__(self):
+         return self.config.num_train_timesteps
++
++
++def squeeze_to_len_n_starting_from_index_i(n, i, timestep_spacing):
++    """
++    :param timestep_spacing: the timestep_spacing array we want to squeeze
++    :param n: the size of the squeezed array
++    :param i: the index we start squeezing from
++    :return: squeezed timestep_spacing
++    Example:
++    timesteps = np.array([967, 907, 846, 786, 725, 665, 604, 544, 484, 423, 363, 302, 242, 181, 121, 60]) (len=16)
++    n = 10, i = 6
++    Expected:
++    [967, 907, 846, 786, 725, 665, 4k, 3k, 2k, k], and if we define 665=5k => k = 133
++    """
++    assert i < n
++    squeezed = np.flip(np.arange(n)) + 1  # [n, n-1, ..., 2, 1]
++    squeezed[:i] = timestep_spacing[:i]
++    k = squeezed[i - 1] // (n - i + 1)
++    squeezed[i:] *= k
++
++    return squeezed
++
++
++PREDEFINED_TIMESTEP_SQUEEZERS = {
++    # Tested with DPM 16-steps (reduced 16 -> 10 or 11 steps)
++    '10,6': partial(squeeze_to_len_n_starting_from_index_i, 10, 6),
++    '11,7': partial(squeeze_to_len_n_starting_from_index_i, 11, 7)
++}
++
++
++class SqueezedDPMSolverMultistepScheduler(DPMSolverMultistepScheduler):
++    """
++    This is a copy-paste from Diffuser's `DPMSolverMultistepScheduler`, with minor differences:
++    * Defaults are modified to accommodate DeciDiffusion
++    * It supports a squeezer to squeeze the number of inference steps to a smaller number
++    //!\\ IMPORTANT: the actual number of inference steps is deduced by the squeezer, and not the pipeline!
++    """
++
++    @register_to_config
++    def __init__(
++            self,
++            num_train_timesteps: int = 1000,
++            beta_start: float = 0.0001,
++            beta_end: float = 0.02,
++            beta_schedule: str = "squaredcos_cap_v2",  # NOTE THIS DEFAULT VALUE
++            trained_betas: Optional[Union[np.ndarray, List[float]]] = None,
++            solver_order: int = 2,
++            prediction_type: str = "v_prediction",  # NOTE THIS DEFAULT VALUE
++            thresholding: bool = False,
++            dynamic_thresholding_ratio: float = 0.995,
++            sample_max_value: float = 1.0,
++            algorithm_type: str = "dpmsolver++",
++            solver_type: str = "heun",  # NOTE THIS DEFAULT VALUE
++            lower_order_final: bool = True,
++            use_karras_sigmas: Optional[bool] = False,
++            lambda_min_clipped: float = -7.5,  # NOTE THIS DEFAULT VALUE
++            variance_type: Optional[str] = None,
++            timestep_spacing: str = "linspace",
++            steps_offset: int = 1,
++            squeeze_mode: Optional[str] = None,  # NOTE THIS ADDITION. Supports keys from `PREDEFINED_TIMESTEP_SQUEEZERS` defined above
++    ):
++        self._squeezer = PREDEFINED_TIMESTEP_SQUEEZERS.get(squeeze_mode)
++
++        if use_karras_sigmas:
++            raise NotImplementedError("Squeezing isn't tested with `use_karras_sigmas`. Please provide `use_karras_sigmas=False`")
++
++        super().__init__(
++            num_train_timesteps=num_train_timesteps,
++            beta_start=beta_start,
++            beta_end=beta_end,
++            beta_schedule=beta_schedule,
++            trained_betas=trained_betas,
++            solver_order=solver_order,
++            prediction_type=prediction_type,
++            thresholding=thresholding,
++            dynamic_thresholding_ratio=dynamic_thresholding_ratio,
++            sample_max_value=sample_max_value,
++            algorithm_type=algorithm_type,
++            solver_type=solver_type,
++            lower_order_final=lower_order_final,
++            use_karras_sigmas=False,
++            lambda_min_clipped=lambda_min_clipped,
++            variance_type=variance_type,
++            timestep_spacing=timestep_spacing,
++            steps_offset=steps_offset
++        )
++
++    def set_timesteps(self, num_inference_steps: int = None, device: Union[str, torch.device] = None):
++        """
++        Sets the discrete timesteps used for the diffusion chain (to be run before inference).
++
++        Args:
++            num_inference_steps (`int`):
++                The number of diffusion steps used when generating samples with a pre-trained model.
++            device (`str` or `torch.device`, *optional*):
++                The device to which the timesteps should be moved to. If `None`, the timesteps are not moved.
++        """
++        super().set_timesteps(num_inference_steps=num_inference_steps, device=device)
++        if self._squeezer is not None:
++            timesteps = self._squeezer(self.timesteps.cpu())
++            sigmas = np.array(((1 - self.alphas_cumprod) / self.alphas_cumprod) ** 0.5)
++            sigmas = np.interp(timesteps, np.arange(0, len(sigmas)), sigmas)
++            sigma_last = ((1 - self.alphas_cumprod[0]) / self.alphas_cumprod[0]) ** 0.5
++            sigmas = np.concatenate([sigmas, [sigma_last]]).astype(np.float32)
++            self.sigmas = torch.from_numpy(sigmas)
++            self.timesteps = torch.from_numpy(timesteps).to(device=device, dtype=torch.int64)
++            self.num_inference_steps = len(timesteps)
+\ No newline at end of file
+diff --git a/src/diffusers/utils/__init__.py b/src/diffusers/utils/__init__.py
+index 7390a2f6..7776ae48 100644
+--- a/src/diffusers/utils/__init__.py
++++ b/src/diffusers/utils/__init__.py
+@@ -83,7 +83,7 @@ from .loading_utils import load_image
+ from .logging import get_logger
+ from .outputs import BaseOutput
+ from .pil_utils import PIL_INTERPOLATION, make_image_grid, numpy_to_pil, pt_to_pil
+-
++from .torch_utils import randn_tensor, GroupNormCustom, silu_custom, gelu_custom
+ 
+ logger = get_logger(__name__)
+ 
+diff --git a/src/diffusers/utils/torch_utils.py b/src/diffusers/utils/torch_utils.py
+index 99ea4d8c..ac439bff 100644
+--- a/src/diffusers/utils/torch_utils.py
++++ b/src/diffusers/utils/torch_utils.py
+@@ -22,9 +22,92 @@ from .import_utils import is_torch_available, is_torch_version
+ 
+ if is_torch_available():
+     import torch
++    from torch import nn
++
+ 
+ logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
+ 
++def gelu_custom(x):
++    return x*(x*(0.14670403 + 0.001198*x)+0.500781)
++    #return nn.GELU()(x)
++
++def silu_custom(x):
++    return x*(x*(0.2496902591 + 0.0034703712*x)+0.500781)
++    #return nn.SiLU()(x)
++
++class GroupNormCustom(torch.autograd.Function):
++    @staticmethod
++    def forward(self, data, num_channels, num_groups, weight, bias, eps):
++        gn = nn.GroupNorm(num_channels=num_channels, num_groups=num_groups)
++        gn.weight = weight
++        gn.bias = bias
++        gn.eps = eps
++        x = gn(data)
++        return x
++
++    @staticmethod
++    def symbolic(g, data, num_channels, num_groups, weight, bias, eps):
++        from torch.onnx import _constants, _deprecation, _type_utils, errors, symbolic_helper
++        from torch.onnx.symbolic_opset9 import add,mul
++        channel_size = symbolic_helper._get_tensor_dim_size(data, 1)
++        if channel_size is not None:
++            assert channel_size % num_groups == 0
++        input_rank = symbolic_helper._get_tensor_rank(data)
++        if input_rank is None:
++            return symbolic_helper._unimplemented("group_norm", "unknown input rank", data)
++        input_reshaped1 = symbolic_helper._unsqueeze_helper(g, data, [2])
++        # 0 in the shape list keeps dimension value unchanged.
++        shape = [0, num_groups, -1, 0, 0]
++        input_reshaped2 = symbolic_helper._reshape_helper(
++            g, input_reshaped1, g.op("Constant", value_t=torch.LongTensor(shape))
++        )
++        input_reshaped3 = symbolic_helper._flatten_helper(g, input_reshaped2, 0, 1, 5)
++        num_groups = 1
++        shape = [0, num_groups, -1]
++        input_reshaped = symbolic_helper._reshape_helper(
++            g, input_reshaped3, g.op("Constant", value_t=torch.LongTensor(shape))
++        )
++        weight_ = g.op(
++            "Constant",
++            value_t=torch.tensor(
++                [1.0] * num_groups,
++                dtype=_type_utils.JitScalarType.from_value(data).dtype(),
++            ),
++        )
++        bias_ = g.op(
++            "Constant",
++            value_t=torch.tensor(
++                [0.0] * num_groups,
++                dtype=_type_utils.JitScalarType.from_value(data).dtype(),
++            ),
++        )
++
++        norm_reshaped = g.op(
++            "InstanceNormalization", input_reshaped, weight_, bias_, epsilon_f=eps
++        )
++        norm = symbolic_helper._reshape_helper(g, norm_reshaped, g.op("Shape", data))
++
++        if weight is None or weight.node().mustBeNone():
++            weight_value = torch.tensor(
++                [1.0], dtype=_type_utils.JitScalarType.from_value(data).dtype()
++            )
++            weight = g.op("Constant", value_t=weight_value)
++        if bias is None or bias.node().mustBeNone():
++            bias_value = torch.tensor(
++                [0.0], dtype=_type_utils.JitScalarType.from_value(data).dtype()
++            )
++            bias = g.op("Constant", value_t=bias_value)
++
++        # Norm has shape [N, C, *] so we reshape weight and bias to [C, *]
++        axes = list(range(1, input_rank - 1))
++        return add(
++            g,
++            mul(g, norm, symbolic_helper._unsqueeze_helper(g, weight, axes)),
++            symbolic_helper._unsqueeze_helper(g, bias, axes),
++        )
++
++
++
+ try:
+     from torch._dynamo import allow_in_graph as maybe_allow_in_graph
+ except (ImportError, ModuleNotFoundError):

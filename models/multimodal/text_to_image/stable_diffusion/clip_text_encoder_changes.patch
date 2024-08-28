@@ -1,0 +1,18 @@
+diff --git a/src/transformers/models/clip/modeling_clip.py b/src/transformers/models/clip/modeling_clip.py
+index b59a3d244..c75c3684d 100644
+--- a/src/transformers/models/clip/modeling_clip.py
++++ b/src/transformers/models/clip/modeling_clip.py
+@@ -757,7 +757,12 @@ class CLIPTextTransformer(nn.Module):
+         # pytorch uses additive attention mask; fill with -inf
+         mask = torch.empty(bsz, seq_len, seq_len, dtype=dtype)
+         mask.fill_(torch.tensor(torch.finfo(dtype).min))
+-        mask.triu_(1)  # zero out the lower diagonal
++        #mask.triu_(1)  # zero out the lower diagonal
++        def triu_onnx(x, diagonal=0, out=None):
++            template = torch.triu(torch.ones((1024, 1024), dtype=torch.int32), diagonal)   #1024 is max sequence length
++            mask = template[:x.size(1),:x.size(2)].unsqueeze(0)
++            return torch.where(mask.bool(), x, torch.zeros_like(x))
++        mask = triu_onnx(mask, 1)
+         mask = mask.unsqueeze(1)  # expand mask
+         return mask
+ 

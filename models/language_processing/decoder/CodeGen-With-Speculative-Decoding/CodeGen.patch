@@ -1,0 +1,204 @@
+diff --git a/src/transformers/modeling_outputs.py b/src/transformers/modeling_outputs.py
+index aceec7a..db76557 100755
+--- a/src/transformers/modeling_outputs.py
++++ b/src/transformers/modeling_outputs.py
+@@ -157,6 +157,7 @@ class BaseModelOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -189,6 +190,7 @@ class BaseModelOutputWithCrossAttentions(ModelOutput):
+     last_hidden_state: torch.FloatTensor = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
+ 
+ 
+@@ -284,6 +286,7 @@ class BaseModelOutputWithPastAndCrossAttentions(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[Tuple[torch.BoolTensor]]  =None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
+ 
+ 
+@@ -617,6 +620,7 @@ class CausalLMOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -660,6 +664,7 @@ class CausalLMOutputWithCrossAttentions(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
+ 
+ 
+diff --git a/src/transformers/models/codegen/modeling_codegen.py b/src/transformers/models/codegen/modeling_codegen.py
+index d95884b..7e58b34 100644
+--- a/src/transformers/models/codegen/modeling_codegen.py
++++ b/src/transformers/models/codegen/modeling_codegen.py
+@@ -128,12 +128,18 @@ class CodeGenAttention(nn.Module):
+         query,
+         key,
+         value,
++        kv_indices,
+         attention_mask=None,
+         head_mask=None,
+     ):
+         # compute causal mask from causal mask buffer
+         query_length, key_length = query.size(-2), key.size(-2)
+-        causal_mask = self.causal_mask[:, :, key_length - query_length : key_length, :key_length]
++        # causal_mask = self.causal_mask[:, :, key_length - query_length : key_length, :key_length]
++        if kv_indices is None:
++            causal_mask = self.causal_mask[:, :, key_length - query_length : key_length, :key_length]
++        else:
++            causal_mask = self.causal_mask[:, :, kv_indices, :key_length]
++        mask_value = torch.finfo(torch.float16).min
+ 
+         # Keep the attention weights computation in fp32 to avoid overflow issues
+         query = query.to(torch.float32)
+@@ -168,6 +174,7 @@ class CodeGenAttention(nn.Module):
+         self,
+         hidden_states: Optional[torch.FloatTensor],
+         layer_past: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         head_mask: Optional[torch.FloatTensor] = None,
+@@ -220,8 +227,12 @@ class CodeGenAttention(nn.Module):
+         if layer_past is not None:
+             past_key = layer_past[0]
+             past_value = layer_past[1]
+-            key = torch.cat((past_key, key), dim=-2)
+-            value = torch.cat((past_value, value), dim=-2)
++            seq_length = key.shape[2]
++            kv_indices = torch.arange(seq_length) + cache_index
++            past_key[:, :, kv_indices] = key
++            past_value[:,:,kv_indices] = value
++            key = past_key
++            value = past_value
+ 
+         if use_cache is True:
+             present = (key, value)
+@@ -229,7 +240,10 @@ class CodeGenAttention(nn.Module):
+             present = None
+ 
+         # compute self-attention: V x Softmax(QK^T)
+-        attn_output, attn_weights = self._attn(query, key, value, attention_mask, head_mask)
++        if layer_past is not None:
++            attn_output, attn_weights = self._attn(query, key, value,kv_indices, attention_mask, head_mask)
++        else:
++            attn_output, attn_weights = self._attn(query, key, value, None,attention_mask, head_mask)
+ 
+         attn_output = self._merge_heads(attn_output, self.num_attention_heads, self.head_dim)
+         attn_output = self.out_proj(attn_output)
+@@ -275,6 +289,7 @@ class CodeGenBlock(nn.Module):
+         self,
+         hidden_states: Optional[torch.FloatTensor],
+         layer_past: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.Tensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         head_mask: Optional[torch.FloatTensor] = None,
+@@ -286,6 +301,7 @@ class CodeGenBlock(nn.Module):
+         attn_outputs = self.attn(
+             hidden_states=hidden_states,
+             layer_past=layer_past,
++            cache_index=cache_index,
+             attention_mask=attention_mask,
+             position_ids=position_ids,
+             head_mask=head_mask,
+@@ -440,6 +456,7 @@ class CodeGenModel(CodeGenPreTrainedModel):
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
++        cache_index: Optional[torch.Tensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         token_type_ids: Optional[torch.LongTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+@@ -464,6 +481,7 @@ class CodeGenModel(CodeGenPreTrainedModel):
+             input_shape = input_ids.size()
+             input_ids = input_ids.view(-1, input_shape[-1])
+             batch_size = input_ids.shape[0]
++            seq_length = input_ids.shape[1]
+         elif inputs_embeds is not None:
+             input_shape = inputs_embeds.size()[:-1]
+             batch_size = inputs_embeds.shape[0]
+@@ -493,6 +511,9 @@ class CodeGenModel(CodeGenPreTrainedModel):
+             if batch_size <= 0:
+                 raise ValueError("batch_size has to be defined and > 0")
+             attention_mask = attention_mask.view(batch_size, -1)
++            if cache_index is not None:
++                attention_mask[:, cache_index + seq_length - 1] = True
++                attention_mask_retained = attention_mask.clone()
+             # We create a 3D attention mask from a 2D tensor mask.
+             # Sizes are [batch_size, 1, 1, to_seq_length]
+             # So we can broadcast to [batch_size, num_heads, from_seq_length, to_seq_length]
+@@ -506,7 +527,7 @@ class CodeGenModel(CodeGenPreTrainedModel):
+             # Since we are adding it to the raw scores before the softmax, this is
+             # effectively the same as removing these entirely.
+             attention_mask = attention_mask.to(dtype=self.dtype)  # fp16 compatibility
+-            attention_mask = (1.0 - attention_mask) * torch.finfo(self.dtype).min
++            attention_mask = (1.0 - attention_mask) * torch.finfo(torch.float16).min
+ 
+         # Prepare head mask if needed
+         # 1.0 in head_mask indicate we keep the head
+@@ -563,6 +584,7 @@ class CodeGenModel(CodeGenPreTrainedModel):
+                 outputs = block(
+                     hidden_states=hidden_states,
+                     layer_past=layer_past,
++                    cache_index=cache_index,
+                     attention_mask=attention_mask,
+                     position_ids=position_ids,
+                     head_mask=head_mask[i],
+@@ -591,6 +613,7 @@ class CodeGenModel(CodeGenPreTrainedModel):
+             last_hidden_state=hidden_states,
+             past_key_values=presents,
+             hidden_states=all_hidden_states,
++            attention_mask_RetainedState=attention_mask_retained if past_length>0  else None,
+             attentions=all_self_attentions,
+         )
+ 
+@@ -655,6 +678,7 @@ class CodeGenForCausalLM(CodeGenPreTrainedModel):
+         self,
+         input_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
++        cache_index: Optional[torch.Tensor] = None,
+         attention_mask: Optional[torch.FloatTensor] = None,
+         token_type_ids: Optional[torch.LongTensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+@@ -677,6 +701,7 @@ class CodeGenForCausalLM(CodeGenPreTrainedModel):
+         transformer_outputs = self.transformer(
+             input_ids,
+             past_key_values=past_key_values,
++            cache_index=cache_index,
+             attention_mask=attention_mask,
+             token_type_ids=token_type_ids,
+             position_ids=position_ids,
+@@ -692,7 +717,8 @@ class CodeGenForCausalLM(CodeGenPreTrainedModel):
+         # make sure sampling in fp16 works correctly and
+         # compute loss in fp32 to match with mesh-tf version
+         # https://github.com/EleutherAI/gpt-neo/blob/89ce74164da2fb16179106f54e2269b5da8db333/models/gpt2/gpt2.py#L179
+-        lm_logits = self.lm_head(hidden_states).to(torch.float32)
++        hidden_states = hidden_states[:, -1:]
++        lm_logits = self.lm_head(hidden_states)
+ 
+         loss = None
+         if labels is not None:
+@@ -717,6 +743,7 @@ class CodeGenForCausalLM(CodeGenPreTrainedModel):
+             past_key_values=transformer_outputs.past_key_values,
+             hidden_states=transformer_outputs.hidden_states,
+             attentions=transformer_outputs.attentions,
++            attention_mask_RetainedState = transformer_outputs.attention_mask_RetainedState,
+         )
+ 
+     @staticmethod

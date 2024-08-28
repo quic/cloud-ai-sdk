@@ -1,0 +1,328 @@
+diff --git a/src/transformers/modeling_outputs.py b/src/transformers/modeling_outputs.py
+index aceec7a..0b8c7d7 100755
+--- a/src/transformers/modeling_outputs.py
++++ b/src/transformers/modeling_outputs.py
+@@ -157,6 +157,7 @@ class BaseModelOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+@@ -617,6 +618,7 @@ class CausalLMOutputWithPast(ModelOutput):
+     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+     attentions: Optional[Tuple[torch.FloatTensor]] = None
++    attention_mask_RetainedState: Optional[torch.BoolTensor] = None
+ 
+ 
+ @dataclass
+diff --git a/src/transformers/models/llama/modeling_llama.py b/src/transformers/models/llama/modeling_llama.py
+index 309c3ef..9505ad2 100644
+--- a/src/transformers/models/llama/modeling_llama.py
++++ b/src/transformers/models/llama/modeling_llama.py
+@@ -41,19 +41,28 @@ _CONFIG_FOR_DOC = "LlamaConfig"
+ 
+ # Copied from transformers.models.bart.modeling_bart._make_causal_mask
+ def _make_causal_mask(
+-    input_ids_shape: torch.Size, dtype: torch.dtype, device: torch.device, past_key_values_length: int = 0
++    input_ids_shape: torch.Size, dtype: torch.dtype, device: torch.device, past_key_values_length: int = 0, cache_index: Optional[torch.LongTensor] = None,
+ ):
+     """
+     Make causal mask used for bi-directional self-attention.
+     """
+     bsz, tgt_len = input_ids_shape
+-    mask = torch.full((tgt_len, tgt_len), torch.finfo(dtype).min, device=device)
++    min_val = -32000
++    # mask = torch.full((tgt_len, tgt_len), torch.finfo(dtype).min, device=device)
++    mask = torch.full((tgt_len, tgt_len), torch.tensor(min_val, device=device), device=device)
+     mask_cond = torch.arange(mask.size(-1), device=device)
+     mask.masked_fill_(mask_cond < (mask_cond + 1).view(mask.size(-1), 1), 0)
+     mask = mask.to(dtype)
+ 
+     if past_key_values_length > 0:
+-        mask = torch.cat([torch.zeros(tgt_len, past_key_values_length, dtype=dtype, device=device), mask], dim=-1)
++        if cache_index is None:
++            mask = torch.cat([torch.zeros(tgt_len, past_key_values_length, dtype=dtype, device=device), mask], dim=-1)
++        else:
++            query_indices = torch.arange(tgt_len) +  cache_index
++            key_indices = torch.arange(past_key_values_length)
++            mask_cond = key_indices.view(1,-1) > query_indices.view(-1,1)
++            mask = torch.where(mask_cond, torch.tensor(min_val, dtype=dtype), torch.tensor(0.0, dtype=dtype))
++            return mask[None, None, :, :].expand(bsz, 1, tgt_len, past_key_values_length)
+     return mask[None, None, :, :].expand(bsz, 1, tgt_len, tgt_len + past_key_values_length)
+ 
+ 
+@@ -69,7 +78,8 @@ def _expand_mask(mask: torch.Tensor, dtype: torch.dtype, tgt_len: Optional[int]
+ 
+     inverted_mask = 1.0 - expanded_mask
+ 
+-    return inverted_mask.masked_fill(inverted_mask.to(torch.bool), torch.finfo(dtype).min)
++    return inverted_mask.masked_fill(inverted_mask.to(torch.bool), -32000.0)
++    # return inverted_mask.masked_fill(inverted_mask.to(torch.bool), torch.finfo(dtype).min)
+ 
+ 
+ class LlamaRMSNorm(nn.Module):
+@@ -84,7 +94,9 @@ class LlamaRMSNorm(nn.Module):
+     def forward(self, hidden_states):
+         input_dtype = hidden_states.dtype
+         hidden_states = hidden_states.to(torch.float32)
+-        variance = hidden_states.pow(2).mean(-1, keepdim=True)
++        # variance = hidden_states.pow(2).mean(-1, keepdim=True)
++        div_first = hidden_states * torch.rsqrt(torch.tensor(hidden_states.shape[-1], dtype=torch.float32))
++        variance = div_first.pow(2).sum(-1, keepdim=True)
+         hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)
+         return self.weight * hidden_states.to(input_dtype)
+ 
+@@ -284,6 +296,7 @@ class LlamaAttention(nn.Module):
+         attention_mask: Optional[torch.Tensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         past_key_value: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         output_attentions: bool = False,
+         use_cache: bool = False,
+     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
+@@ -311,23 +324,45 @@ class LlamaAttention(nn.Module):
+             key_states = self.k_proj(hidden_states)
+             value_states = self.v_proj(hidden_states)
+ 
++
++        # print("attention_mask", attention_mask.shape)
++        # print("cache_index", cache_index)
+         query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+         key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+         value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+ 
+         kv_seq_len = key_states.shape[-2]
++        # Added by HU
+         if past_key_value is not None:
+             kv_seq_len += past_key_value[0].shape[-2]
++            if cache_index is not None:
++                kv_seq_len = past_key_value[0].shape[-2]
++                # print(kv_seq_len, "kv_seq_len")
++                # print(cache_index, "cache_index")
+         cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
+         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
++        # print(query_states.shape, key_states.shape)
+ 
++        # Added by HU
+         if past_key_value is not None:
+-            # reuse k, v, self_attention
+-            key_states = torch.cat([past_key_value[0], key_states], dim=2)
+-            value_states = torch.cat([past_key_value[1], value_states], dim=2)
++            if cache_index is not None:
++                seq_length = key_states.shape[2]
++                assert value_states.shape[2] == seq_length
++                kv_indices = torch.arange(seq_length) + cache_index
++                past_key_value[0][:,:,kv_indices] = key_states
++                past_key_value[1][:,:,kv_indices] = value_states
++                key_states, value_states = past_key_value
++                # print(key_states.shape, value_states.shape)
++
++            if cache_index is None:
++                key_states = torch.cat([past_key_value[0], key_states], dim=2)
++                value_states = torch.cat([past_key_value[1], value_states], dim=2)
+ 
+         past_key_value = (key_states, value_states) if use_cache else None
+ 
++
++        # breakpoint()
++
+         # repeat k/v heads if n_kv_heads < n_heads
+         key_states = repeat_kv(key_states, self.num_key_value_groups)
+         value_states = repeat_kv(value_states, self.num_key_value_groups)
+@@ -388,6 +423,7 @@ class LlamaDecoderLayer(nn.Module):
+         attention_mask: Optional[torch.Tensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         past_key_value: Optional[Tuple[torch.Tensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         output_attentions: Optional[bool] = False,
+         use_cache: Optional[bool] = False,
+     ) -> Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]]:
+@@ -409,12 +445,15 @@ class LlamaDecoderLayer(nn.Module):
+ 
+         hidden_states = self.input_layernorm(hidden_states)
+ 
++        # print("456 cache_index", cache_index)
++
+         # Self Attention
+         hidden_states, self_attn_weights, present_key_value = self.self_attn(
+             hidden_states=hidden_states,
+             attention_mask=attention_mask,
+             position_ids=position_ids,
+             past_key_value=past_key_value,
++            cache_index=cache_index,
+             output_attentions=output_attentions,
+             use_cache=use_cache,
+         )
+@@ -577,7 +616,7 @@ class LlamaModel(LlamaPreTrainedModel):
+         self.embed_tokens = value
+ 
+     # Copied from transformers.models.bart.modeling_bart.BartDecoder._prepare_decoder_attention_mask
+-    def _prepare_decoder_attention_mask(self, attention_mask, input_shape, inputs_embeds, past_key_values_length):
++    def _prepare_decoder_attention_mask(self, attention_mask, input_shape, inputs_embeds, past_key_values_length, cache_index):
+         # create causal mask
+         # [bsz, seq_len] -> [bsz, 1, tgt_seq_len, src_seq_len]
+         combined_attention_mask = None
+@@ -587,6 +626,7 @@ class LlamaModel(LlamaPreTrainedModel):
+                 inputs_embeds.dtype,
+                 device=inputs_embeds.device,
+                 past_key_values_length=past_key_values_length,
++                cache_index=cache_index,
+             )
+ 
+         if attention_mask is not None:
+@@ -607,6 +647,7 @@ class LlamaModel(LlamaPreTrainedModel):
+         attention_mask: Optional[torch.Tensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[List[torch.FloatTensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         inputs_embeds: Optional[torch.FloatTensor] = None,
+         use_cache: Optional[bool] = None,
+         output_attentions: Optional[bool] = None,
+@@ -634,18 +675,42 @@ class LlamaModel(LlamaPreTrainedModel):
+         seq_length_with_past = seq_length
+         past_key_values_length = 0
+ 
++        # breakpoint()
+         if past_key_values is not None:
+             past_key_values_length = past_key_values[0][0].shape[2]
+             seq_length_with_past = seq_length_with_past + past_key_values_length
+-
++            if cache_index is not None:
++                seq_length_with_past = past_key_values_length
++
++        if cache_index is not None:
++            # print("cache_index", cache_index)
++            if position_ids is None:
++                if attention_mask is None:
++                    device = input_ids.device if input_ids is not None else inputs_embeds.device
++                    position_ids = torch.arange(
++                        past_key_values_length, seq_length + past_key_values_length, dtype=torch.long, device=device
++                    )
++                    position_ids = position_ids.unsqueeze(0).view(-1, seq_length)
++                else:
++                    # we are always passing attention_mask
++                    # print("attention_mask", attention_mask)
++                    position_ids = (torch.cumsum(attention_mask, 1) - 1) * attention_mask
++                    # print(position_ids)
++                    # print("past_key_values_length", past_key_values_length)
++                    if past_key_values_length > 0:
++                        position_ids = position_ids[:, cache_index].unsqueeze(1)
++                        # print("position ids not getting updated here", position_ids)
++
++        # kv prefill
+         if position_ids is None:
+-            device = input_ids.device if input_ids is not None else inputs_embeds.device
+-            position_ids = torch.arange(
+-                past_key_values_length, seq_length + past_key_values_length, dtype=torch.long, device=device
+-            )
+-            position_ids = position_ids.unsqueeze(0).view(-1, seq_length)
+-        else:
+-            position_ids = position_ids.view(-1, seq_length).long()
++            if attention_mask is None:
++                device = input_ids.device if input_ids is not None else inputs_embeds.device
++                position_ids = torch.arange(
++                    past_key_values_length, seq_length + past_key_values_length, dtype=torch.long, device=device
++                )
++                position_ids = position_ids.unsqueeze(0).view(-1, seq_length)
++            else:
++                position_ids = (torch.cumsum(attention_mask, 1) - 1) * attention_mask
+ 
+         if inputs_embeds is None:
+             inputs_embeds = self.embed_tokens(input_ids)
+@@ -654,10 +719,17 @@ class LlamaModel(LlamaPreTrainedModel):
+             attention_mask = torch.ones(
+                 (batch_size, seq_length_with_past), dtype=torch.bool, device=inputs_embeds.device
+             )
++
++        if past_key_values_length > 0 and cache_index is not None:
++            attention_mask[:, cache_index + seq_length - 1] = True
++        
++        pre_prepare_attention_mask = attention_mask
+         attention_mask = self._prepare_decoder_attention_mask(
+-            attention_mask, (batch_size, seq_length), inputs_embeds, past_key_values_length
++            attention_mask, (batch_size, seq_length), inputs_embeds, past_key_values_length, cache_index
+         )
+ 
++        print(attention_mask.min(), attention_mask.max())
++
+         hidden_states = inputs_embeds
+ 
+         if self.gradient_checkpointing and self.training:
+@@ -683,7 +755,7 @@ class LlamaModel(LlamaPreTrainedModel):
+                 def create_custom_forward(module):
+                     def custom_forward(*inputs):
+                         # None for past_key_value
+-                        return module(*inputs, past_key_value, output_attentions)
++                        return module(*inputs, past_key_value, output_attentions, cache_index=cache_index)
+ 
+                     return custom_forward
+ 
+@@ -692,6 +764,7 @@ class LlamaModel(LlamaPreTrainedModel):
+                     hidden_states,
+                     attention_mask,
+                     position_ids,
++                    cache_index=cache_index,
+                 )
+             else:
+                 layer_outputs = decoder_layer(
+@@ -699,6 +772,7 @@ class LlamaModel(LlamaPreTrainedModel):
+                     attention_mask=attention_mask,
+                     position_ids=position_ids,
+                     past_key_value=past_key_value,
++                    cache_index=cache_index,
+                     output_attentions=output_attentions,
+                     use_cache=use_cache,
+                 )
+@@ -725,6 +799,7 @@ class LlamaModel(LlamaPreTrainedModel):
+             past_key_values=next_cache,
+             hidden_states=all_hidden_states,
+             attentions=all_self_attns,
++            attention_mask_RetainedState=pre_prepare_attention_mask if past_key_values is not None else None,
+         )
+ 
+ 
+@@ -766,6 +841,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
+         attention_mask: Optional[torch.Tensor] = None,
+         position_ids: Optional[torch.LongTensor] = None,
+         past_key_values: Optional[List[torch.FloatTensor]] = None,
++        cache_index: Optional[torch.LongTensor] = None,
+         inputs_embeds: Optional[torch.FloatTensor] = None,
+         labels: Optional[torch.LongTensor] = None,
+         use_cache: Optional[bool] = None,
+@@ -805,12 +881,15 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
+         )
+         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+ 
++        # if cache_index is not None:
++        #     print("cache_index", cache_index)
+         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
+         outputs = self.model(
+             input_ids=input_ids,
+             attention_mask=attention_mask,
+             position_ids=position_ids,
+             past_key_values=past_key_values,
++            cache_index=cache_index,
+             inputs_embeds=inputs_embeds,
+             use_cache=use_cache,
+             output_attentions=output_attentions,
+@@ -824,7 +903,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
+             logits = [F.linear(hidden_states, lm_head_slices[i]) for i in range(self.config.pretraining_tp)]
+             logits = torch.cat(logits, dim=-1)
+         else:
+-            logits = self.lm_head(hidden_states)
++            # Added by HU
++            logits = self.lm_head(hidden_states[:,-1,:])
+         logits = logits.float()
+ 
+         loss = None
+@@ -850,6 +930,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
+             past_key_values=outputs.past_key_values,
+             hidden_states=outputs.hidden_states,
+             attentions=outputs.attentions,
++            attention_mask_RetainedState=outputs.attention_mask_RetainedState,
+         )
+ 
+     def prepare_inputs_for_generation(

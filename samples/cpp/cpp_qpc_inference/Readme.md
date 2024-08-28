@@ -1,6 +1,6 @@
-# Simple CPP Example for Bert-base-cased model on Cloud AI
+# Simple CPP Example for Bert-base-cased model on AIC-100 
 
-This project demonstrates using Bert-based-cased model from Hugging Face, using C++ Qaic APIs.
+This project demonstrates using Bert-based-cased model from hugging face, using C++ Qaic APIs.
 
 ## To build and use it.
 ```bash
@@ -10,13 +10,13 @@ This project demonstrates using Bert-based-cased model from Hugging Face, using 
    make
 ```
 
-Bert-base-cased model from Hugging Face, is based on a vocabulary file
-(vocab.txt), which which needs to be downloaded from the Hugging Face website.
+Bert-base-cased model from hugging face, is based on a vocabulary file
+(vocab.txt), which which needs to be downloaded from hugging-face website.
 
 ## To use the example, the user needs to :
-- download the Hugging Face bert-base-cased model. (Refer Jupyter notebooks for NLP models). 
-- Replace the QPC (program container) path used in the main.cpp with the actual QPC path.
-- Replace the names of the input/output buffers as used to compile BERT model into QPC
+- download the hugging face bert-base-cased model. (Refer Jupyter notebooks for NLP models). 
+- Replace the QPC path used in the main.cpp with the actual QPC path.
+- Replace the names of the input/output buffers as used to compile bert model into QPC
   ```
   for example:
      ("input_ids", "attention_mask") for input buffers
@@ -36,7 +36,7 @@ Bert-base-cased model from Hugging Face, is based on a vocabulary file
 
 ### Tokenizer :
    This class, is very basic and trivial parser of input sentence
-   feeded to the BERT model. It uses space as delimeter to parse
+   feeded to the bert model. It uses space as delimeter to parse
    the sentence.  It does not cater special handling for special
    characters and symbols used in sentence. 
    Ideally, in C++ the user can use, for example, the 
@@ -60,13 +60,13 @@ Bert-base-cased model from Hugging Face, is based on a vocabulary file
 [[nodiscard]] std::string to_string(const std::vector<int64_t> & tokenVec)<br>
 ```
 
-### Processing the input and output for inference:
-   The input buffer for BERT inference in this example is an array of bytes
+### Processing the intput and output for inference:
+   The input buffer for bert inference in this example is an array of bytes
    representing the indexes for each sentence word ( in the vocabulary file ).
 
    For example:
    
-   If the compiled QPC has the sequence length = 128 and the input type is int64_t
+   If the compiled QPC has the sequence = 128 and the input type is int64_t
    then the size of input buffers must be <br>
    128 * 8 <br>
    128 [max num tokens in input] * 8 [size of each index in vocabulary file]<br>
@@ -75,17 +75,17 @@ Bert-base-cased model from Hugging Face, is based on a vocabulary file
    input buffer must be populated with the indexes of the sentence words
    in the vocabulary file. Rest of the bytes must be zero initialized.
 
-   The BERT Model uses attention_mask as an input to model. The attention_mask
+   Bert Model uses attention_mask as an input to model. The attention_mask
    input buffer can be populated with 1 for initial 10 words and rest of bytes
    can be zero initialized.
 
-   The output buffer for BERT inference in this example is an array
+   The output buffer for bert inference in this example is an array
    of logit values (corresponding to each symbol/word in the vocabulary)
    for each input token.
 
    For example:
    
-   If the compiled QPC has the sequence length = 128 and the output format
+   If the compiled QPC has the sequence value = 128 and the output format
    is float (4 bytes). Then the QBuffer for output must be<br>
    128 * 4 * 289960 <br>
    128 [max num tokens in input] * 4 [size of each logit value] * 289960 [Vocabular Size]<br>

@@ -1,0 +1,19 @@
+{
+    "specializations": [
+        {
+            "batch_size": "1",
+            "seq_len": "32",
+            "ctx_len": "256"
+        },
+        {
+            "batch_size": "1",
+            "seq_len": "2",
+            "ctx_len": "256"
+        },
+        {
+            "batch_size": "1",
+            "seq_len": "1",
+            "ctx_len": "256"
+        }
+    ]
+}

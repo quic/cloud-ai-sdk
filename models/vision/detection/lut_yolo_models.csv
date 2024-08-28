@@ -1,7 +1,4 @@
 ﻿MODEL_NAME,TASK,BATCH_SIZE,IMAGE_SIZE,CORES,INSTANCES,OLS,MOS,SET_SIZE,EXTRA,PRECISION,OBJECTIVE
-yolov4,object-detection,1,608,12,1,1,,1, -aic-pmu-recipe=KernelUtil -multicast-weights -aic-enable-depth-first,fp16,best-latency
-yolov4,object-detection,1,608,7,2,2,,2, -aic-pmu-recipe=KernelUtil -multicast-weights -aic-enable-depth-first,fp16,balanced
-yolov4,object-detection,1,608,1,14,1,,1, -aic-pmu-recipe=KernelUtil -multicast-weights -aic-enable-depth-first,fp16,best-throughput
 yolov5s,object-detection,1,640,7,2,2,,1,,fp16,best-latency
 yolov5s,object-detection,1,640,3,4,2,,1,,fp16,balanced
 yolov5s,object-detection,1,640,2,7,2,,2,,fp16,best-throughput

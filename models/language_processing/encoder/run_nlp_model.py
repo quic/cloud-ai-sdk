@@ -13,6 +13,7 @@ import onnxruntime
 import pandas as pd
 from glob import glob
 import json
+import sys
 
 # computes the average or percentile for a pandas.Series object
 def get_metric(series, method):
@@ -162,11 +163,16 @@ def run_model_on_ort(onnx_path, ort_inputs):
     output_names = [o.name for o in session.get_outputs()]
     ort_outputs = session.run(None, {k: v for k, v in ort_inputs.items() if k in input_names})
     return output_names, ort_outputs
+
+def inference_complete_task(inference_set, inf_id):
+        status, inf_handle = inference_set.getCompletedId(inf_id)
+        inference_set.putCompleted(inf_handle)
     
 # The main function
 def main(args):
     
     RUN_ONLY = args.run_only
+    API_RUN = args.api_run
     MODEL_NAME = args.model_name
     TASK = args.task
     OBJECTIVE = 'best-throughput' if args.objective is None else args.objective
@@ -198,28 +204,28 @@ def main(args):
         SL        = int(user_lut_default(args.seq_length, row, 'SEQUENCE_LENGTH', '128'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',             '2'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',         '7'))
-        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '2')
-        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '1')
+        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '')
+        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',          '4')
-        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '-multicast-weights')
+        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '')
     elif OBJECTIVE == 'best-latency':
         BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',        '1'))
         SL        = int(user_lut_default(args.seq_length, row, 'SEQUENCE_LENGTH', '128'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',            '12'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',         '1'))
-        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '1')
-        MOS       =     user_lut_default(args.mos,        row, 'MOS',              '12')
+        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '')
+        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',          '1')
-        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '-multicast-weights')
+        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '')
     else:
         BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',        '2'))
         SL        = int(user_lut_default(args.seq_length, row, 'SEQUENCE_LENGTH', '128'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',             '6'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',         '2'))
-        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '1')
-        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '6')
+        OLS       =     user_lut_default(args.ols,        row, 'OLS',               '')
+        MOS       =     user_lut_default(args.mos,        row, 'MOS',               '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',          '1')
-        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '-multicast-weights')
+        EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '')
         
     TIME = args.time
     OPSET = args.opset
@@ -237,7 +243,8 @@ def main(args):
     os.makedirs(INPUT_FOLDER, exist_ok=True)
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-    MOTIF = f"B{BS}-C{CORES}-A{INSTANCES}-OLS{OLS}"
+    MOTIF = f"B{BS}-C{CORES}-A{INSTANCES}"
+    if OLS != '': MOTIF = MOTIF + f"-OLS{OLS}"
     if MOS != '': MOTIF = MOTIF + f"-MOS{MOS}"
     MOTIF = MOTIF + f"-{OBJECTIVE}"
     MOTIF = MOTIF.replace(' ','')
@@ -248,7 +255,7 @@ def main(args):
         print("*************************************************************************************\n\n", flush=True)
 
         # Generating the onnx model using Optimum - an extension of Transformers.
-        execute(["optimum-cli", "export", "onnx", "--model", f"{MODEL_NAME}", "./model", "--cache_dir", "./cache", "--task", f"{TASK}", "--opset", f"{OPSET}"], f"commands-{MOTIF}.txt", 'w')
+        execute(["optimum-cli", "export", "onnx", "--model", f"{MODEL_NAME}", "./model", "--cache_dir", "./cache", "--task", f"{TASK}", "--opset", f"{OPSET}", "--trust-remote-code"], f"commands-{MOTIF}.txt", 'w')
 
     # For now, assuming only one onnx is generated in the directory ./model
     for file in os.listdir("./model"):
@@ -278,7 +285,6 @@ def main(args):
                         f"-aic-hw",
                         f"-aic-hw-version=2.0",
                         f"-aic-num-cores={CORES}",
-                        f"-ols={OLS}",
                         f"-convert-to-fp16",
                         f"-compile-only",
                         f"-aic-binary-dir=./compiled-bin-fp16-{MOTIF}",
@@ -287,6 +293,8 @@ def main(args):
                         ]
         if MOS != '':
             cmd_elements.extend([f"-mos={MOS}"])
+        if OLS != '':
+            cmd_elements.extend([f"-ols={OLS}"])
         execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
 
     print("\n\n*************************************************************************************", flush=True)
@@ -294,47 +302,148 @@ def main(args):
     print("*************************************************************************************\n\n", flush=True)
 
     # Run for fp16
-    run_output_dir = f"{OUTPUT_FOLDER}fp16-{MOTIF}"
-    os.makedirs(run_output_dir, exist_ok=True)
-    cmd_elements = ["sudo", "/opt/qti-aic/exec/qaic-runner",
-                    "-t", f"./compiled-bin-fp16-{MOTIF}",
-                    "-a", f"{INSTANCES}",
-                    "--time", f"{TIME}",
-                    "--aic-profiling-type", "latency", "--aic-profiling-num-samples", "999999",
-                    "--aic-profiling-out-dir", run_output_dir,
-                    "-write-output-dir", run_output_dir,
-                    "-S", f"{SET_SIZE}",
-                    "-d", f"{DEVICE_ID}"
-                    ]
-    for data_file in data_files:
-        cmd_elements.extend(["-i", data_file])
-    execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
+    if(API_RUN):
+        import qaic
+        print("\n\n-----------------------------------------", flush=True)
+        print(f"Running qaic session for benchmark mode ", flush=True)
+        print("------------------------------------------\n\n", flush=True)
 
-    latency_method = '95pct'
-    config_folders = glob(f"{OUTPUT_FOLDER}fp16-{MOTIF}")
-    latency_logs = glob(f"{config_folders[0]}/*latency.txt")
-    LATENCY = get_latency(latency_logs, latency_method)
-    print(f"Latency ({latency_method}) = {LATENCY:.3f} ms")
+        sess = qaic.Session(model_path=f"./compiled-bin-fp16-{MOTIF}/programqpc.bin", num_activations=int(INSTANCES), set_size=int(SET_SIZE),dev_id=int(DEVICE_ID))
+        results=sess.run_benchmark(inf_time=int(TIME))
+        print(f'bench_mark results:{results}')
 
-    print("\n\n*************************************************************************************", flush=True)
-    print(f"Comparing AIC100 fp16 inference with onnxruntime fp32 inference", flush=True)
-    print("*************************************************************************************\n\n", flush=True)
-    
-    output_names, ort_outputs = run_model_on_ort(MODEL, ort_inputs)
-    # print (np.asarray(ort_outputs).flatten())
 
-    for output_name, ort_output in zip(output_names, ort_outputs):
-        aico16 = np.fromfile(f"{run_output_dir}/{output_name}-activation-0-inf-0.bin", np.float32)
-        # print(ort_output)
-        # print(aico16) 
-        ort_output_flat = np.asarray(ort_output).flatten()
-        aico16_flat = np.asarray(aico16).flatten()    
-        print ("The first few output values from onnxruntime (fp32) and aic100 (fp16):")        
-        print(ort_output_flat[0:min(4, len(ort_output_flat))])
-        print(aico16_flat[0:min(4, len(aico16_flat))])
-        diff = ort_output_flat - aico16_flat
-        argmax = diff.argmax()
-        print (f"The maximum difference is {np.abs(diff).max()} for values {ort_output_flat[argmax]} from onnxruntime (fp32) and {aico16_flat[argmax]} from aic100 (fp16)") 
+        print("\n\n-----------------------------------------", flush=True)
+        print(f"Running qaic session with woker threads and save output ", flush=True)
+        print("------------------------------------------\n\n", flush=True)
+
+        import concurrent.futures
+        print(sess.model_input_shape_dict)
+        print(sess.model_output_shape_dict)
+        input_dict={}
+        for (key,dim_info),data_file in zip(sess.model_input_shape_dict.items(),data_files):
+            print(f' read from file {data_file} and it dim info is {dim_info} and key is {key} ')
+            input_dict[key]=np.fromfile(data_file,dtype=np.int64).reshape(dim_info[0])
+
+        def infer(input_data):
+            output_dict = sess.run(input_data)
+            return output_dict 
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(infer, input_dict) for i  in range(10)]
+
+        run_output_dir = f"{OUTPUT_FOLDER}fp16-{MOTIF}"
+        os.makedirs(run_output_dir, exist_ok=True)
+        index = 0
+        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+            output_dict = future.result()
+            for output_items in sess.model_output_shape_dict:
+                output_dict[output_items].tofile(f"./{run_output_dir}/{output_items}_{index}.bin")
+                index +=1
+        #Release all resources acquired by the session
+        sess.reset()
+        print(f"Finish qaic session with woker threads !!!!  ", flush=True)
+
+
+        print("\n\n-----------------------------------------", flush=True)
+        print(f"Running qaicrt session ", flush=True)
+        print("------------------------------------------\n\n", flush=True)
+
+        #Running inference with qaicrt inference set
+        import sys
+        import time
+        import threading
+
+        sys.path.append("/opt/qti-aic/dev/lib/x86_64/")
+        import qaicrt
+        dev_list = qaicrt.QIDList()
+        dev_list.append(int(DEVICE_ID)) # Default to use the device 0
+        context = qaicrt.Context(dev_list)
+
+        qpc = qaicrt.Qpc(f"./compiled-bin-fp16-{MOTIF}/")
+        buf_mappings = qpc.getBufferMappings() 
+        inferenceVector = qaicrt.InferenceVector(buf_mappings)
+
+        #Set input data
+        for buf_mapping, data_file in zip(buf_mappings, data_files):
+            if buf_mapping.ioType==qaicrt.BufferIoTypeEnum.BUFFER_IO_TYPE_INPUT:
+                img=np.fromfile(data_file,dtype=np.int64)
+                buf_bytes=img.tobytes()
+                inferenceVector.getVector()[buf_mapping.index]=qaicrt.QBuffer(buf_bytes) 
+
+        set_size = int(SET_SIZE)        
+        inference_set = qaicrt.InferenceSet(context, qpc,dev_list[0], set_size, int(INSTANCES))
+
+        iterations=2000
+        start_time = time.time()
+        thread_list = []
+
+        for inf_cnt in range(iterations):
+            #User can update the inference vectore here.
+            ##
+            ##    inferenceVector.getVector()[buf_mapping.index]=qaicrt.QBuffer(buf_bytes) 
+            ##
+            inference_set.submit(inferenceVector, inf_cnt)
+            inf_complete_thread = threading.Thread(target=inference_complete_task, args=(inference_set, inf_cnt))
+            thread_list.append(inf_complete_thread)
+            inf_complete_thread.start()
+
+        for thread in thread_list:
+            thread.join()
+
+        inference_set.waitForCompletion()
+
+        end_time = time.time()
+
+        inf_time= end_time - start_time
+        qps = int(iterations * int(BS) / inf_time)
+        print(f'Inference performance is  Inf/Sec : {qps}')
+
+        print(f"Finish qaicrt session !!!!  ", flush=True)
+
+    else:
+
+        run_output_dir = f"{OUTPUT_FOLDER}fp16-{MOTIF}"
+        os.makedirs(run_output_dir, exist_ok=True)
+        cmd_elements = ["sudo", "/opt/qti-aic/exec/qaic-runner",
+                        "-t", f"./compiled-bin-fp16-{MOTIF}",
+                        "-a", f"{INSTANCES}",
+                        "--time", f"{TIME}",
+                        "--aic-profiling-type", "latency", "--aic-profiling-num-samples", "999999",
+                        "--aic-profiling-out-dir", run_output_dir,
+                        "-write-output-dir", run_output_dir,
+                        "-S", f"{SET_SIZE}",
+                        "-d", f"{DEVICE_ID}"
+                        ]
+        for data_file in data_files:
+            cmd_elements.extend(["-i", data_file])
+        execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
+
+        latency_method = '95pct'
+        config_folders = glob(f"{OUTPUT_FOLDER}fp16-{MOTIF}")
+        latency_logs = glob(f"{config_folders[0]}/*latency.txt")
+        LATENCY = get_latency(latency_logs, latency_method)
+        print(f"Latency ({latency_method}) = {LATENCY:.3f} ms")
+
+        print("\n\n*************************************************************************************", flush=True)
+        print(f"Comparing AIC100 fp16 inference with onnxruntime fp32 inference", flush=True)
+        print("*************************************************************************************\n\n", flush=True)
+        
+        output_names, ort_outputs = run_model_on_ort(MODEL, ort_inputs)
+        # print (np.asarray(ort_outputs).flatten())
+
+        for output_name, ort_output in zip(output_names, ort_outputs):
+            aico16 = np.fromfile(f"{run_output_dir}/{output_name}-activation-0-inf-0.bin", np.float32)
+            # print(ort_output)
+            # print(aico16) 
+            ort_output_flat = np.asarray(ort_output).flatten()
+            aico16_flat = np.asarray(aico16).flatten()    
+            print ("The first few output values from onnxruntime (fp32) and aic100 (fp16):")        
+            print(ort_output_flat[0:min(4, len(ort_output_flat))])
+            print(aico16_flat[0:min(4, len(aico16_flat))])
+            diff = ort_output_flat - aico16_flat
+            argmax = diff.argmax()
+            print (f"The maximum difference is {np.abs(diff).max()} for values {ort_output_flat[argmax]} from onnxruntime (fp32) and {aico16_flat[argmax]} from aic100 (fp16)") 
 
         
 def check_positive(arg_in):
@@ -380,17 +489,17 @@ def parse_args():
     )
     parser.add_argument(
         "--cores", "-c", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Number of AIC100 cores to compile the model for. Default <2> ",
     )
     parser.add_argument(
         "--instances", "-i", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Number of model instances to run on AIC100. Default <7>",
     )
     parser.add_argument(
         "--ols", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Overlap split factor. Default <1>",
     )
     parser.add_argument(
@@ -413,12 +522,17 @@ def parse_args():
     )
     parser.add_argument(
         "--device",  "-d", type=int,
-        choices=range(0, 8),
+        choices=range(0, 16),
         help="AIC100 device ID. Default <0>",
     )
     parser.add_argument('--run-only', '-r',
                         action='store_true',
                         help="Performs the inference only, without re-exporting and re-compiling the model")
+
+    parser.add_argument('--api-run', '-a',
+                        action='store_true',
+                        help="Performs api for inference. By default ,it is using qaic-runner to run infernece")
+
     return parser.parse_args()
 
 
