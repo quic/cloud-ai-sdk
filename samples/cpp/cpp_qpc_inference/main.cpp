@@ -161,6 +161,10 @@ private:
     strm << "8 bit INT";
     break;
 
+  case BUFFER_DATA_TYPE_UINT8:
+    strm << "8 bit UNSIGNED INT";
+    break;
+
   case BUFFER_DATA_TYPE_INVAL:
     strm << "INVALID";
     break;
