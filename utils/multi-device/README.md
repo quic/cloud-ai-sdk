@@ -1,11 +1,12 @@
 # Multi Device 
 
-This section provides the setup instructions for model sharding across multiple AI 100 devices (SoCs and Cards). 
+This section provides the setup instructions for tensor slicing across multiple AI 100 devices (SoCs and Cards).
 
 ## Pre-requisites 
 
-- Server with Platform and APPS SDK versions >= 1.13 installed. 
+- Server with Platform and APPS SDK versions >= 1.17 installed.
 - PCIe switch for inter-card P2P communication
+- python3 -m pip install pyudev
 
 ## Setup instructions 
 
@@ -17,8 +18,8 @@ This section provides the setup instructions for model sharding across multiple 
 $ python3 QAicChangeAcs.py
 Found the following AIC100 devices:
 Root
-----0000:30:01.1
---------0000:31:00.0
+----0000:30:01.1   <-- Host system PCIe switch, script will disable ACS here
+--------0000:31:00.0     <-- Ultra AI 100 onboard PCIe switch, script will disable ACS here
 ------------0000:32:03.0
 ----------------0000:36:00.0 [Qualcomm AIC100]
 ------------0000:32:02.0
@@ -27,7 +28,7 @@ Root
 ----------------0000:38:00.0 [Qualcomm AIC100]
 ------------0000:32:01.0
 ----------------0000:39:00.0 [Qualcomm AIC100]
---------0000:21:00.0
+--------0000:21:00.0    <-- Ultra AI 100 onboard PCIe switch, script will disable ACS here
 ------------0000:22:00.0
 ----------------0000:23:00.0 [Qualcomm AIC100]
 ------------0000:22:02.0
