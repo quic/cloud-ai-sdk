@@ -107,6 +107,18 @@ def changeAcs():
         exit()
     print(bdf)
 
+  if not enableAcs:
+    # Also call qaic-util -a to directly configure the Ultra AI 100 onboard PCIe switches.
+    # This is needed since some upstream PCIe switch firmware versions might block ACS commands
+    # from propagating to the Ultra AI 100 cards
+    stsCmd = ["sudo", "/opt/qti-aic/tools/qaic-util", "-a"]
+    try:
+      subprocess.check_output(stsCmd, stderr = subprocess.DEVNULL)
+    except subprocess.CalledProcessError as errMsg:
+      print("Error: unexpected error disabling ACS on onboard PCIe switches.")
+      print(str(errMsg))
+      exit()
+
 def getBdfFromDev(device):
   bdfStr = device.get("PCI_SLOT_NAME") 
   return bdfStr
