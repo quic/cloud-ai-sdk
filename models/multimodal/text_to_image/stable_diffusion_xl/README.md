@@ -35,7 +35,7 @@ python3.8 -m venv env_sdxl_onnxgen
 source ./env_sdxl_onnxgen/bin/activate
 pip install networkx==3.0
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install onnx==1.12.0 onnxruntime accelerate transformers
+pip install onnx==1.12.0 onnxruntime accelerate transformers==4.42
 ```
 
 2.  Create a folder for caching HuggingFace model downloads, and export the environment variable HF_HOME
@@ -46,8 +46,8 @@ export HF_HOME=$(pwd)/hf_home
 
 3. Install diffusers from source after patching for ONNX file generation
 ```
-git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git
-cd diffusers
+git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git diffusers-dev
+cd diffusers-dev
 git apply --reject --whitespace=fix ../attention_patch.patch
 pip install .
 cd ..
@@ -96,16 +96,23 @@ mv ./HF_repo/stabilityai/stable-diffusion-xl-base-1.0/vae_decoder/model_fixed_12
 bash -x compile_models.sh
 ```
 
-
 ## 4. Run the end-to-end SDXL inference script
 
 1. Set up a separate virtual environment for running SDXL (this would conflict with code changes for ONNX generation - hence separate environment)
+
+First, deactivate the env_sdxl_onnxgen environment
+```
+deactivate
+```
+
+Next, create and setup the new environment:
+
 ```
 python3.8 -m venv env_sdxl_infer
 source ./env_sdxl_infer/bin/activate
 pip install networkx==3.0
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install onnx==1.12.0 onnxruntime accelerate transformers
+pip install onnx==1.12.0 onnxruntime accelerate transformers==4.42
 pip install --force-reinstall /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
 ```
 
@@ -116,9 +123,9 @@ export HF_HOME=$(pwd)/hf_home
 
 3.  Re-install diffusers from source after patching the SDXL pipeline for inference
 ```
-rm -rf diffusers
-git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git
-cd diffusers
+rm -rf diffusers-dev
+git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git diffusers-dev
+cd diffusers-dev
 git apply --reject --whitespace=fix ../pipeline_patch.patch
 pip install .
 cd ..
