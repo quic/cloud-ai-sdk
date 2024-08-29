@@ -55,7 +55,6 @@ rm -rf ${BINARY_FOLDER}text_encoder_2
 
 ########################################################################################################################
 
-
 # 3a. Compile the UNet with batchsize=1, blocksize=256
 rm -rf ${BINARY_FOLDER}unet-bs${BATCH_SIZE}
 /opt/qti-aic/exec/qaic-exec \
@@ -114,3 +113,7 @@ rm -rf ${BINARY_FOLDER}vae_decoder
     2>&1 | ts > ${LOG_FOLDER}vae_decoder.log &
 
 ########################################################################################################################
+
+echo Waiting for qaic-exec processes to finish ...
+wait
+
