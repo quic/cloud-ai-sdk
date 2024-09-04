@@ -685,4 +685,3 @@ index 113e64c1..230177ed 100644
  
  def randn_tensor(
      shape: Union[Tuple, List],
-
