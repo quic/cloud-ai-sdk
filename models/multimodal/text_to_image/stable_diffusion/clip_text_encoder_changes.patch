@@ -15,3 +15,4 @@ index b59a3d244..c75c3684d 100644
 +        mask = triu_onnx(mask, 1)
          mask = mask.unsqueeze(1)  # expand mask
          return mask
+ 
