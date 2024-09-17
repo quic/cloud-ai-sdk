@@ -63,7 +63,7 @@ This step is required everytime a new version of the Platform SDK is installed.
 
 First command starts the qaic-monitor service. Second command enables MDP across all AI 100 devices in the server. Third command resets all the devices. 
 ``` 
-systemd-run --unit=qmonitor-proxy /opt/qti-aic/tools/qaic-monitor-grpc-server
+sudo systemd-run --unit=qmonitor-proxy /opt/qti-aic/tools/qaic-monitor-grpc-server
 sudo /opt/qti-aic/tools/qaic-monitor-json -i enable_mdp.json
 sudo /opt/qti-aic/tools/qaic-util -s
 ```
