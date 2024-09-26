@@ -476,8 +476,8 @@ def parse_args():
     )
     parser.add_argument(
         "--opset",  type=check_positive,
-        default=13,
-        help="ONNX opset. Default <13>",
+        default=14,
+        help="ONNX opset. Default <14>",
     )
     parser.add_argument(
         "--batch-size", "-b", type=check_positive,
