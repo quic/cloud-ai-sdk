@@ -7,8 +7,8 @@
 
 # model configs
 MODEL_PATH="stabilityai/stable-diffusion-3-medium-diffusers"
-PROMPT="\"A cat holding a sign that says hello world\""
-NEG_PROMPT="\"blur\""
+PROMPT="\"$1\""
+NEG_PROMPT="\"$2\""
 GUIDANCE=7.0
 VAE_TYPE="vae"
 IMAGE_SIZE=1024

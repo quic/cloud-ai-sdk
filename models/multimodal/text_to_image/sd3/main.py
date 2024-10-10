@@ -88,6 +88,8 @@ def main(args):
         sys.exit()
 
     ################################ Execution ###################################
+    print(args.prompt)
+    print(args.neg_prompt)
     suffix = f"{block_size}b_{image_size}i"
     benchmark(
         model_name = args.model_path,
@@ -133,7 +135,7 @@ def parse_args():
     )
     parser.add_argument(
         "--prompt", type=str,
-        default="",
+        default="A cinematic shot of a baby racoon wearing an intricate italian priest robe",
         help="Prompt.",
     )
     parser.add_argument(

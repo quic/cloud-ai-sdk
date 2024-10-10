@@ -7,7 +7,6 @@
 
 # model configs
 MODEL_PATH="stabilityai/stable-diffusion-3-medium-diffusers"
-PROMPT="\"A cinematic shot of a baby racoon wearing an intricate italian priest robe.\""
 VAE_TYPE="vae"
 IMAGE_SIZE=1024
 BLOCK_SIZE=64
@@ -125,7 +124,6 @@ rm run.sh
 
 scripts="python main.py \
 --model-path $MODEL_PATH \
---prompt $PROMPT \
 --vae-type $VAE_TYPE \
 --batch-size $BATCH_SIZE \
 --image-size $IMAGE_SIZE \

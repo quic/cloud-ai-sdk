@@ -81,6 +81,6 @@ cd ../..
 
 3. Run the inference with 'sudo' flag if needed to access the AI 100 devices. 
 ```
-sudo bash run_config_inference.sh
+sudo bash run_config_inference.sh "<positive prompt>" "<negative prompt>"
 ```
 
