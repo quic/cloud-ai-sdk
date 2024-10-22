@@ -12,6 +12,7 @@ wget --no-check-certificate https://cloudai.cirrascale.com/sdk/_downloads/c0b3ae
 pip3 install pip -U
 pip3 install imagine_sdk-0.4.0-py3-none-any.whl
 
+pip3 install Pillow
 pip3 install notebook
 ```
 
