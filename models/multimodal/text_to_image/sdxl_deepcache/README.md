@@ -3,7 +3,7 @@
 
 # Instructions to run SDXL on Cloud AI 100 with DeepCache
 
-The instructions below are to run the [Stable Diffusion XL model](stabilityai/stable-diffusion-xl-base-1.0) on Cloud AI 100.
+The instructions below are to run the [Stable Diffusion XL model](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0) with [DeepCache](https://github.com/horseee/DeepCache) on Cloud AI 100.
 
 
 ## 1. Generate onnx files and compile for binaries
