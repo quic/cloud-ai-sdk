@@ -1,6 +1,8 @@
 # Multi Device 
 
-This section provides the setup instructions for tensor slicing across multiple AI 100 devices (SoCs and Cards).
+This guide provides setup instructions for multi-device enablement. PCIe peer-to-peer P2P communication must be enabled to allow efficient tensor slicing across multiple Cloud AI devices (SoCs and Cards).
+
+Refer to [Model Sharding](https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Features/model_sharding/) for more information on recommended PCIe topologies for tensor slicing (P2P).
 
 ## Pre-requisites 
 
@@ -9,6 +11,20 @@ This section provides the setup instructions for tensor slicing across multiple 
 - python3 -m pip install pyudev
 
 ## Setup instructions 
+
+Platform SDK 1.18 and later offers an option (`--setup_mdp all`) to enable P2P for the multi-device partitioning tensor slicing feature during installation.
+
+Example:
+
+```
+cd <platform sdk installer>/x86_64/deb
+sudo bash install.sh --setup_mdp all
+```
+
+> [!IMPORTANT] 
+> If P2P is enabled via the Platform SDK installer then skip to the [Testing P2P](#testing-p2p) section.
+> 
+> The remaining steps in this section show manual steps for enabling P2P.
 
 ### Disable PCIe ACS for P2P communication between cards 
 
@@ -61,9 +77,53 @@ Root
 
 This step is required everytime a new version of the Platform SDK is installed. 
 
-First command starts the qaic-monitor service. Second command enables MDP across all AI 100 devices in the server. Third command resets all the devices. 
-``` 
+First, check that the Qaic Monitor service is running
+```
+sudo systemctl status qmonitor-proxy
+```
+
+If not active(running) then start it with:
+```
 sudo systemd-run --unit=qmonitor-proxy /opt/qti-aic/tools/qaic-monitor-grpc-server
+```
+
+Next, enable MDP across all Cloud AI devices in the server.
+``` 
 sudo /opt/qti-aic/tools/qaic-monitor-json -i enable_mdp.json
+```
+
+Reset Cloud AI devices for changes to take effect:
+``` 
 sudo /opt/qti-aic/tools/qaic-util -s
 ```
+
+## Testing P2P
+
+The Qaic Kernel driver requires a longer response timeout for P2P workloads. Use the following command to increase the timeout:
+```
+sudo sh -c 'echo 1300 > /sys/module/qaic/parameters/control_resp_timeout_s'
+```
+
+Synthetic P2P workloads are available in `/opt/qti-aic/test-data/aic100/v2/qaic-compute-networks/factory-workload-bin`.
+
+### Multi-SoC Accelerators (Ultra) P2P tests
+
+```
+# P2P between 2 SoCs with QID 0 and 1 on the same card
+sudo /opt/qti-aic/exec/qaic-runner -t /opt/qti-aic/test-data/aic100/v2/qaic-compute-networks/factory-workload-bin/2c-p2p-bw -n 10 -a 1 -l -D 0:1
+
+# P2P between 2 SoCs with QID 0 and 4 on different cards.  Choose cards that are on the same PCie switch.
+sudo /opt/qti-aic/exec/qaic-runner -t /opt/qti-aic/test-data/aic100/v2/qaic-compute-networks/factory-workload-bin/2c-p2p-bw -n 10 -a 1 -l -D 0:4
+```
+
+### Single-SoC Accelerators (Standard/Pro) P2P tests
+
+```
+# P2P between 2 SoCs with QID 0 and 4 on different cards. Choose cards that are on the same PCie switch.
+sudo /opt/qti-aic/exec/qaic-runner -t /opt/qti-aic/test-data/aic100/v2/qaic-compute-networks/factory-workload-bin/2c-p2p-bw -n 10 -a 1 -l -D 0:1
+```
+
+### Troubleshooting
+If a `Failed to access P2P device` error occurs, check the following:
+1. Re-check enablement instructions above
+2. Review the PCIe topology from the QAicChangeAcs.py script to make sure that a host PCIe switch is present
