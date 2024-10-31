@@ -2,6 +2,12 @@
 
 The instructions below are to run the [Stable Diffusion XL Turbo model](stabilityai/sdxl-turbo) on Cloud AI 100. Compile time parameters may need to be adjusted for different cards and different SDKs.
 
+## Pre-requisites
+
+Install the moreutils package for the `ts` timestamp tool:
+```
+sudo apt-get install moreutils
+```
 
 ## 1. Generate onnx files and compile for binaries
 

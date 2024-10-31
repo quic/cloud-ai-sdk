@@ -5,8 +5,16 @@ Stable Diffusion is a latent text-to-image diffusion model that can generate pho
 ---
 The models are downloaded from (https://huggingface.co)
 
+## Pre-requisites
+---
+Install the `moreutils` package for the `ts` timestamp tool:
+```
+sudo apt-get install moreutils
+```
+
 ## Environment and dependancies
 ---
+
 ```commandline
 python3.8 -m venv stable_diffusion_env
 source stable_diffusion_env/bin/activate

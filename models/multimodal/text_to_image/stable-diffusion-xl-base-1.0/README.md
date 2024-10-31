@@ -21,6 +21,12 @@ The instructions below are to run [the Stable Diffusion XL model](stabilityai/st
 ├── run_sdxl.py                             # End-to-end SDXL inference script running on AI100
 ```
 
+## Pre-requisites
+---
+Install the `moreutils` package for the `ts` timestamp tool:
+```
+sudo apt-get install moreutils
+```
 
 ## 1. Install Platform and Apps SDK
 
