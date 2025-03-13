@@ -20,9 +20,14 @@ def check_device(device_id, cores):
         status = re.findall("status:.+", qaic_util, re.IGNORECASE)[0].split(":")[-1].lower()
     except:
         status = 'ready'
-    if (nsp_free < nsp_total or status != 'ready'):
-        raise typeerror(
-            'the device is not ready. please try, sudo sh -c "echo 1 > /sys/bus/mhi/devices/mhi0/soc_reset", or restart.')
+
+    if (status != 'ready'):
+        raise TypeError(
+            'Device {} not ready'.format(device_id))
+
+    if (nsp_free < cores):
+        raise TypeError(
+            'Insufficient resources: {} NSP cores required, {} available'.format(cores, nsp_free))
     return
 
 
