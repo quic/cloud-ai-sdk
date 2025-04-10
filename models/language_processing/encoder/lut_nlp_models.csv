@@ -1,4 +1,13 @@
 ﻿MODEL_NAME,TASK,BATCH_SIZE,SEQUENCE_LENGTH,CORES,INSTANCES,OLS,MOS,EXTRA,SET_SIZE,PRECISION,OBJECTIVE,THPS,LATENCY
+BAAI/bge-reranker-large,text-classification,1,512,4,3,2,1, ,1,fp16,best-throughput,114,27.39
+BAAI/bge-reranker-v2-m3,text-classification,1,512,4,3,2,1, ,1,fp16,best-throughput,113.83,27.33
+BAAI/bge-base-en-v1.5,feature-extraction,1,512,2,7,2,1, ,1,fp16,best-throughput,443.35,16.27
+BAAI/bge-large-en-v1.5,feature-extraction,1,512,4,3,2,1, ,1,fp16,best-throughput,113.14,27.32
+BAAI/bge-small-en-v1.5,feature-extraction,1,512,2,7,2,1, ,1,fp16,best-throughput,706.19,10.03
+sentence-transformers/gtr-t5-large,sentence-similarity,1,512,4,3,2,1,,1,fp16,best-throughput,124.77,25.19
+intfloat/e5-large,sentence-similarity,1,512,4,3,2,1,,1,fp16,best-throughput,113.56,27.34
+intfloat/e5-large-v2,sentence-similarity,1,512,4,3,2,1,,1,fp16,best-throughput,113.47,27.21
+jinaai/jina-embeddings-v2-base-code,feature-extraction,1,512,2,7,2,1,,1,fp16,best-throughput,268.4,26.81
 albert-base-v2,question-answering,8,128,2,7,4,1, ,2,fp16,best-throughput,2187.3,52.26
 albert-base-v2,default,6,128,2,7,4,1, ,4,fp16,best-throughput,2177.7,78.48
 allenai/scibert_scivocab_uncased,question-answering,6,128,2,7,,1, -multicast-weights,2,fp16,best-throughput,2402.6,35.22

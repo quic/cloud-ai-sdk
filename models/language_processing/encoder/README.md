@@ -4,11 +4,16 @@ This document runs a script (run_nlp_model.py) that downloads an encoder-type NL
 
 ## Source of the models
 ---
-The models are downloaded from (https://huggingface.co). This script has been tested for the following models:
+The models are downloaded from (https://huggingface.co). This script has been tested with the following models:
 
 * albert-base-v2
 * allenai/scibert_scivocab_uncased
 * avichr/heBERT_sentiment_analysis
+* BAAI/bge-reranker-large
+* BAAI/bge-base-en-v1.5
+* BAAI/bge-reranker-v2-m3
+* BAAI/bge-large-en-v1.5
+* BAAI/bge-small-en-v1.5
 * beomi/kcbert-base
 * bert-base-cased
 * bert-base-chinese
@@ -52,6 +57,9 @@ The models are downloaded from (https://huggingface.co). This script has been te
 * hfl/chinese-bert-wwm-ext
 * hfl/chinese-electra-180g-base-discriminator
 * hfl/chinese-roberta-wwm-ext
+* intfloat/e5-large
+* intfloat/e5-large-v2
+* jinaai/jina-embeddings-v2-base-code
 * kit-nlp/bert-base-japanese-sentiment-cyberbullying
 * klue/bert-base
 * m3hrdadfi/bert-fa-base-uncased-wikinli
@@ -74,6 +82,7 @@ The models are downloaded from (https://huggingface.co). This script has been te
 * sentence-transformers/all-mpnet-base-v2
 * sentence-transformers/bert-base-nli-mean-tokens
 * sentence-transformers/distilbert-base-nli-stsb-mean-tokens
+* sentence-transformers/gtr-t5-large
 * sentence-transformers/msmarco-distilbert-base-tas-b
 * sentence-transformers/paraphrase-MiniLM-L6-v2
 * sentence-transformers/paraphrase-mpnet-base-v2
@@ -94,15 +103,9 @@ For a quick environment setup:
 ```commandline
 python3.8 -m venv nlp_env
 source nlp_env/bin/activate
+pip3 install -r requirements.txt
 ```
 
-## Framework and version
----
-```commandline
-python -m pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
-python -m pip install fsspec==2024.2.0 wheel==0.42.0 sentence-transformers==2.6.1 onnx==1.15.0 onnxruntime==1.16.3 optimum==1.19.1 protobuf==5.26.1 urllib3==2.2.1
-python -m pip install /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
-```
 ## Syntax
 ---
 Pick a MODEl_NAME from the list above. At the working directory where two files run_nlp_model.py and the lut_nlp_models.csv exist, use the following command:
