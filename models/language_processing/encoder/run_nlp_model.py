@@ -12,6 +12,7 @@ from onnx import numpy_helper
 import onnxruntime
 import pandas as pd
 from glob import glob
+from pathlib import Path
 import json
 import sys
 
@@ -30,7 +31,7 @@ def get_latency(latency_logs, latency_method):
                     for filename in latency_logs])
     col = df.columns[-3] # Execution Total Time in microseconds
     latency_ms = get_metric(df[col], latency_method)/1000.0
-    return latency_ms    
+    return latency_ms
 
 # looks the model up in the lut.csv file and fetches its row entries
 def look_model_up(model_name, task, objective, precision, lut_path):
@@ -80,7 +81,7 @@ def generate_random_data(model_path, BS, SL, INPUT_FOLDER):
         print(f"ONNX model found in {model_path}", flush=True)
         with open ('model/config.json') as json_file:
             config = json.load(json_file)
-            vocab_size = config['vocab_size']        
+            vocab_size = config['vocab_size']
     else:
         raise FileNotFoundError(f"ONNX model {model_path} not found!")
         return
@@ -148,9 +149,9 @@ def fix_onnx_fp16(gen_models_path,  model_base_name):
 # This checks if arg_in is not specified by user, looks that up in the lut.csv or switches to 'default'
 def user_lut_default (arg_in, row, entry, default):
     if arg_in == None:
-        try: 
+        try:
             arg_out = default if (row[entry]=='' or row[entry]==None) else row[entry]
-        except: 
+        except:
             arg_out = default
     else:
         arg_out = arg_in
@@ -167,10 +168,10 @@ def run_model_on_ort(onnx_path, ort_inputs):
 def inference_complete_task(inference_set, inf_id):
         status, inf_handle = inference_set.getCompletedId(inf_id)
         inference_set.putCompleted(inf_handle)
-    
+
 # The main function
 def main(args):
-    
+
     RUN_ONLY = args.run_only
     API_RUN = args.api_run
     MODEL_NAME = args.model_name
@@ -226,7 +227,7 @@ def main(args):
         MOS       =     user_lut_default(args.mos,        row, 'MOS',               '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',          '1')
         EXTRA     =     user_lut_default(args.extra, row,      'EXTRA',  '')
-        
+
     TIME = args.time
     OPSET = args.opset
 
@@ -248,8 +249,12 @@ def main(args):
     if MOS != '': MOTIF = MOTIF + f"-MOS{MOS}"
     MOTIF = MOTIF + f"-{OBJECTIVE}"
     MOTIF = MOTIF.replace(' ','')
-    
-    if not RUN_ONLY:
+
+    print('Model {}'.format(MODEL_NAME))
+
+    onnx_files = glob(os.path.join('./model', '*.onnx'))
+
+    if not RUN_ONLY and not onnx_files:
         print("\n\n*************************************************************************************", flush=True)
         print(f"Downloading {MODEL_NAME} (OPSET {OPSET}) for TASK {TASK} from HuggingFace", flush=True)
         print("*************************************************************************************\n\n", flush=True)
@@ -258,9 +263,9 @@ def main(args):
         execute(["optimum-cli", "export", "onnx", "--model", f"{MODEL_NAME}", "./model", "--cache_dir", "./cache", "--task", f"{TASK}", "--opset", f"{OPSET}", "--trust-remote-code"], f"commands-{MOTIF}.txt", 'w')
 
     # For now, assuming only one onnx is generated in the directory ./model
-    for file in os.listdir("./model"):
-        if file.endswith(".onnx"):
-            model_base_name = file[:-5]
+    onnx_files = glob(os.path.join('./model', '*.onnx'))
+    assert onnx_files, 'Error generating ONNX'
+    model_base_name = Path(onnx_files[0]).stem
 
     # Fixing for fp16
     model_base_name = fix_onnx_fp16('./model', model_base_name)
@@ -327,7 +332,7 @@ def main(args):
 
         def infer(input_data):
             output_dict = sess.run(input_data)
-            return output_dict 
+            return output_dict
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(infer, input_dict) for i  in range(10)]
@@ -361,7 +366,7 @@ def main(args):
         context = qaicrt.Context(dev_list)
 
         qpc = qaicrt.Qpc(f"./compiled-bin-fp16-{MOTIF}/")
-        buf_mappings = qpc.getBufferMappings() 
+        buf_mappings = qpc.getBufferMappings()
         inferenceVector = qaicrt.InferenceVector(buf_mappings)
 
         #Set input data
@@ -369,9 +374,9 @@ def main(args):
             if buf_mapping.ioType==qaicrt.BufferIoTypeEnum.BUFFER_IO_TYPE_INPUT:
                 img=np.fromfile(data_file,dtype=np.int64)
                 buf_bytes=img.tobytes()
-                inferenceVector.getVector()[buf_mapping.index]=qaicrt.QBuffer(buf_bytes) 
+                inferenceVector.getVector()[buf_mapping.index]=qaicrt.QBuffer(buf_bytes)
 
-        set_size = int(SET_SIZE)        
+        set_size = int(SET_SIZE)
         inference_set = qaicrt.InferenceSet(context, qpc,dev_list[0], set_size, int(INSTANCES))
 
         iterations=2000
@@ -381,7 +386,7 @@ def main(args):
         for inf_cnt in range(iterations):
             #User can update the inference vectore here.
             ##
-            ##    inferenceVector.getVector()[buf_mapping.index]=qaicrt.QBuffer(buf_bytes) 
+            ##    inferenceVector.getVector()[buf_mapping.index]=qaicrt.QBuffer(buf_bytes)
             ##
             inference_set.submit(inferenceVector, inf_cnt)
             inf_complete_thread = threading.Thread(target=inference_complete_task, args=(inference_set, inf_cnt))
@@ -428,24 +433,24 @@ def main(args):
         print("\n\n*************************************************************************************", flush=True)
         print(f"Comparing AIC100 fp16 inference with onnxruntime fp32 inference", flush=True)
         print("*************************************************************************************\n\n", flush=True)
-        
+
         output_names, ort_outputs = run_model_on_ort(MODEL, ort_inputs)
         # print (np.asarray(ort_outputs).flatten())
 
         for output_name, ort_output in zip(output_names, ort_outputs):
             aico16 = np.fromfile(f"{run_output_dir}/{output_name}-activation-0-inf-0.bin", np.float32)
             # print(ort_output)
-            # print(aico16) 
+            # print(aico16)
             ort_output_flat = np.asarray(ort_output).flatten()
-            aico16_flat = np.asarray(aico16).flatten()    
-            print ("The first few output values from onnxruntime (fp32) and aic100 (fp16):")        
+            aico16_flat = np.asarray(aico16).flatten()
+            print ("The first few output values from onnxruntime (fp32) and aic100 (fp16):")
             print(ort_output_flat[0:min(4, len(ort_output_flat))])
             print(aico16_flat[0:min(4, len(aico16_flat))])
             diff = ort_output_flat - aico16_flat
             argmax = diff.argmax()
-            print (f"The maximum difference is {np.abs(diff).max()} for values {ort_output_flat[argmax]} from onnxruntime (fp32) and {aico16_flat[argmax]} from aic100 (fp16)") 
+            print (f"The maximum difference is {np.abs(diff).max()} for values {ort_output_flat[argmax]} from onnxruntime (fp32) and {aico16_flat[argmax]} from aic100 (fp16)")
 
-        
+
 def check_positive(arg_in):
     try:
         if int(arg_in) <= 0:
