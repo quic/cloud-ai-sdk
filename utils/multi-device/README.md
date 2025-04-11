@@ -14,7 +14,7 @@ Refer to [Model Sharding](https://quic.github.io/cloud-ai-sdk-pages/latest/Getti
 
 Platform SDK 1.18 and later offers an option (`--setup_mdp all`) to enable P2P for the multi-device partitioning tensor slicing feature during installation.
 
-Example:
+Example:d
 
 ```
 cd <platform sdk installer>/x86_64/deb
@@ -101,7 +101,7 @@ sudo /opt/qti-aic/tools/qaic-util -s
 
 The Qaic Kernel driver requires a longer response timeout for P2P workloads. Use the following command to increase the timeout:
 ```
-sudo sh -c 'echo 1300 > /sys/module/qaic/parameters/control_resp_timeout_s'
+sudo sh -c 'echo 2600 > /sys/module/qaic/parameters/control_resp_timeout_s'
 ```
 
 Synthetic P2P workloads are available in `/opt/qti-aic/test-data/aic100/v2/qaic-compute-networks/factory-workload-bin`.
