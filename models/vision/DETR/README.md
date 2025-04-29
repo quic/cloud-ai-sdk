@@ -24,7 +24,8 @@ pip install --upgrade pip
 ## Framework and version
 ---
 ```commandline
-pip install torch==2.4.1 numpy==1.24.4 onnx==1.17.0 pillow==10.4.0 requests==2.32.3 torchvision==0.19.1 notebook==7.3.3
+pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
+pip install numpy==1.24.4 onnx==1.17.0 pillow==10.4.0 requests==2.32.3 notebook==7.3.3 matplotlib==3.7.5 scipy==1.10.1
 
 ```
 
