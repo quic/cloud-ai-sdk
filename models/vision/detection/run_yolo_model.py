@@ -13,6 +13,7 @@ import onnxruntime
 import torchvision
 import pandas as pd
 from glob import glob
+from ultralytics import YOLO
 
 # computes the average or percentile for a pandas.Series object
 def get_metric(series, method):
@@ -54,7 +55,7 @@ def gen_yaml(model_base_name, image_size):
         shape_params = [str(s.dim_param) for s in shape]
         dynamic_info.append([name, shape_params])    
     dynamic_info=str(dynamic_info).replace("'", '"')
-    yaml_file=Copyright+f'''
+    yaml_file=f'''
 
 MODEL:
     INFO:
@@ -81,6 +82,8 @@ MODEL:
             PAD_PER_CLASS: None
 
     '''
+
+    ### Replace the PRE_POST_HANDLE in the above string with the following to use QDETECT instead of SMARTNMS. Refer to https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Inference-Workflow/Export-the-model/Prepare-the-model/ 
     # PRE_POST_HANDLE:
         # ANCHOR_BIN_FILE: None
         # POST_PLUGIN: QDETECT
@@ -94,7 +97,14 @@ MODEL:
             # PAD_PER_CLASS: False
 
 
-        
+    ### This conditional allows the code to run Yolov8 with model preparator tool
+    if model_base_name[5] == '8':
+        print("For Yolov8, the SmartNMS is not being enabled")
+        model_type = 'UNKNOWN'
+        yaml_file = yaml_file.replace(f'MODEL_TYPE: YOLOV{model_base_name[5]}', f'MODEL_TYPE: {model_type}')
+        yaml_file = yaml_file.replace(f'POST_PLUGIN: SMARTNMS', f'POST_PLUGIN: NONE')
+        print(yaml_file)
+
     with open(f'./model.yaml', 'w') as file: file.write(yaml_file)
 
 
@@ -202,7 +212,7 @@ def get_yolov5_model(yolo_name, image_size, opset, include_nms):
     if include_nms: 
         os.system(f'rm -rf model_with_smart_nms')
         gen_yaml(yolo_name, image_size)
-        os.system('python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml')          
+        os.system('echo y |  /opt/qti-aic/dev/python/qaic-env/bin/python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml')          
     return 
 
 def get_yolov7_model(yolo_name, image_size, include_nms):
@@ -217,8 +227,25 @@ def get_yolov7_model(yolo_name, image_size, include_nms):
     if include_nms: 
         os.system(f'rm -rf model_with_smart_nms')        
         gen_yaml(yolo_name, image_size) 
-        os.system('python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml')
+        os.system('echo y |  /opt/qti-aic/dev/python/qaic-env/bin/python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml')
     return 
+
+def get_yolov8_model(yolo_name, image_size, include_nms):
+        # Load the model
+    model = YOLO(f"{yolo_name}.pt")  # load an official or custom trained model
+
+    # Export the model to ONNX format
+    model.export(format="onnx")
+
+    # Move the exported model to the 'model' directory
+    os.makedirs('./model', exist_ok=True)
+    os.system(f'mv -v {yolo_name}.onnx model/.')
+
+    if include_nms:
+        os.system(f'rm -rf model_with_smart_nms')
+        gen_yaml(yolo_name, image_size)
+        os.system('echo y |  /opt/qti-aic/dev/python/qaic-env/bin/python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml')          
+    return
 
 # This checks if arg_in is not specified by user, looks that up in the lut.csv or switches to 'default'
 def user_lut_default (arg_in, row, entry, default):
@@ -326,6 +353,8 @@ def main(args):
             get_yolov7_model(MODEL_NAME, IS, INCLUDE_NMS)
         elif (YOLO_VERSION == '5'):
             get_yolov5_model(MODEL_NAME, IS, OPSET, INCLUDE_NMS)
+        elif (YOLO_VERSION == '8'):
+            get_yolov8_model(MODEL_NAME, IS, INCLUDE_NMS)
 
     # For now, assuming only one onnx is generated in the directory ./model
     
@@ -436,7 +465,8 @@ def parse_args():
         choices=["yolov5s", "yolov5m",
                  "yolov5l", "yolov5x", "yolov7", "yolov7-tiny",
                  "yolov7x", "yolov7-w6", "yolov7-e6",
-                 "yolov7-d6", "yolov7-e6e"],
+                 "yolov7-d6", "yolov7-e6e",
+                 "yolov8x","yolov8n","yolov8s","yolov8m","yolov8l"],
         help="Model name to download.",
     )
     parser.add_argument(
@@ -459,12 +489,12 @@ def parse_args():
     )
     parser.add_argument(
         "--cores", "-c", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Number of AIC100 cores to compile the model for. Default <2> ",
     )
     parser.add_argument(
         "--instances", "-i", type=int,
-        choices=range(1, 15),
+        choices=range(1, 17),
         help="Number of model instances to run on AIC100. Default <7>",
     )
     parser.add_argument(
