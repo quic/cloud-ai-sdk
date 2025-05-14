@@ -80,3 +80,9 @@ cd ../..
 sudo bash run_config_inference.sh
 ```
 
+## 3. Run an OpenAI-compatible REST endpoint
+
+```
+source ./env_pipeline/bin/activate
+python3 server.py
+```
