@@ -86,27 +86,33 @@ def generate_random_data(model_path, BS, SL, INPUT_FOLDER):
         return
     data_files = []
     ort_inputs = {}
+    aic_batch_io = {"IO-files": [[]]}
     if len(model.graph.input) >= 1:
         input_ids = torch.randint(0, vocab_size, (BS, SL))
         input_ids_file = f"{INPUT_FOLDER}input_ids_{BS}x{SL}.raw"
         input_ids.numpy().astype(np.int64).tofile(input_ids_file)
         data_files.append(input_ids_file)
         ort_inputs['input_ids']=input_ids.numpy().astype(np.int64)
+        aic_batch_io["IO-files"][0].append({"path":f"input_ids_{BS}x{SL}.raw", "io-direction": "in", "elem-size": 8, "map-to": "input_ids", "dims": [BS, SL]})
     if len(model.graph.input) >= 2:
         attention_mask = torch.ones((BS, SL))
         attention_mask_file = f"{INPUT_FOLDER}attention_mask_{BS}x{SL}.raw"
         attention_mask.numpy().astype(np.int64).tofile(attention_mask_file)
         data_files.append(attention_mask_file)
         ort_inputs['attention_mask']=attention_mask.numpy().astype(np.int64)
+        aic_batch_io["IO-files"][0].append({"path":f"attention_mask_{BS}x{SL}.raw", "io-direction": "in", "elem-size": 8, "map-to": "attention_mask", "dims": [BS, SL]})
     if len(model.graph.input) >= 3:
         token_type_ids = torch.ones((BS, SL))
         token_type_ids_file = f"{INPUT_FOLDER}token_type_ids_{BS}x{SL}.raw"
         token_type_ids.numpy().astype(np.int64).tofile(token_type_ids_file)
         data_files.append(token_type_ids_file)
         ort_inputs['token_type_ids']=token_type_ids.numpy().astype(np.int64)
+        aic_batch_io["IO-files"][0].append({"path":f"token_type_ids_{BS}x{SL}.raw", "io-direction": "in", "elem-size": 8, "map-to": "token_type_ids", "dims": [BS, SL]})
     input_list_file = f'./list_{BS}x{SL}.txt'
     with open(input_list_file, 'w') as fid:
         fid.write(','.join(data_files))
+    with open(f"{INPUT_FOLDER}aic_batch_io.json", "w") as f:
+        json.dump(aic_batch_io, f, indent=1)
     print(f"The random input samples are saved at {INPUT_FOLDER} and are addressed by {input_list_file}", flush=True)
     return ort_inputs, data_files, input_list_file
 
@@ -413,10 +419,12 @@ def main(args):
                         "--aic-profiling-out-dir", run_output_dir,
                         "-write-output-dir", run_output_dir,
                         "-S", f"{SET_SIZE}",
-                        "-d", f"{DEVICE_ID}"
+                        "-d", f"{DEVICE_ID}",
+                        "--aic-batch-json-input", "./inputFiles/aic_batch_io.json"
                         ]
-        for data_file in data_files:
-            cmd_elements.extend(["-i", data_file])
+
+        # for data_file in data_files:
+            # cmd_elements.extend(["-i", data_file])
         execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
 
         latency_method = '95pct'
