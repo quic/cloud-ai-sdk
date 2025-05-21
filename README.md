@@ -19,13 +19,12 @@
 ---
 
 *Latest News* 🔥
-- [2024/11] Check out the [Qualcomm Cloud AI Playground Tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.18/tutorials/Playground) to learn how to access the latest Generative AI models running on Qualcomm Cloud AI 100 Ultra Accelerators hosted in the cloud.
-- [2024/11] Added support for [Stable Diffusion XL Turbo](https://github.com/quic/cloud-ai-sdk/tree/1.18/models/multimodal/text_to_image/sdxl_turbo)
-- [2024/11] Added support for [Stable Diffusion 3](https://github.com/quic/cloud-ai-sdk/tree/1.18/models/multimodal/text_to_image/stable-diffusion-3-medium-diffusers)
+- [2024/11] Check out the [Qualcomm Cloud AI Playground Tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/Playground) to learn how to access the latest Generative AI models running on Qualcomm Cloud AI 100 Ultra Accelerators hosted in the cloud.
+- [2024/11] Added support for [Stable Diffusion XL Turbo](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_turbo)
+- [2024/11] Added support for [Stable Diffusion 3](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/stable-diffusion-3-medium-diffusers)
 - [2024/09] Added support for [Whisper](https://github.com/quic/cloud-ai-sdk/tree/1.17/models/speech/whisper)
 - [2024/09] Added support for [SDXL-DeepCache](https://github.com/quic/cloud-ai-sdk/tree/1.17/models/multimodal/text_to_image/sdxl_deepcache)
-- [2024/04] Qualcomm released [efficient transformers](https://github.com/quic/efficient-transformers) for seamless deployment of pre-trained LLMs. 
-- [2024/04] Qualcomm released [efficient transformers](https://github.com/quic/efficient-transformers) for seamless deployment of pre-trained LLMs. 
+- [2024/04] Qualcomm released [efficient transformers](https://github.com/quic/efficient-transformers) for seamless deployment of pre-trained LLMs.
 - [2024/03] Added [AI 100 Ultra recipe for Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
 - [2024/03] Added support for Speculative Decoding with LLMs - [CodeGen with Speculative Decoding](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing/decoder/CodeGen-With-Speculative-Decoding)
 - [2024/02] Added support for [Stable Diffusion XL](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image/stable_diffusion_xl)
@@ -38,12 +37,12 @@
 ---
 
 ## About
-Qualcomm Cloud AI 100 provides a unique blend of high computational performance, low latency and low power utilization for deep learning inference and is well suited for a broad range of applications based on computer vision, natural language processing, and Generative AI including LLMs. It was purpose-built for high performance, low-power AI processing in the cloud – public and private (for Enterprise AI applications). 
+Qualcomm Cloud AI 100 provides a unique blend of high computational performance, low latency and low power utilization for deep learning inference and is well suited for a broad range of applications based on computer vision, natural language processing, and Generative AI including LLMs. It was purpose-built for high performance, low-power AI processing in the cloud – public and private (for Enterprise AI applications).
 
 This repository provides developers with 3 key resources
 - Models    - Recipes for [CV](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/vision), [NLP](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/language_processing), [multimodal](https://github.com/quic/cloud-ai-sdk/tree/1.12/models/multimodal/text_to_image) models to run on Cloud AI platforms performantly. <br> For LLMs, see [efficient-transformers](https://github.com/quic/efficient-transformers)
-- Tutorials - [Tutorials](https://github.com/quic/cloud-ai-sdk/tree/1.12/tutorials) cover model onboarding, performance tuning, and profiling aspects of inferencing across CV/NLP on Cloud AI platforms 
-- Samples   - Sample code illustrating usage of APIs - [Python](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/python) and [C++](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/cpp/cpp_qpc_inference) for inference on Cloud AI platforms 
+- Tutorials - [Tutorials](https://github.com/quic/cloud-ai-sdk/tree/1.12/tutorials) cover model onboarding, performance tuning, and profiling aspects of inferencing across CV/NLP on Cloud AI platforms
+- Samples   - Sample code illustrating usage of APIs - [Python](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/python) and [C++](https://github.com/quic/cloud-ai-sdk/tree/1.12/samples/cpp/cpp_qpc_inference) for inference on Cloud AI platforms
 
 ## Supported Models
 ### Generative AI - Large Language Models (LLMs)
@@ -70,7 +69,7 @@ This repository provides developers with 3 key resources
 - SqueezeNet (`squeezenet1_0`, `squeezenet1_1`)
 
 # Support 
-Use [GitHub Issues](https://github.com/quic/cloud-ai-sdk/issues) to request for model support, raise questions or to provide feedback.  
+Use [GitHub Issues](https://github.com/quic/cloud-ai-sdk/issues) to request for model support, raise questions or to provide feedback.
 
 # Disclaimer
 While this repository may provide documentation on how to run models on Qualcomm Cloud AI platforms, this repository does NOT contain any of these models.  All models referenced in this documentation are independently provided by third parties at unaffiliated websites. Please be sure to review any third-party license terms at these websites; no license to any model is provided in this repository. This repository of documentation provides no warranty or assurances for any model so please also be sure to review all model cards, model descriptions, model limitations / intended uses, training data, biases, risks, and any other warnings given by the third party  model providers.
