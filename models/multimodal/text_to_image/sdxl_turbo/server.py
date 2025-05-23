@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     # Code to run before the application starts
     print("Application startup")
 
-    app.model = QAICStableDiffusion(device_id=0)
+    app.model = QAICStableDiffusion(device_id=args.device)
 
     yield
     # Code to run when the application shuts down
@@ -40,7 +40,7 @@ async def get_models():
             "object": "list",
             "data": [
                 {
-                "id": "stable-diffusion-xl",
+                "id": "sdxl-turbo",
                 "object": "model",
                 "created": 1746296172,
                 "owned_by": "system"
@@ -51,12 +51,6 @@ async def get_models():
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/v1/images/generations2")
-async def generate_images2(request: Request):
-    data = await request.json()
-    print(data)
-    return {"data": data}
 
 @app.post("/v1/images/generations")
 async def generate_images(image_request: ImageRequest):
@@ -89,6 +83,32 @@ async def generate_images(image_request: ImageRequest):
 
 if __name__ == "__main__":
     import uvicorn
+    import argparse
 
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    parser = argparse.ArgumentParser(description="SDXL-Turbo REST endpoint")
+
+    parser.add_argument(
+        "--host",
+        type=str,
+        help="IP address",
+        default="0.0.0.0"
+    )
+
+    parser.add_argument(
+        "--port",
+        type=int,
+        help="Port",
+        default=8000
+    )
+
+    parser.add_argument(
+        "--device",
+        type=int,
+        help="Cloud AI device",
+        default=0
+    )
+
+    args = parser.parse_args()
+
+    uvicorn.run(app, host=args.host, port=args.port)
 
