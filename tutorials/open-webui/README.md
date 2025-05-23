@@ -3,7 +3,9 @@
 [Open WebUI](https://github.com/open-webui/open-webui) is a self-hosted web interface for AI use-cases like Chat, Image Generation and RAG.
 We can connect Open WebUI to AI models served by Cloud AI accelerators by running OpenAI-compatible endpoints with vLLM.
 
-![Open WebUI Chat](open_webui_screen_2.png)
+<p align="center">
+  <img src="open_webui_screen_2.png" alt="Open WebUI Chat" width="900"/>
+</p>
 
 ## Pre-requisites
 
@@ -106,6 +108,6 @@ Setup:
 * If it fails, double-check that the server.py script is running
 * Back on the Open WebUI home page, select the model name from the 'Prepare the model' step above. 
 
-![Open WebUI Setup](open_webui_screen_1.png)
+<img src="open_webui_screen_1.png" alt="Open WebUI Setup" width="400"/>
 
 You can now use the Chat interface in Open WebUI.
