@@ -1,6 +1,6 @@
-# Instructions to run SDXL Turbo on Cloud AI 100
+# Instructions to run SDXL-Turbo on Cloud AI 100
 
-The instructions below are to run the [Stable Diffusion XL Turbo model](stabilityai/sdxl-turbo) on Cloud AI 100. Compile time parameters may need to be adjusted for different cards and different SDKs.
+The instructions below are to run the [SDXL-Turbo](https://huggingface.co/stabilityai/sdxl-turbo) model on Cloud AI 100. Compile time parameters may need to be adjusted for different cards and different SDKs.
 
 ## Pre-requisites
 
@@ -38,7 +38,7 @@ pip install .
 cd ../..
 ```
 
-4. Prepare VAE Decoder 
+4. Prepare VAE Decoder
 ```
 export GIT_LFS_SKIP_SMUDGE=1
 git clone https://huggingface.co/stabilityai/sdxl-turbo cache/stabilityai/sdxl_turbo
@@ -53,9 +53,9 @@ cd ../../../
 bash run_config_gen.sh
 ```
 
-## 2. Run the end-to-end SDXL Turbo inference
+## 2. Run the end-to-end SDXL-Turbo inference
 
-1. Set up a separate virtual environment for running SDXL Turbo 
+1. Set up a separate virtual environment for running SDXL Turbo
 ```
 python3.8 -m venv env_pipeline
 source ./env_pipeline/bin/activate
@@ -75,7 +75,7 @@ pip install .
 cd ../..
 ```
 
-4. Run the SDXL Turbo inference with 'sudo' flag if needed to access the AI 100 devices. 
+4. Run the SDXL-Turbo inference with 'sudo' flag if needed to access the AI 100 devices.
 ```
 sudo bash run_config_inference.sh
 ```
@@ -85,4 +85,19 @@ sudo bash run_config_inference.sh
 ```
 source ./env_pipeline/bin/activate
 python3 server.py
+```
+
+Test the endpoint:
+
+```
+curl http://localhost:8000/v1/images/generations \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer test-key' \
+  -d '{
+    "model": "sdxl-turbo",
+    "prompt": "A cinematic shot of a baby racoon wearing an intricate italian priest robe.",
+    "n": 1,
+    "size": "512x512",
+    "response_format": "b64_json"
+  }'
 ```
