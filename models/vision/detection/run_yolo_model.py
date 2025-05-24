@@ -14,6 +14,7 @@ import torchvision
 import pandas as pd
 from glob import glob
 from ultralytics import YOLO
+import json
 
 # computes the average or percentile for a pandas.Series object
 def get_metric(series, method):
@@ -154,6 +155,7 @@ def generate_random_data(model_path, BS, IS, INPUT_FOLDER):
         return
         
     ort_inputs = {}
+    aic_batch_io = {"IO-files": [[]]}
     os.makedirs(INPUT_FOLDER, exist_ok=True)
     dummy_input = torch.randn(BS, 3, IS, IS)
     image_file = f"{INPUT_FOLDER}input_img_{BS}x3x{IS}x{IS}.raw"
@@ -164,6 +166,9 @@ def generate_random_data(model_path, BS, IS, INPUT_FOLDER):
         file.write(','.join(data_files))
     print(f"The random input samples are saved at {INPUT_FOLDER} and are addressed by {input_list_file}", flush=True)
     input_name = model.graph.input[0].name
+    aic_batch_io["IO-files"][0].append({"path":f"input_img_{BS}x3x{IS}x{IS}.raw", "io-direction": "in", "elem-size": 4, "map-to": input_name, "dims": [BS, 3, IS, IS]})
+    with open(f"{INPUT_FOLDER}aic_batch_io.json", "w") as f:
+        json.dump(aic_batch_io, f, indent=1) 
     ort_inputs[input_name]=dummy_input.numpy().astype(np.float32)
     return ort_inputs, data_files, input_list_file
 
@@ -413,10 +418,9 @@ def main(args):
                     "--aic-profiling-out-dir", run_output_dir,
                     "-write-output-dir", run_output_dir,
                     "-S", f"{SET_SIZE}",
-                    "-d", f"{DEVICE_ID}"
+                    "-d", f"{DEVICE_ID}",
+                    "--aic-batch-json-input", "./inputFiles/aic_batch_io.json"
                     ]
-    for data_file in data_files:
-        cmd_elements.extend(["-i", data_file])
     execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
 
     latency_method = '95pct'

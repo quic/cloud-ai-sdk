@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
 # model configs
 MODEL_PATH="stabilityai/sdxl-turbo"
 PROMPT="\"A cinematic shot of a baby racoon wearing an intricate italian priest robe.\""

@@ -32,3 +32,5 @@ transformers==4.41.2
 typing-extensions==4.9.0
 urllib3==2.2.2
 zipp==3.19.2
+uvicorn
+fastapi
