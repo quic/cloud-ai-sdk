@@ -4,6 +4,8 @@
 image=ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
 qpc_path=/path/to/qpc
 
+chmod +x serve.sh
+
 docker run -dit \
   --workdir /model \
   --name qaic-vllm \
