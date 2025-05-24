@@ -14,6 +14,17 @@ By starting OpenAI-compatible endpoints with vLLM, we can connect Open WebUI to 
 * Python 3.10
 * Docker
 
+To run language models on multiple SoCs, make sure [tensor slicing](https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Features/model_sharding/index.html) is enabled and disable ACS:
+
+```
+sudo /opt/qti-aic/tools/qaic-util -a
+```
+
+Increase the response timeout:
+```
+sudo sh -c "echo 2600 > /sys/module/qaic/parameters/control_resp_timeout_s"
+```
+
 Preface all docker commands with `sudo`, or add yourself to the docker group:
 ```
 sudo usermod -aG docker $USER
