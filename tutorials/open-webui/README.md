@@ -1,7 +1,7 @@
 # Connecting Cloud AI models to Open WebUI
 
 [Open WebUI](https://github.com/open-webui/open-webui) is a self-hosted web interface for AI use-cases like Chat, Image Generation and RAG.
-We can connect Open WebUI to AI models served by Cloud AI accelerators by running OpenAI-compatible endpoints with vLLM.
+By starting OpenAI-compatible endpoints with vLLM, we can connect Open WebUI to AI models running on Qualcomm Cloud AI accelerators.
 
 <p align="center">
   <img src="open_webui_screen_2.png" alt="Open WebUI Chat" width="900"/>
