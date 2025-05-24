@@ -39,7 +39,7 @@ docker pull ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
 
 Prepare a script to launch vLLM with the pre-generated model binary inside the container.
 
-Customize the Hugging face model name (`--model`), context length (`--max-model-len`), prompt length (`max-seq_len-to-capture`) and full batch size (`max-num-seq`) to match the QPC from the 'Prepare the Model' step above.  You'll use the QPC binary path (programqpc.bin) in the `docker run` command below.
+Customize the Hugging face model name (`--model`), context length (`--max-model-len`), prompt length (`max-seq_len-to-capture`) and full batch size (`max-num-seq`) to match the QPC from the 'Prepare the Model' step above.
 
 ```
 $ cat <<EOF > serve.sh
@@ -47,6 +47,7 @@ $ cat <<EOF > serve.sh
 /opt/vllm-env/bin/python3 -m vllm.entrypoints.openai.api_server --host 0.0.0.0 --port 8000 --model hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4 --max-model-len 4096 --max-num-seq 1 --max-seq_len-to-capture 128 --device qaic --device-group 0,1,2,3
 EOF
 
+# Script must have execute permission
 $ chmod +x serve.sh
 ```
 
@@ -65,12 +66,34 @@ docker run -dit \
   --env VLLM_QAIC_MAX_CPU_THREADS=8 \
   --env VLLM_QAIC_QPC_PATH=/model/qpc \
   --env HF_HOME=/model/data/huggingface \
+  --env QEFF_HOME=/model/data/qeff_models \
   --device=/dev/accel/accel0 \
   --device=/dev/accel/accel1 \
   --device=/dev/accel/accel2 \
   --device=/dev/accel/accel3 \
   --entrypoint=/model/serve.sh \
   ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
+```
+
+## Test the endpoint
+
+```
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer test-key" \
+  -d '{
+    "model": "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hello!"
+      }
+    ]
+  }'
 ```
 
 ## Start Open WebUI
@@ -93,7 +116,8 @@ docker run \
   -e OPENAI_API_BASE_URL="http://localhost:8000/v1" \
   -v open-webui:/app/backend/data \
   --name open-webui \
-  --restart always ghcr.io/open-webui/open-webui:main
+  --restart always \
+  ghcr.io/open-webui/open-webui:main
 ```
 
 In web browser, open http://<your_ip_or_server_name>:8080
