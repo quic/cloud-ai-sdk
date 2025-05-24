@@ -7,7 +7,7 @@ index 6c97199..f6865c6 100644
  # See the License for the specific language governing permissions and
  # limitations under the License.
 +#
-+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
++# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 +# SPDX-License-Identifier: BSD-3-Clause-Clear
 +# Not a Contribution 
  from dataclasses import dataclass
