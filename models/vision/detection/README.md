@@ -11,14 +11,13 @@ The models are downloaded from (https://github.com/ultralytics/yolov5). This scr
 * yolov5l
 * yolov5x
 * yolov7-e6e
-
+* yolov8m
 
 ## Virtual environment
 ---
 For a quick environment setup:
 
 ```commandline
-source /opt/qti-aic/dev/python/qaic-env/bin/activate
 python3.8 -m venv det_env
 source det_env/bin/activate
 
@@ -27,17 +26,18 @@ source det_env/bin/activate
 ## Framework and version
 ---
 ```commandline
-pip install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
-pip install ultralytics seaborn nvidia-pyindex onnx-graphsurgeon
+pip install torch==1.13.0+cpu torchvision==0.14.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+pip install onnx==1.12.0 onnxruntime==1.15.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
+pip install ultralytics seaborn onnx-graphsurgeon
 
 ```
 ## Syntax
 ---
-Copy the run_yolo_model.py and the lut_yolo_models.csv to a working directory. Pick a MODEl_NAME from the list above, and type:
+Copy the run_yolo_model.py and the lut_yolo_models.csv to a working directory. Pick a MODEL_NAME from the list above, and type:
 
 ```commandline
 
-usage: run_yolo_model.py [-h] --model-name {yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
+usage: run_yolo_model.py [-h] --model-name {yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e,yolov8m}
              [--objective {best-latency,best-throughput,balanced}] 
 	     [--opset OPSET] 
 	     [--batch-size BATCH_SIZE]
@@ -54,12 +54,12 @@ usage: run_yolo_model.py [-h] --model-name {yolov5s,yolov5m,yolov5l,yolov5x,yolo
 
 
 
-Download, Compile, and Run YOLO models on randomly generated inputs
+Download, Compile, and Run YOLO models on randomly generated inputs.
 
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model-name, -m {yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
+  --model-name, -m {yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e,yolov8m}
                         Model name to download.
   --objective, -o {best-latency,best-throughput,balanced}
                         Running for best-latency, best-throughput, or balanced
@@ -83,6 +83,7 @@ optional arguments:
   --device, -d {0,1,2,3,4,5,6,7}
                         AIC100 device ID. Default <0>
   --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
+  --include-nms         Run the model preparator  tool to optimize the graph, and to add the Post Processing to supported models. Details on model preparator tool here- https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Inference-Workflow/Export-the-model/Prepare-the-model/ 
 
 
 ```
@@ -117,4 +118,3 @@ After download, compile, and run is complete, the working directory of the selec
 
 ```
 To manually resproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 
-

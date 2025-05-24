@@ -73,7 +73,8 @@ source cv_env/bin/activate
 ## Framework and version
 ---
 ```commandline
-pip install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
+pip install torch==1.13.0+cpu torchvision==0.14.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+pip install onnx==1.12.0 onnxruntime==1.15.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
 ```
 ## Syntax
 ---
@@ -159,4 +160,3 @@ After download, compile, and run is complete, the working directory of the selec
 
 ```
 To manually resproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 
-
