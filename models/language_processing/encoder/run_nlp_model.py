@@ -16,6 +16,8 @@ from pathlib import Path
 import json
 import sys
 
+MODEL_ROOT='models'
+
 # computes the average or percentile for a pandas.Series object
 def get_metric(series, method):
     if method == 'mean' or method == 'avg':
@@ -66,11 +68,18 @@ def check_device(DEVICE_ID, CORES, INSTANCES):
         STATUS = QAIC_UTIL.split("Status:")[1].split()[0]
     except:
         STATUS = 'Ready'
-    if (NSP_FREE < NSP_TOTAL or STATUS != 'Ready'):
+    if (STATUS != 'Ready'):
         raise TypeError(
             'The device is not ready. Please try, sudo sh -c "echo 1 > /sys/bus/mhi/devices/mhi0/soc_reset", or restart.')
-    if (NSP_TOTAL < CORES*INSTANCES):
-        raise TypeError(f"Please specify valid inputs for --cores and --instance. Make sure CORES*INSTANCES is less or equal than {NSP_TOTAL} (= # NSP cores of the installed AIC100).")
+    elif CORES * INSTANCES > NSP_FREE:
+        print('NSP_FREE {}'.format(NSP_FREE))
+        print('NSP_TOTAL {}'.format(NSP_TOTAL))
+        print('CORES {}'.format(CORES))
+        print('INSTANCES {}'.format(INSTANCES))
+        raise TypeError(
+            'Expected {} free AI cores but only {} are available on device {}'.format(CORES * INSTANCES, NSP_FREE, DEVICE_ID))
+    elif (NSP_TOTAL < CORES*INSTANCES):
+        raise TypeError(f"Please specify valid inputs for --cores and --instances. Make sure CORES*INSTANCES is less or equal than {NSP_TOTAL} (= # NSP cores of the installed Cloud AI device).")
     return
 
 # generates a sample random input
@@ -175,6 +184,16 @@ def inference_complete_task(inference_set, inf_id):
         status, inf_handle = inference_set.getCompletedId(inf_id)
         inference_set.putCompleted(inf_handle)
 
+def cosim(vector_a, vector_b):
+    # Calculate cosine similarity using numpy
+    vector_a = np.squeeze(np.asarray(vector_a))
+    vector_b = np.squeeze(np.asarray(vector_b))
+
+    dot_product = np.dot(vector_a, vector_b)
+    magnitude_a = np.linalg.norm(vector_a)
+    magnitude_b = np.linalg.norm(vector_b)
+    return dot_product / (magnitude_a * magnitude_b)
+
 # The main function
 def main(args):
 
@@ -240,7 +259,7 @@ def main(args):
     # check device status and cores available
     check_device(DEVICE_ID, CORES, INSTANCES)
 
-    path = os.path.join('./', MODEL_NAME)
+    path = os.path.join(MODEL_ROOT, MODEL_NAME)
     os.makedirs(path, exist_ok=True)
     os.chdir(path)
 
@@ -283,7 +302,7 @@ def main(args):
 
     if not RUN_ONLY:
         print("\n\n*************************************************************************************", flush=True)
-        print(f"Compiling for BATCH_SIZE {BS} & SEQUENCE_LENGTH {SL} for {CORES} AIC100_CORES", flush=True)
+        print(f"Compiling for BATCH_SIZE {BS} & SEQUENCE_LENGTH {SL} for {CORES} AI_CORES", flush=True)
         print("*************************************************************************************\n\n", flush=True)
 
         # Compile for fp16
@@ -436,7 +455,7 @@ def main(args):
         print(f"Latency ({latency_method}) = {LATENCY:.3f} ms")
 
         print("\n\n*************************************************************************************", flush=True)
-        print(f"Comparing AIC100 fp16 inference with onnxruntime fp32 inference", flush=True)
+        print(f"Comparing Cloud AI fp16 inference with onnxruntime fp32 inference", flush=True)
         print("*************************************************************************************\n\n", flush=True)
 
         output_names, ort_outputs = run_model_on_ort(MODEL, ort_inputs)
@@ -448,12 +467,10 @@ def main(args):
             # print(aico16)
             ort_output_flat = np.asarray(ort_output).flatten()
             aico16_flat = np.asarray(aico16).flatten()
-            print ("The first few output values from onnxruntime (fp32) and aic100 (fp16):")
+            print ("The first few output values from onnxruntime (fp32) and Cloud AI (fp16):")
             print(ort_output_flat[0:min(4, len(ort_output_flat))])
             print(aico16_flat[0:min(4, len(aico16_flat))])
-            diff = ort_output_flat - aico16_flat
-            argmax = diff.argmax()
-            print (f"The maximum difference is {np.abs(diff).max()} for values {ort_output_flat[argmax]} from onnxruntime (fp32) and {aico16_flat[argmax]} from aic100 (fp16)")
+            print('Cosine similarity for onnxruntime (fp32) and Cloud AI (fp16) outputs: {}'.format(cosim(ort_output_flat, aico16_flat)))
 
 
 def check_positive(arg_in):
@@ -500,12 +517,12 @@ def parse_args():
     parser.add_argument(
         "--cores", "-c", type=int,
         choices=range(1, 17),
-        help="Number of AIC100 cores to compile the model for. Default <2> ",
+        help="Number of AI cores to compile the model for. Default <2> ",
     )
     parser.add_argument(
         "--instances", "-i", type=int,
         choices=range(1, 17),
-        help="Number of model instances to run on AIC100. Default <7>",
+        help="Number of model instances to run on Cloud AI device. Default <7>",
     )
     parser.add_argument(
         "--ols", type=int,
@@ -532,8 +549,8 @@ def parse_args():
     )
     parser.add_argument(
         "--device",  "-d", type=int,
-        choices=range(0, 16),
-        help="AIC100 device ID. Default <0>",
+        choices=range(0, 64),
+        help="Cloud AI device ID. Default <0>",
     )
     parser.add_argument('--run-only', '-r',
                         action='store_true',
