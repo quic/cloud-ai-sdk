@@ -71,7 +71,7 @@ def check_device(DEVICE_ID, CORES, INSTANCES):
     if (STATUS != 'Ready'):
         raise TypeError(
             'The device is not ready. Please try, sudo sh -c "echo 1 > /sys/bus/mhi/devices/mhi0/soc_reset", or restart.')
-    elif CORES * INSTANCES > NSP_FREE:
+    elif (CORES * INSTANCES) > NSP_FREE:
         print('NSP_FREE {}'.format(NSP_FREE))
         print('NSP_TOTAL {}'.format(NSP_TOTAL))
         print('CORES {}'.format(CORES))

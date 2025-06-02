@@ -63,8 +63,6 @@ async def embeddings(request: EmbeddingsRequest):
         for idx, input in enumerate(inputs):
             token_embedding, sentence_embeddings = app.model.generate(input)
 
-            #print('Cosine similarity (onnx, qpc) {}'.format(cosim(sentence_embeddings_ort, sentence_embeddings)))
-            
             response['data'].append(
                 {
                     'object': 'embedding',
