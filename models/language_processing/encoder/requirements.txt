@@ -11,3 +11,7 @@ optimum==1.19.1
 protobuf==5.26.1
 urllib3==1.26.6
 /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
+
+# For inference serving
+fastapi
+uvicorn

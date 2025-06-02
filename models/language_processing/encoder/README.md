@@ -1,6 +1,10 @@
 ## Description
 ---
-This document runs a script (run_nlp_model.py) that downloads an encoder-type NLP model from Huggingface, prepares it for the Qualcomm AIC100, compiles it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, runs the model on a generated random sample, and obtains the benchmarking results and output values.
+This document runs a script (run_nlp_model.py) to benchmark encoder-type NLP model from Hugging Face.  The script downloads the model, prepares it for the Qualcomm Cloud AI accelerator, compiles it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, runs the model on a generated random sample, and obtains the benchmarking results and output values.
+
+## Efficient Transformers
+---
+Support for embedding models is now available in the Qualcomm efficient-transformers library.  Refer to [link](https://quic.github.io/efficient-transformers/source/validate.html#embedding-models) for more details.
 
 ## Source of the models
 ---
@@ -145,9 +149,9 @@ optional arguments:
   --seq-length, -s SEQ_LENGTH
                         Sample input sequence length. Default <128>.
   --cores {1,2,3,4,5,6,7,8,9,10,11,12,13,14}, -c {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
-                        Number of AIC100 cores to compile the model for. Default <2>
+                        Number of AI cores to compile the model for. Default <2>
   --instances, -i {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
-                        Number of model instances to run on AIC100. Default <7>
+                        Number of model instances to run on Cloud AI device. Default <7>
   --ols {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
                         Overlap split factor. Default <1>
   --mos MOS             Maximum output channel split. Default <1>
@@ -156,7 +160,7 @@ optional arguments:
   --extra EXTRA         Extra compilation arguments.
   --time TIME           Duration (in seconds) for which to submit inferences. Default <20>
   --device, -d {0,1,2,3,4,5,6,7}
-                        AIC100 device ID. Default <0>
+                        Cloud AI device ID. Default <0>
   --api-run, -a         Performs the inference using qaic session (high-level) and qaicrt(low-level) Python APIs. If this flag is not specified, qaic-runner CLI is used. 
   --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
 
@@ -199,4 +203,40 @@ After download, compile, and run is complete, the working directory of the selec
 ├── commands*.txt           # Includes necessary compilation and running scripts to reproduce the results manually.
 
 ```
-To manually resproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 
+To manually reproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 
+
+
+## Run an OpenAI-compatible REST endpoint
+---
+
+Setup:
+
+```
+source ./nlp_env/bin/activate
+```
+
+Build the embedding model:
+
+```
+python run_nlp_model.py -m BAAI/bge-large-en-v1.5 --task feature-extraction --objective best-throughput
+```
+
+Start endpoint:
+
+```
+python server.py --qpc_path ./models/BAAI/bge-large-en-v1.5/compiled-bin-fp16-B1-C4-A3-OLS2-MOS1-best-throughput
+```
+
+Test the endpoint:
+
+```
+curl http://localhost:8000/v1/embeddings \
+  -H "Authorization: Bearer test-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": ["FlagEmbedding can map any text to a low-dimensional dense vector which can be used for tasks like retrieval, classification, clustering, or semantic search"],
+    "model": "bge-large-en-v1.5",
+    "encoding_format": "float"
+  }'
+```
+
