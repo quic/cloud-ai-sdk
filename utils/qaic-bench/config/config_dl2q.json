@@ -1,0 +1,19 @@
+{
+    "vllm_root": "/opt/qti-aic/integrations/vllm",
+
+    "models": [
+        {
+            "name": "Meta-Llama-3.1-8B-Instruct-AWQ-INT4",
+            "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4",
+            "configs": [
+                {
+                    "batch_size": 1,
+                    "devices": 1,
+                    "cores": 14,
+                    "prompt_len": 4096,
+                    "generation_len": 4096
+                }
+            ]
+        }
+    ]
+}

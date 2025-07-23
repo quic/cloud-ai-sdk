@@ -27,6 +27,7 @@ docker run -it \
   --mount type=bind,source=${HOME}/.cache,target=/cache \
   --env HF_HOME='/cache/huggingface' \
   --env QEFF_HOME='/cache/qeff_models' \
+  --env XDG_CACHE_HOME='/cache' \
   --device=/dev/accel/accel0 \
   --device=/dev/accel/accel1 \
   --device=/dev/accel/accel2 \
