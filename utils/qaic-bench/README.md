@@ -73,8 +73,24 @@ wget https://github.com/quic/efficient-transformers/raw/refs/heads/release/v1.19
 
 ## Usage
 
+Example:
+
 ```
-python3 qaic_bench.py <path/to/json/config>
+python3 qaic_bench.py config/config_llama_3_1_8b.json
+```
+
+Details:
+
+```
+usage: qaic_bench.py [-h] [--devices DEVICES] [--compile-only] config
+
+positional arguments:
+  config             JSON file with model configurations
+
+options:
+  -h, --help         show this help message and exit
+  --devices DEVICES  List of comma separated device IDs to use for inferencing
+  --compile-only     Generate QPCs and skip benchmarking
 ```
 
 ## Configuration
@@ -91,7 +107,6 @@ python3 qaic_bench.py <path/to/json/config>
             "model": "meta-llama/Meta-Llama-3.1-8B-Instruct",
             "configs": [
                 {
-                    "qpc": "/cache/qpc_cache/meta-llama/Meta-Llama-3.1-8B-Instruct/qpc_16cores_128pl_8192cl_1fbs_4devices_mxfp6/qpc",
                     "batch_size": 1,
                     "devices": 4,
                     "prompt_len": 4096,

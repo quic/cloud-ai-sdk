@@ -151,8 +151,8 @@ class QBenchVLLM:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('config', help='Model configurations')
-    parser.add_argument('--devices', help='Device IDs to use for inferencing')
+    parser.add_argument('config', help='JSON file with model configurations')
+    parser.add_argument('--devices', help='List of comma separated device IDs to use for inferencing')
     parser.add_argument('--compile-only', action='store_true', help='Generate QPCs and skip benchmarking')
     args = parser.parse_args()
 
