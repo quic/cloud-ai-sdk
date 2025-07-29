@@ -72,6 +72,20 @@ Download KV-Heads Replication script from Efficient Transformers. This is needed
 wget https://github.com/quic/efficient-transformers/raw/refs/heads/release/v1.19.3_fp8_update/scripts/replicate_kv_head/replicate_kv_heads.py
 ```
 
+## Multi-Device Operation
+
+To run models across multiple AI 100 devices, make sure tensor slicing is enabled with:
+
+```
+sudo /opt/qti-aic/tools/qaic-util -a
+```
+
+More details at: https://github.com/quic/cloud-ai-sdk/tree/1.19/utils/multi-device
+
+## Hugging Face Access Token
+
+Some models on Hugging Face are access protected. Add your access token with the `--hf_token` script argument or set the `HF_TOKEN` environment variable. Learn more about Authentication here: https://huggingface.co/docs/huggingface_hub/en/quick-start#authentication.
+
 ## Usage
 
 Example:
@@ -92,6 +106,7 @@ options:
   -h, --help         show this help message and exit
   --devices DEVICES  List of comma separated device IDs to use for inferencing
   --compile-only     Generate QPCs and skip benchmarking
+  --hf_token         Hugging Face access token
 ```
 
 ## Configuration
@@ -123,7 +138,7 @@ options:
 
 | Property       | Description                               |
 | -------------- | ----------------------------------------- |
-| vllm_root      | Path to vLLM installation            |
+| vllm_root      | Path to full vLLM installation            |
 | models         | List of models to benchmark               |
 
 ### Model Properties
@@ -136,10 +151,11 @@ options:
 
 ### Config Properties
 
-| Property       | Description                               |
-| -------------- | ----------------------------------------- |
-| batch_size     | Model batch size                          |
-| devices        | Number of Cloud AI SoCs for tensor-sliced execution.  Set to 1 for single-SoC execution. |
-| prompt_len     | Prompt input length                       |
-| generation_len | Max number of output tokens to generate   |
-| qpc (optional) | Path to pre-generated QPC binary. If not specified, QPC will be generated. |
+| Property         | Description                               |
+| ---------------- | ----------------------------------------- |
+| batch_size       | Model batch size.                         |
+| devices          | Number of Cloud AI SoCs for tensor-sliced execution. Set to 1 for single-SoC execution. |
+| cores (optional) | Number of AI Cores for compilation. Default 16. |
+| prompt_len       | Prompt input length                       |
+| generation_len   | Max number of output tokens to generate   |
+| qpc (optional)   | Path to pre-generated QPC binary. If not specified, QPC will be generated. |
