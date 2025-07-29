@@ -13,6 +13,7 @@ from pathlib import Path
 
 from datetime import datetime
 from QEfficient import QEFFAutoModelForCausalLM
+from huggingface_hub import login
 from tempfile import NamedTemporaryFile
 
 class QBenchDeviceList():
@@ -316,7 +317,11 @@ def main():
     parser.add_argument('config', help='JSON file with model configurations')
     parser.add_argument('--devices', help='List of comma separated device IDs to use for inferencing')
     parser.add_argument('--compile-only', action='store_true', help='Generate QPCs and skip benchmarking')
+    parser.add_argument('--hf_token', help='Hugging Face access token')
     args = parser.parse_args()
+
+    if args.hf_token:
+        login(args.hf_token)
 
     print('Benchmarking started at {}'.format(datetime.now()))
 
