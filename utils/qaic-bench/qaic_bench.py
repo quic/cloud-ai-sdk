@@ -1,4 +1,4 @@
-# # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 from pprint import pprint
@@ -41,7 +41,6 @@ class QBenchDeviceList():
         if result.returncode == 0:
             with open(tmp_file_name, 'r') as f:
                 qaic_util = json.load(f)
-                #print(qaic_util)
 
             devices_available = []
             for info in qaic_util['device_info']:
