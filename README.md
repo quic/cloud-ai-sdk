@@ -19,12 +19,17 @@
 ---
 
 *Latest News* 🔥
-- [2025/07] The [Open WebUI tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/open-webui) shows how to use Open WebUI's chat interface with Cloud AI accelerators. 
+- [2025/08] Try the [QAic Bench](https://github.com/quic/cloud-ai-sdk/tree/1.19/utils/qaic-bench) script for LLM benchmarking on Cloud AI accelerators
+- [2025/08] The [Open WebUI tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/open-webui) shows how to use Open WebUI's chat interface with Cloud AI accelerators.
+- [2025/08] Added [Kubernetes](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/Kubernetes) tutorial
+- [2025/08] Added [Efficient Transformers](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/efficient_transformers) tutorial
+- [2025/08] Added [DETR ResNet-50](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/Computer-Vision/DETR) model example
+- [2025/08] Added [YOLOv8](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/vision/detection) model example
 - [2024/11] Check out the [Qualcomm Cloud AI Playground Tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/Playground) to learn how to access the latest Generative AI models running on Qualcomm Cloud AI 100 Ultra Accelerators hosted in the cloud.
-- [2024/11] Added support for [Stable Diffusion XL Turbo](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_turbo)
-- [2024/11] Added support for [Stable Diffusion 3](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/stable-diffusion-3-medium-diffusers)
-- [2024/09] Added support for [Whisper](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/speech/whisper)
-- [2024/09] Added support for [SDXL-DeepCache](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_deepcache)
+- [2024/11] Added [Stable Diffusion XL Turbo](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_turbo) model example
+- [2024/11] Added [Stable Diffusion 3](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/stable-diffusion-3-medium-diffusers) model example
+- [2024/09] Added [Whisper](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/speech/whisper) model example
+- [2024/09] Added [SDXL-DeepCache](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_deepcache) model example
 - [2024/04] Qualcomm released [efficient transformers](https://github.com/quic/efficient-transformers) for seamless deployment of pre-trained LLMs.
 - [2024/03] Added [AI 100 Ultra recipe for Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
 - [2024/03] Added support for Speculative Decoding with LLMs - [CodeGen with Speculative Decoding](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/CodeGen-With-Speculative-Decoding)
