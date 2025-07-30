@@ -3,7 +3,7 @@
 ## Python Setup
 ```
 # Setup venv
-python3.9 -m venv imagine_env
+python3.10 -m venv imagine_env
 source imagine_env/bin/activate
 pip3 install pip -U
 
@@ -14,6 +14,7 @@ pip3 install python-imagine-sdk
 pip3 install Pillow
 pip3 install notebook
 pip3 install pandas
+pip3 install openai
 ```
 
 ## Launch Notebook
