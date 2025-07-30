@@ -1,0 +1,18 @@
+{
+    "vllm_root": "/opt/qti-aic/integrations/vllm",
+
+    "models": [
+        {
+            "name": "TinyLlama-1.1B-Chat-v1.0",
+            "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+            "configs": [
+                {
+                    "batch_size": 1,
+                    "devices": 1,
+                    "prompt_len": 1024,
+                    "generation_len": 1024
+                }
+            ]
+        }
+    ]
+}
