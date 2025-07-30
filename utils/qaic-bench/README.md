@@ -80,6 +80,12 @@ To run models across multiple AI 100 devices, make sure tensor slicing is enable
 sudo /opt/qti-aic/tools/qaic-util -a
 ```
 
+The control response timeout must also be extended:
+
+```
+sudo sh -c 'echo 2600 > /sys/module/qaic/parameters/control_resp_timeout_s'
+```
+
 More details at: https://github.com/quic/cloud-ai-sdk/tree/1.19/utils/multi-device
 
 ## Hugging Face Access Token
