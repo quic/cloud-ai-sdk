@@ -24,11 +24,15 @@ def check_device(device_id, cores):
         status = re.findall("status:.+", qaic_util, re.IGNORECASE)[0].split(":")[-1].lower()
     except:
         status = 'ready'
-    if (nsp_free < nsp_total or status != 'ready'):
-        raise typeerror(
-            'the device is not ready. please try, sudo sh -c "echo 1 > /sys/bus/mhi/devices/mhi0/soc_reset", or restart.')
-    return
 
+    if (status != 'ready'):
+        raise TypeError(
+            'Device {} not ready'.format(device_id))
+
+    if (nsp_free < cores):
+        raise TypeError(
+            'Insufficient resources: {} NSP cores required, {} available'.format(cores, nsp_free))
+    return
 
 def map2device(
      binary_dir = "./qpc/",
@@ -53,6 +57,9 @@ def map2device(
      together = False,
     ): 
     os.makedirs(binary_dir, exist_ok=True)
+
+    if not compile_text_encoder_3:
+        t5_seq_len = seq_len # use CLIP encoder sequence length
 
     if not together:
         cmd_elements = ["/opt/qti-aic/exec/qaic-exec",

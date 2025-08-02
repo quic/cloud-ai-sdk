@@ -1,5 +1,5 @@
 diff --git a/src/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py b/src/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py
-index 5a10f32..4b3ce94 100644
+index 4b9df57..7e9eb9c 100644
 --- a/src/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py
 +++ b/src/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py
 @@ -11,7 +11,17 @@
@@ -9,7 +9,7 @@ index 5a10f32..4b3ce94 100644
 -
 +#
 +####################################################################################################
-+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
++# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 +# SPDX-License-Identifier: BSD-3-Clause-Clear
 +# Not a Contribution
 +####################################################################################################
@@ -35,8 +35,8 @@ index 5a10f32..4b3ce94 100644
      ):
          super().__init__()
  
-@@ -204,6 +221,44 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
-             else 128
+@@ -207,6 +224,43 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+             self.transformer.config.patch_size if hasattr(self, "transformer") and self.transformer is not None else 2
          )
  
 +        assert os.path.isfile(transformer_qpc) and transformer_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for transformer_qpc: found {transformer_qpc = }"
@@ -76,11 +76,10 @@ index 5a10f32..4b3ce94 100644
 +                                                    dev_id=device_id,
 +                                                    oversubscription_name='group1')
 +
-+
      def _get_t5_prompt_embeds(
          self,
          prompt: Union[str, List[str]] = None,
-@@ -247,7 +302,22 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -250,7 +304,22 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
                  f" {max_sequence_length} tokens: {removed_text}"
              )
  
@@ -104,7 +103,7 @@ index 5a10f32..4b3ce94 100644
  
          dtype = self.text_encoder_3.dtype
          prompt_embeds = prompt_embeds.to(dtype=dtype, device=device)
-@@ -271,7 +341,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -274,7 +343,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
          device = device or self._execution_device
  
          clip_tokenizers = [self.tokenizer, self.tokenizer_2]
@@ -113,7 +112,7 @@ index 5a10f32..4b3ce94 100644
  
          tokenizer = clip_tokenizers[clip_model_index]
          text_encoder = clip_text_encoders[clip_model_index]
-@@ -295,13 +365,30 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -298,13 +367,30 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
                  "The following part of your input was truncated because CLIP can only handle sequences up to"
                  f" {self.tokenizer_max_length} tokens: {removed_text}"
              )
@@ -150,7 +149,7 @@ index 5a10f32..4b3ce94 100644
  
          prompt_embeds = prompt_embeds.to(dtype=self.text_encoder.dtype, device=device)
  
-@@ -685,6 +772,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -694,6 +780,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
          callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
          callback_on_step_end_tensor_inputs: List[str] = ["latents"],
          max_sequence_length: int = 256,
@@ -158,7 +157,7 @@ index 5a10f32..4b3ce94 100644
      ):
          r"""
          Function invoked when calling the pipeline for generation.
-@@ -817,6 +905,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -826,6 +913,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
          lora_scale = (
              self.joint_attention_kwargs.get("scale", None) if self.joint_attention_kwargs is not None else None
          )
@@ -166,7 +165,7 @@ index 5a10f32..4b3ce94 100644
          (
              prompt_embeds,
              negative_prompt_embeds,
-@@ -840,6 +929,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -849,6 +937,7 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
              max_sequence_length=max_sequence_length,
              lora_scale=lora_scale,
          )
@@ -174,7 +173,7 @@ index 5a10f32..4b3ce94 100644
  
          if self.do_classifier_free_guidance:
              prompt_embeds = torch.cat([negative_prompt_embeds, prompt_embeds], dim=0)
-@@ -864,58 +954,67 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -873,58 +962,67 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
          )
  
          # 6. Denoising loop
@@ -294,7 +293,7 @@ index 5a10f32..4b3ce94 100644
  
          if output_type == "latent":
              image = latents
-@@ -923,7 +1022,16 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
+@@ -932,7 +1030,16 @@ class StableDiffusion3Pipeline(DiffusionPipeline, SD3LoraLoaderMixin, FromSingle
          else:
              latents = (latents / self.vae.config.scaling_factor) + self.vae.config.shift_factor
  
