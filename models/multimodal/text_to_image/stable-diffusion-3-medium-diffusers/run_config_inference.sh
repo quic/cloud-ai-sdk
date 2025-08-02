@@ -6,7 +6,7 @@
 ####################################################################################################
 
 # model configs
-MODEL_PATH="stabilityai/stable-diffusion-3-medium-diffusers"
+MODEL_PATH="stabilityai/stable-diffusion-3.5-medium"
 PROMPT="\"$1\""
 NEG_PROMPT="\"$2\""
 GUIDANCE=7.0
@@ -33,7 +33,7 @@ COMPILE_VAE=false
 
 # inference configs
 RUN_ONLY=true
-TEXT_ENCODER_3=true
+TEXT_ENCODER_3=false
 DEVICE=0
 DEVICE2=1
 NUM_STEPS=28

@@ -6,7 +6,7 @@
 ####################################################################################################
 
 # model configs
-MODEL_PATH="stabilityai/stable-diffusion-3-medium-diffusers"
+MODEL_PATH="stabilityai/stable-diffusion-3.5-medium"
 VAE_TYPE="vae"
 IMAGE_SIZE=1024
 BLOCK_SIZE=64
@@ -26,7 +26,7 @@ VAE_OLS=1
 TRANSFORMER_MOS=1
 TRANSFORMER_OLS=2
 COMPILE_TEXT_ENCODER=true
-COMPILE_TEXT_ENCODER_3=true
+COMPILE_TEXT_ENCODER_3=false
 COMPILE_TRANSFORMER=true
 COMPILE_VAE=true
 
