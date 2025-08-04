@@ -13,29 +13,28 @@ sudo apt-get install moreutils
 
 1.  Set up a virtual environment for ONNX generation and compilation
 ```
-python3.8 -m venv env_onnx
+python3.10 -m venv env_onnx
 source ./env_onnx/bin/activate
 pip install -r requirements.txt
 pip install wheel
 ```
 
-2.  Create a folder for caching HuggingFace model downloads, and export the environment variable HF_HOME
+2.  Create a folder for caching Hugging Face model downloads, and export the environment variable HF_HOME
 ```
 mkdir cache
 mkdir compile_logs
 mkdir qpc
 touch run.sh
+export HF_HOME=${PWD}/cache
 ```
 
 3. Install diffusers from source after patching for ONNX file generation
 ```
-mkdir diffusers_onnx
-cd diffusers_onnx
-git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git
-cd diffusers
-git apply --reject --whitespace=fix ../../patches/attention_patch.patch
+git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git diffusers-onnx
+cd diffusers-onnx
+git apply --reject --whitespace=fix ../patches/attention_patch.patch
 pip install .
-cd ../..
+cd ..
 ```
 
 4. Prepare VAE Decoder
@@ -57,7 +56,7 @@ bash run_config_gen.sh
 
 1. Set up a separate virtual environment for running SDXL Turbo
 ```
-python3.8 -m venv env_pipeline
+python3.10 -m venv env_pipeline
 source ./env_pipeline/bin/activate
 pip install -r requirements.txt
 pip install wheel
@@ -66,13 +65,11 @@ pip install --force-reinstall /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-an
 
 2.  Re-install diffusers from source after patching the SDXL Turbo pipeline for inference
 ```
-mkdir diffusers_pipeline
-cd diffusers_pipeline
-git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git
-cd diffusers
-git apply --reject --whitespace=fix ../../patches/pipeline_patch_separate.patch
+git clone --depth 1 --branch v0.24.0 https://github.com/huggingface/diffusers.git diffusers-pipeline
+cd diffusers-pipeline
+git apply --reject --whitespace=fix ../patches/pipeline_patch_separate.patch
 pip install .
-cd ../..
+cd ..
 ```
 
 4. Run the SDXL-Turbo inference with 'sudo' flag if needed to access the AI 100 devices.
