@@ -52,7 +52,7 @@ class QAICStableDiffusion:
 
 async def main():
     model = QAICStableDiffusion()
-    prompt = 'A cinematic shot of a baby racoon wearing an intricate italian priest robe.'
+    prompt = 'photo of 8k ultra realistic harbour, port, boats, sunset, beautiful light, golden hour, full of colour, cinematic lighting, battered, trending on artstation, 4k, hyperrealistic, focused, extreme details, cinematic, masterpiece'
     idx = 0
     async for image in model.generate(prompt, 1, (512, 512)):
        image.save('generated_image_{}.png'.format(idx))

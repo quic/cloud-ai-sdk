@@ -92,7 +92,7 @@ curl http://localhost:8000/v1/images/generations \
   -H 'Authorization: Bearer test-key' \
   -d '{
     "model": "sdxl-turbo",
-    "prompt": "A cinematic shot of a baby racoon wearing an intricate italian priest robe.",
+    "prompt": "photo of 8k ultra realistic harbour, port, boats, sunset, beautiful light, golden hour, full of colour, cinematic lighting, battered, trending on artstation, 4k, hyperrealistic, focused, extreme details, cinematic, masterpiece",
     "n": 1,
     "size": "512x512",
     "response_format": "b64_json"

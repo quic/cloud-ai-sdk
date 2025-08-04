@@ -5,7 +5,7 @@
 
 # model configs
 MODEL_PATH="stabilityai/sdxl-turbo"
-PROMPT="\"A cinematic shot of a baby racoon wearing an intricate italian priest robe.\""
+PROMPT="\"photo of 8k ultra realistic harbour, port, boats, sunset, beautiful light, golden hour, full of colour, cinematic lighting, battered, trending on artstation, 4k, hyperrealistic, focused, extreme details, cinematic, masterpiece\""
 VAE_TYPE="vae"
 IMAGE_SIZE=512
 BLOCK_SIZE=256
