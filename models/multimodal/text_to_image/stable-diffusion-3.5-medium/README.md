@@ -83,12 +83,16 @@ sudo bash run_config_inference.sh "<positive prompt>" "<negative prompt>"
 
 ## 4. Python interface
 
+```
+source ./env_pipeline/bin/activate
+```
+
 ```python
 from model import QAICStableDiffusion3
 
 model = QAICStableDiffusion3()
-prompt = 'A capybara holding a sign that reads Hello World'
-image = model.generate(prompt, guidance=4.5)[0]
-image.save('capybara.png')
+prompt = 'photo of 8k ultra realistic harbour, port, boats, sunset, beautiful light, golden hour, full of colour, cinematic lighting, battered, trending on artstation, 4k, hyperrealistic, focused, extreme details, cinematic, masterpiece'
+image = model.generate(prompt, guidance=7.0)[0]
+image.save('harbor.png')
 ```
 
