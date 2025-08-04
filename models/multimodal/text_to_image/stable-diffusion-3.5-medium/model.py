@@ -8,10 +8,10 @@ from diffusers import StableDiffusion3Pipeline
 
 class QAICStableDiffusion3:
     def __init__(self, model_id = 'stabilityai/stable-diffusion-3.5-medium', device_id=0, device_id_2=1):
-        sdxl_vae_decoder = './qpc/vae_decoder_64b_1024i_vae_8c_1b_2m_1o/programqpc.bin'
-        text_encoder = './qpc/text_encoder_64b_1024i_8c_1b/programqpc.bin'
-        transformer = './qpc/transformer_64b_1024i_8c_1b_1m_2o/programqpc.bin'
-        text_encoder_2 = './qpc/text_encoder_2_64b_1024i_8c_1b/programqpc.bin'
+        sdxl_vae_decoder = './qpc/vae_decoder_64b_1024i_vae_16c_1b_2m_1o/programqpc.bin'
+        text_encoder = './qpc/text_encoder_64b_1024i_16c_1b/programqpc.bin'
+        transformer = './qpc/transformer_64b_1024i_16c_1b_1m_2o/programqpc.bin'
+        text_encoder_2 = './qpc/text_encoder_2_64b_1024i_16c_1b/programqpc.bin'
 
         text_encoder_3 = None
 
@@ -75,9 +75,9 @@ class QAICStableDiffusion3:
 
 def main():
     model = QAICStableDiffusion3()
-    prompt = 'A capybara holding a sign that reads Hello World'
-    image = model.generate(prompt)[0]
-    image.save('capybara.png')
+    prompt = 'photo of 8k ultra realistic harbour, port, boats, sunset, beautiful light, golden hour, full of colour, cinematic lighting, battered, trending on artstation, 4k, hyperrealistic, focused, extreme details, cinematic, masterpiece'
+    image = model.generate(prompt, guidance=7.0)[0]
+    image.save('harbor.png')
 
 if __name__ == "__main__":
     main()

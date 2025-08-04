@@ -1,8 +1,19 @@
 diff --git a/src/diffusers/models/attention_processor.py b/src/diffusers/models/attention_processor.py
-index 21eb3a32..1df1b09c 100644
+index 21eb3a3..4f8d68c 100644
 --- a/src/diffusers/models/attention_processor.py
 +++ b/src/diffusers/models/attention_processor.py
-@@ -200,10 +200,8 @@ class Attention(nn.Module):
+@@ -11,6 +11,10 @@
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
++#
++# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
++# SPDX-License-Identifier: BSD-3-Clause-Clear
++# Not a Contribution
+ from importlib import import_module
+ from typing import Callable, Optional, Union
+ 
+@@ -200,10 +204,8 @@ class Attention(nn.Module):
          # We use the AttnProcessor2_0 by default when torch 2.x is used which uses
          # torch.nn.functional.scaled_dot_product_attention for native Flash/memory_efficient_attention
          # but only if it has the default `scale` argument. TODO remove scale_qk check when we move to torch 2.1
@@ -15,18 +26,18 @@ index 21eb3a32..1df1b09c 100644
          self.set_processor(processor)
  
      def set_use_memory_efficient_attention_xformers(
-@@ -588,7 +586,9 @@ class Attention(nn.Module):
+@@ -588,7 +590,9 @@ class Attention(nn.Module):
  
          if attention_mask is None:
              baddbmm_input = torch.empty(
 -                query.shape[0], query.shape[1], key.shape[1], dtype=query.dtype, device=query.device
-+                query.shape[0], query.shape[1], 
++                query.shape[0], query.shape[1],
 +                key.shape[2], # key is already transposed
 +                dtype=query.dtype, device=query.device
              )
              beta = 0
          else:
-@@ -598,7 +598,7 @@ class Attention(nn.Module):
+@@ -598,7 +602,7 @@ class Attention(nn.Module):
          attention_scores = torch.baddbmm(
              baddbmm_input,
              query,
@@ -35,7 +46,7 @@ index 21eb3a32..1df1b09c 100644
              beta=beta,
              alpha=self.scale,
          )
-@@ -740,8 +740,26 @@ class AttnProcessor:
+@@ -740,8 +744,26 @@ class AttnProcessor:
          key = attn.head_to_batch_dim(key)
          value = attn.head_to_batch_dim(value)
  

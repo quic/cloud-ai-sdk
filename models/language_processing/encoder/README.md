@@ -105,9 +105,17 @@ The models are downloaded from (https://huggingface.co). This script has been te
 For a quick environment setup:
 
 ```commandline
-python3.8 -m venv nlp_env
+python3.10 -m venv nlp_env
 source nlp_env/bin/activate
 pip3 install -r requirements.txt
+```
+
+## Hugging Face authentication
+
+Some models on Hugging Face require an access token.  Refer to https://huggingface.co/docs/hub/en/security-tokens for more information.
+
+```
+export HF_HOME=<your_auth_token>
 ```
 
 ## Syntax
@@ -168,7 +176,7 @@ optional arguments:
 Examples:
 Use qaic session and qaicrt Python APIs 
 ```commandline
-python run_nlp_model.py --model-name albert-base-v2 --objective best-throughput --api-run
+python run_nlp_model.py --model-name albert-base-v2 -t question-answering --objective best-throughput --api-run
 ```
 
 Use qaic-runner CLI
@@ -182,7 +190,7 @@ python run_nlp_model.py -m bert-base-cased -t question-answering -o best-through
 python run_nlp_model.py --model-name bert-base-uncased --objective best-latency
 ```
 
-The TASK and hardware configuration will be either associated to the corresponding row in the lut_nlp_models.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_nlp_models.csv, pick a corresponding task, or switch to default.
+The TASK and hardware configuration will be either associated to the corresponding row in the lut_nlp_models.csv or to default values if not specified by the user. If the MODEL_NAME is not included in the lut_nlp_models.csv, pick a corresponding task, or switch to default.
 
 After download, compile, and run is complete, the working directory of the selected model is as follows. 
 # Working directory structure
@@ -234,7 +242,7 @@ curl http://localhost:8000/v1/embeddings \
   -H "Authorization: Bearer test-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "input": ["FlagEmbedding can map any text to a low-dimensional dense vector which can be used for tasks like retrieval, classification, clustering, or semantic search"],
+    "input": ["your-text-here"],
     "model": "bge-large-en-v1.5",
     "encoding_format": "float"
   }'
