@@ -234,7 +234,7 @@ curl http://localhost:8000/v1/embeddings \
   -H "Authorization: Bearer test-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "input": ["FlagEmbedding can map any text to a low-dimensional dense vector which can be used for tasks like retrieval, classification, clustering, or semantic search"],
+    "input": ["your-text-here"],
     "model": "bge-large-en-v1.5",
     "encoding_format": "float"
   }'

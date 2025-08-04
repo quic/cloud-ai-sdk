@@ -36,10 +36,10 @@ class QAicEmbeddingModel():
         output_shape, output_type = self.aic_session.model_output_shape_dict['sentence_embedding']
         sentence_embedding = np.frombuffer(outputs['sentence_embedding'], dtype=output_type).reshape(output_shape)
 
-        return token_embeddings, sentence_embedding    
+        return token_embeddings, sentence_embedding
 
 def main():
-    inputs_txt = 'FlagEmbedding can map any text to a low-dimensional dense vector which can be used for tasks like retrieval, classification, clustering, or semantic search'
+    inputs_txt = 'your_text_here'
     model = QAicEmbeddingModel()
     token_embedding, sentence_embeddings = model.generate(inputs_txt)
     print('token_embedding {}'.format(token_embedding))
