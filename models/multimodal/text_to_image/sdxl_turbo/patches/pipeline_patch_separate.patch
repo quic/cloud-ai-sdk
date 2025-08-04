@@ -1,11 +1,18 @@
 diff --git a/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py b/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
-index 40c981a..0324e0e 100644
+index 40c981a..06df164 100644
 --- a/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
 +++ b/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
-@@ -12,6 +12,11 @@
+@@ -11,7 +11,17 @@
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  # See the License for the specific language governing permissions and
  # limitations under the License.
-
+-
++#
++####################################################################################################
++# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
++# SPDX-License-Identifier: BSD-3-Clause-Clear
++# Not a Contribution
++####################################################################################################
 +import os
 +import time
 +from concurrent.futures import ThreadPoolExecutor
@@ -13,8 +20,8 @@ index 40c981a..0324e0e 100644
 +import numpy as np
  import inspect
  from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-
-@@ -229,6 +234,11 @@ class StableDiffusionXLPipeline(
+ 
+@@ -229,6 +239,11 @@ class StableDiffusionXLPipeline(
          feature_extractor: CLIPImageProcessor = None,
          force_zeros_for_empty_prompt: bool = True,
          add_watermarker: Optional[bool] = None,
@@ -25,12 +32,11 @@ index 40c981a..0324e0e 100644
 +        unet_qpc: Optional[str] = "./qpc/unet_bs1/programqpc.bin",
      ):
          super().__init__()
-
-@@ -255,6 +265,31 @@ class StableDiffusionXLPipeline(
-             self.watermark = StableDiffusionXLWatermarker()
+ 
+@@ -256,6 +271,31 @@ class StableDiffusionXLPipeline(
          else:
              self.watermark = None
-+
+ 
 +        assert os.path.isfile(unet_qpc) and unet_qpc.endswith('programqpc.bin'), f"Provide correct QPCs for unet_qpc: found {unet_qpc = }"
 +        self.unet_sess = qaic.Session(unet_qpc, # ensure that batchsize=2 QPC is used
 +                                      num_activations=1,
@@ -55,19 +61,20 @@ index 40c981a..0324e0e 100644
 +                                                set_size=1,
 +                                                dev_id=device_id,
 +                                                oversubscription_name='group1')
-
++
      # Copied from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.StableDiffusionPipeline.enable_vae_slicing
      def enable_vae_slicing(self):
-@@ -377,7 +412,7 @@ class StableDiffusionXLPipeline(
+         r"""
+@@ -377,7 +417,7 @@ class StableDiffusionXLPipeline(
          # Define tokenizers and text encoders
          tokenizers = [self.tokenizer, self.tokenizer_2] if self.tokenizer is not None else [self.tokenizer_2]
          text_encoders = (
 -            [self.text_encoder, self.text_encoder_2] if self.text_encoder is not None else [self.text_encoder_2]
 +                [self.text_encoder_sess, self.text_encoder_2_sess] if self.text_encoder is not None else [self.text_encoder_2_sess]
          )
-
+ 
          if prompt_embeds is None:
-@@ -387,7 +422,7 @@ class StableDiffusionXLPipeline(
+@@ -387,7 +427,7 @@ class StableDiffusionXLPipeline(
              # textual inversion: procecss multi-vector tokens if necessary
              prompt_embeds_list = []
              prompts = [prompt, prompt_2]
@@ -75,11 +82,11 @@ index 40c981a..0324e0e 100644
 +            for idx, (prompt, tokenizer, text_encoder) in enumerate(zip(prompts, tokenizers, text_encoders)):
                  if isinstance(self, TextualInversionLoaderMixin):
                      prompt = self.maybe_convert_prompt(prompt, tokenizer)
-
-@@ -411,21 +446,34 @@ class StableDiffusionXLPipeline(
+ 
+@@ -411,21 +451,34 @@ class StableDiffusionXLPipeline(
                          f" {tokenizer.model_max_length} tokens: {removed_text}"
                      )
-
+ 
 -                prompt_embeds = text_encoder(text_input_ids.to(device), output_hidden_states=True)
 -
 -                # We are only ALWAYS interested in the pooled output of the final text encoder
@@ -110,37 +117,37 @@ index 40c981a..0324e0e 100644
 +                prompt_embeds = torch.from_numpy(np.frombuffer(output[hidden_state_name], dtype=o_type).reshape(o_shape))
 +                print(f'Text encoder #{idx+1} positive prompt time : {1000.*(time.perf_counter()-start_time):.6f} ms')
 +                ### AIC INFERENCE PART FOR PROMPT ENDS HERE ###
-
+ 
                  prompt_embeds_list.append(prompt_embeds)
-
+ 
              prompt_embeds = torch.concat(prompt_embeds_list, dim=-1)
-
+ 
          # get unconditional embeddings for classifier free guidance
 +        assert not do_classifier_free_guidance
          zero_out_negative_prompt = negative_prompt is None and self.config.force_zeros_for_empty_prompt
          if do_classifier_free_guidance and negative_prompt_embeds is None and zero_out_negative_prompt:
              negative_prompt_embeds = torch.zeros_like(prompt_embeds)
-@@ -1012,6 +1060,8 @@ class StableDiffusionXLPipeline(
+@@ -1012,6 +1065,8 @@ class StableDiffusionXLPipeline(
              self.cross_attention_kwargs.get("scale", None) if self.cross_attention_kwargs is not None else None
          )
-
+ 
 +        text_encode_start_time = time.perf_counter()
 +
          (
              prompt_embeds,
              negative_prompt_embeds,
-@@ -1033,6 +1083,8 @@ class StableDiffusionXLPipeline(
+@@ -1033,6 +1088,8 @@ class StableDiffusionXLPipeline(
              clip_skip=self.clip_skip,
          )
-
+ 
 +        print(f"Text encoding time = {1000.*(time.perf_counter() - text_encode_start_time):.3f} ms")
 +
          # 4. Prepare timesteps
          timesteps, num_inference_steps = retrieve_timesteps(self.scheduler, num_inference_steps, device, timesteps)
-
-@@ -1120,64 +1172,69 @@ class StableDiffusionXLPipeline(
+ 
+@@ -1120,64 +1177,69 @@ class StableDiffusionXLPipeline(
              ).to(device=device, dtype=latents.dtype)
-
+ 
          self._num_timesteps = len(timesteps)
 -        with self.progress_bar(total=num_inference_steps) as progress_bar:
 -            for i, t in enumerate(timesteps):
@@ -242,32 +249,32 @@ index 40c981a..0324e0e 100644
 +                )
 +                add_time_ids = callback_outputs.pop("add_time_ids", add_time_ids)
 +                negative_add_time_ids = callback_outputs.pop("negative_add_time_ids", negative_add_time_ids)
-+
-+            # call the callback, if provided
-+            if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
-+                if callback is not None and i % callback_steps == 0:
-+                    step_idx = i // getattr(self.scheduler, "order", 1)
-+                    callback(step_idx, t, latents)
-
+ 
 -                # call the callback, if provided
 -                if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
 -                    progress_bar.update()
 -                    if callback is not None and i % callback_steps == 0:
 -                        step_idx = i // getattr(self.scheduler, "order", 1)
 -                        callback(step_idx, t, latents)
-+            if XLA_AVAILABLE:
-+                xm.mark_step()
-
++            # call the callback, if provided
++            if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
++                if callback is not None and i % callback_steps == 0:
++                    step_idx = i // getattr(self.scheduler, "order", 1)
++                    callback(step_idx, t, latents)
+ 
 -                if XLA_AVAILABLE:
 -                    xm.mark_step()
++            if XLA_AVAILABLE:
++                xm.mark_step()
++
 +        print(f'UNet total time : {1000.*(time.perf_counter()-start_time):.6f} ms')
-
+ 
          if not output_type == "latent":
              # make sure the VAE is in float32 mode, as it overflows in float16
-@@ -1187,7 +1244,16 @@ class StableDiffusionXLPipeline(
+@@ -1187,7 +1249,16 @@ class StableDiffusionXLPipeline(
                  self.upcast_vae()
                  latents = latents.to(next(iter(self.vae.post_quant_conv.parameters())).dtype)
-
+ 
 -            image = self.vae.decode(latents / self.vae.config.scaling_factor, return_dict=False)[0]
 +            start_time = time.perf_counter()
 +            input_dict = {'latent_sample': latents.numpy() / self.vae.config.scaling_factor}
@@ -279,6 +286,6 @@ index 40c981a..0324e0e 100644
 +            image = torch.from_numpy(np.frombuffer(output['sample'], dtype=o_type).reshape(o_shape))
 +
 +            print(f'Vae Decoder total time : {1000.*(time.perf_counter()-start_time):.6f} ms')
-
+ 
              # cast back to fp16 if needed
              if needs_upcasting:
