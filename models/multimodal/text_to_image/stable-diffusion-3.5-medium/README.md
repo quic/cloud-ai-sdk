@@ -1,9 +1,9 @@
 ### Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 ### SPDX-License-Identifier: BSD-3-Clause-Clear
 
-# Instructions to run SD3 on Cloud AI 100
+# Instructions to run SD3.5 on Cloud AI 100
 
-The instructions below are to run the [Stable Diffusion 3 model](stabilityai/stable-diffusion-3.5-medium) on Cloud AI 100. Compile time parameters may need to be adjusted for different cards and different SDKs.
+The instructions below are to run the [Stable Diffusion 3.5 model](stabilityai/stable-diffusion-3.5-medium) on Cloud AI 100. Compile time parameters may need to be adjusted for different cards and different SDKs.
 
 ## 1. Download model
 
@@ -23,7 +23,6 @@ export HF_TOKEN=<your-huggingface-auth-token>
 python3.10 -m venv env_onnx
 source ./env_onnx/bin/activate
 pip install -r requirements.txt
-pip install wheel
 ```
 
 2.  Create a folder for caching HuggingFace model downloads
@@ -44,8 +43,8 @@ cd ..
 
 4. Install transformers from source (for T5 text_encoder_3 only)
 ```
-git clone -b v4.41.2 https://github.com/huggingface/transformers.git
-cd transformers
+git clone -b v4.41.2 https://github.com/huggingface/transformers.git transformers-dev
+cd transformers-dev
 git apply --reject --whitespace=fix ../patches/transformer_patch.patch
 pip install .
 cd ..
@@ -63,7 +62,6 @@ bash run_config_gen.sh
 python3.10 -m venv env_pipeline
 source ./env_pipeline/bin/activate
 pip install -r requirements.txt
-pip install wheel
 pip install --force-reinstall /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
 ```
 

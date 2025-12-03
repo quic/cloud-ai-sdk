@@ -43,7 +43,7 @@ Use [Efficient Transformers](https://github.com/quic/efficient-transformers) to 
 Download the Docker image:
 
 ```
-docker pull ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
+docker pull ghcr.io/quic/cloud_ai_inference_ubuntu22:1.20.4.0
 ```
 
 ## Start vLLM endpoint
@@ -83,7 +83,7 @@ docker run -dit \
   --device=/dev/accel/accel2 \
   --device=/dev/accel/accel3 \
   --entrypoint=/model/serve.sh \
-  ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
+  ghcr.io/quic/cloud_ai_inference_ubuntu22:1.20.4.0
 ```
 
 ## Test the endpoint

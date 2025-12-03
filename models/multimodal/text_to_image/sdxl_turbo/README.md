@@ -4,9 +4,35 @@ The instructions below are to run the [SDXL-Turbo](https://huggingface.co/stabil
 
 ## Pre-requisites
 
+Use the [SDK 1.19.8.0](https://github.com/quic/cloud-ai-containers/pkgs/container/cloud_ai_inference_ubuntu22/414822849?tag=1.19.8.0) container to compile the sdxl-turbo models.
+
+```
+sudo docker run \
+  -it \
+  --workdir /cloud-ai-sdk \
+  --entrypoint /bin/bash \
+  --network=host \
+  --mount type=bind,source=<path to cloud-ai-sdk root>,target=/cloud-ai-sdk \
+  --device=/dev/accel/accel0 \
+  --device=/dev/accel/accel1 \
+  --device=/dev/accel/accel2 \
+  --device=/dev/accel/accel3 \
+  ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
+
+cd models/multimodal/text_to_image/sdxl_turbo
+```
+
 Install the moreutils package for the `ts` timestamp tool:
 ```
+sudo apt update
 sudo apt-get install moreutils
+```
+
+Install Git Large File System (LFS) support
+
+```
+sudo apt update
+sudo apt-get install git-lfs
 ```
 
 ## 1. Generate onnx files and compile for binaries
@@ -16,7 +42,6 @@ sudo apt-get install moreutils
 python3.10 -m venv env_onnx
 source ./env_onnx/bin/activate
 pip install -r requirements.txt
-pip install wheel
 ```
 
 2.  Create a folder for caching Hugging Face model downloads, and export the environment variable HF_HOME
@@ -59,7 +84,6 @@ bash run_config_gen.sh
 python3.10 -m venv env_pipeline
 source ./env_pipeline/bin/activate
 pip install -r requirements.txt
-pip install wheel
 pip install --force-reinstall /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
 ```
 
@@ -74,7 +98,7 @@ cd ..
 
 4. Run the SDXL-Turbo inference with 'sudo' flag if needed to access the AI 100 devices.
 ```
-sudo bash run_config_inference.sh
+sudo bash run_config_inference.sh $(which python3)
 ```
 
 ## 3. Run an OpenAI-compatible REST endpoint

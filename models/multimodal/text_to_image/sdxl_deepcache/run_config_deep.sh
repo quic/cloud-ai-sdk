@@ -109,7 +109,7 @@ else
 fi
 
 export HF_HOME="cache"
-sed -i 's/query_block_size = 128/query_block_size = 256/g' ./env_onnx/lib/python3.8/site-packages/diffusers/models/attention_processor.py
+sed -i 's/query_block_size = 128/query_block_size = 256/g' ./env_onnx/lib/python3.10/site-packages/diffusers/models/attention_processor.py
 
 rm run.sh
 

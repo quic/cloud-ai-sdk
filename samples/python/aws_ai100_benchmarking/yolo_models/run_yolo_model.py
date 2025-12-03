@@ -1,5 +1,38 @@
-# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-# SPDX-License-Identifier: BSD-3-Clause-Clear
+Copyright='''##############################################################################
+# @@-COPYRIGHT-START-@@
+#
+# Copyright (c) 2023, Qualcomm Technologies, Inc. All Rights Reserved.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# @@-COPYRIGHT-END-@@
+##############################################################################
+'''
 
 import os
 import subprocess
@@ -10,25 +43,9 @@ import numpy as np
 import onnx
 from onnx import numpy_helper
 import onnxruntime
+import torchvision
 import pandas as pd
 from glob import glob
-import time
-import threading
-import json
-import torchvision
-from transformers import ResNetForImageClassification, ViTForImageClassification
-from torchvision.models import list_models, get_model
-# import timm
-
-# torchvision_models = list_models(module=torchvision.models)
-torchvision_models = ['resnet18','resnet34','resnet50','resnet101','resnet152','wide_resnet50_2','wide_resnet101_2','alexnet','resnext50_32x4d','resnext101_32x8d','resnext101_64x4d','efficientnet_b0','efficientnet_b1','efficientnet_b2','efficientnet_b3','efficientnet_b4','efficientnet_b5','efficientnet_b6','efficientnet_b7','efficientnet_v2_l','efficientnet_v2_m','efficientnet_v2_s','vit_b_16','vit_b_32','inception_v3','densenet121','densenet161','densenet169','densenet201','vgg11','vgg11_bn','vgg13','vgg13_bn','vgg16','vgg16_bn','vgg19','vgg19_bn','mnasnet0_5','mnasnet0_75','mnasnet1_0','mnasnet1_3','shufflenet_v2_x0_5','shufflenet_v2_x1_0','shufflenet_v2_x1_5','shufflenet_v2_x2_0','squeezenet1_0','squeezenet1_1','mobilenet_v2','mobilenet_v3_large','mobilenet_v3_small']
-# torchvision_models = list_models()
-# timm_pretrained_models = timm.list_models(pretrained=True) # This list is huge. Ignoring for now
-timm_pretrained_models = []
-other_sources = ['resnet-50', 'resnet-152', 'vit-base-patch16-224']
-all_models  = list(set(torchvision_models+timm_pretrained_models+other_sources))
-all_models.sort()
-
 
 # computes the average or percentile for a pandas.Series object
 def get_metric(series, method):
@@ -38,7 +55,6 @@ def get_metric(series, method):
         prctile = int(method.replace('pct', ''))/100
         return series.quantile(prctile)
     return None
-
 
 # computes the latency from the profiling latency text files, using the latency_method specified
 def get_latency(latency_logs, latency_method):
@@ -60,6 +76,60 @@ def look_model_up(model_name, objective, precision, lut_path):
             if (row['MODEL_NAME'] == model_name):
                 return row
 
+# generates the yaml file as per requirement of the qaic_model_preparator.py
+def gen_yaml(model_base_name, image_size):
+    onnx_model ='./model/'+model_base_name+'.onnx'
+    dynamic_info = []   
+    model = onnx.load(onnx_model)
+    for inp in model.graph.input:
+        name = str(inp.name)
+        shape = inp.type.tensor_type.shape.dim
+        shape_params = [str(s.dim_param) for s in shape]
+        dynamic_info.append([name, shape_params])    
+    dynamic_info=str(dynamic_info).replace("'", '"')
+    yaml_file=Copyright+f'''
+
+MODEL:
+    INFO:
+        DESCRIPTION: "YoloV{model_base_name[5]} Models from Ultralytics Repo."
+        MODEL_TYPE: YOLOV{model_base_name[5]}
+        MODEL_PATH: {onnx_model}
+        INPUT_INFO: []
+        EXPORT_TYPE: ONNX
+        DYNAMIC_INFO:  [["{name}", ["batch_size", 3, {image_size}, {image_size}]]] 
+        VALIDATE: False
+        WORKSPACE: model_with_smart_nms
+        VERBOSE: INFO #INFO, DEBUG, WARNING. TRACE
+
+    PRE_POST_HANDLE:
+        ANCHOR_BIN_FILE: None
+        POST_PLUGIN: SMARTNMS
+        PRE_PLUGIN: True
+        NMS_PARAMS:
+            MAX_OUTPUT_SIZE_PER_CLASS: None
+            MAX_TOTAL_SIZE: None
+            IOU_THRESHOLD: None
+            SCORE_THRESHOLD: None
+            CLIP_BOXES: None
+            PAD_PER_CLASS: None
+
+    '''
+    # PRE_POST_HANDLE:
+        # ANCHOR_BIN_FILE: None
+        # POST_PLUGIN: QDETECT
+        # PRE_PLUGIN: True
+        # NMS_PARAMS:
+            # MAX_OUTPUT_SIZE_PER_CLASS: 100
+            # MAX_TOTAL_SIZE: 100
+            # IOU_THRESHOLD: 0.65
+            # SCORE_THRESHOLD: 0.25
+            # CLIP_BOXES: False
+            # PAD_PER_CLASS: False
+
+
+        
+    with open(f'./model.yaml', 'w') as file: file.write(yaml_file)
+
 
 # executes the command and writes it down in the command.txt. The first time, mode is 'w', then 'a' (append)
 def execute(cmd_elements, write_to_file, mode):
@@ -72,7 +142,7 @@ def execute(cmd_elements, write_to_file, mode):
 # checks device status and cores available
 def check_device(DEVICE_ID, CORES, INSTANCES):
 
-    QAIC_UTIL = subprocess.run(f"sudo /opt/qti-aic/tools/qaic-util -d {DEVICE_ID} -q",  shell=True, capture_output=True, text=True).stdout
+    QAIC_UTIL = subprocess.run(f"/opt/qti-aic/tools/qaic-util -d {DEVICE_ID} -q",  shell=True, capture_output=True, text=True).stdout
 
     try:
         NSP_TOTAL = int(QAIC_UTIL.split("Nsp Total:")[1].split()[0])
@@ -93,14 +163,8 @@ def check_device(DEVICE_ID, CORES, INSTANCES):
 
     if (NSP_TOTAL < CORES*INSTANCES):
         raise TypeError(f"Please specify valid inputs for --cores and --instance. Make sure CORES*INSTANCES is less or equal than {NSP_TOTAL} (= # NSP cores of the installed AIC100).")
-        
-    try:
-        TEMPERATURE = float(QAIC_UTIL.split("(degree C):")[1].split()[0])
-    except:
-        TEMPERATURE = 100.
 
-    return TEMPERATURE
-
+    return
 
 
 # generates a sample random input
@@ -113,7 +177,6 @@ def generate_random_data(model_path, BS, IS, INPUT_FOLDER):
         return
         
     ort_inputs = {}
-    aic_batch_io = {"IO-files": [[]]}
     os.makedirs(INPUT_FOLDER, exist_ok=True)
     dummy_input = torch.randn(BS, 3, IS, IS)
     image_file = f"{INPUT_FOLDER}input_img_{BS}x3x{IS}x{IS}.raw"
@@ -124,9 +187,6 @@ def generate_random_data(model_path, BS, IS, INPUT_FOLDER):
         file.write(','.join(data_files))
     print(f"The random input samples are saved at {INPUT_FOLDER} and are addressed by {input_list_file}", flush=True)
     input_name = model.graph.input[0].name
-    aic_batch_io["IO-files"][0].append({"path":f"input_img_{BS}x3x{IS}x{IS}.raw", "io-direction": "in", "elem-size": 4, "map-to": input_name, "dims": [BS, 3, IS, IS]})
-    with open(f"{INPUT_FOLDER}aic_batch_io.json", "w") as f:
-        json.dump(aic_batch_io, f, indent=1) 
     ort_inputs[input_name]=dummy_input.numpy().astype(np.float32)
     return ort_inputs, data_files, input_list_file
 
@@ -166,6 +226,61 @@ def fix_onnx_fp16(gen_models_path,  model_base_name):
     return model_base_name
 
 
+
+def get_yolov4_model(batch_size, include_nms):
+    if not os.path.exists('yolov3'):
+        os.system('git clone --branch archive https://github.com/ultralytics/yolov3.git')
+
+    path = os.path.join('./', 'yolov3')
+    os.chdir(path)
+    
+    os.system('curl -L -o yolov4.weights https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights')
+    os.system('git apply --reject --whitespace=fix ../../yoloV4WithoutModels.patch')
+
+    os.system(f'python3 detect.py --cfg cfg/yolov4-relu.cfg --weights ./yolov4.weights')
+
+    path = os.path.join('./', '..')
+    os.chdir(path) 
+    
+    os.makedirs('./model', exist_ok=True)
+    os.system(f'mv -v yolov3/yolov4_608_608_without_ABP_NMS.onnx model/.')
+
+    if include_nms: 
+        os.system(f'rm -rf model_with_smart_nms')
+        gen_yaml('yolov4_608_608_without_ABP_NMS', 608)
+        os.system('python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml') 
+        os.system(f'mv -v model_with_smart_nms/yolov4_608_608_without_ABP_NMS_preparator_aic100.onnx model_with_smart_nms/yolov4_608_608_with_smartnms_leaky_relu_bs.onnx')
+        os.system(f'mv -v model_with_smart_nms/yolov4_608_608_without_ABP_NMS_smartnms_config.yaml model_with_smart_nms/yolov4_608_608_with_smartnms_leaky_relu_bs_config.yaml')
+        
+    return 
+
+def get_yolov5_model(yolo_name, image_size, opset, include_nms):
+    if not os.path.exists('yolov5'):
+        os.system('git clone https://github.com/ultralytics/yolov5.git')
+    os.system(f'python yolov5/export.py --weights {yolo_name}.pt --include onnx --opset {opset}')
+    os.makedirs('./model', exist_ok=True)
+    os.system(f'mv -v {yolo_name}.onnx model/.')
+    if include_nms: 
+        os.system(f'rm -rf model_with_smart_nms')
+        gen_yaml(yolo_name, image_size)
+        os.system('python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml')          
+    return 
+
+def get_yolov7_model(yolo_name, image_size, include_nms):
+    if not os.path.exists('yolov7'):
+        os.system('git clone https://github.com/WongKinYiu/yolov7.git')
+    os.system(f'wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/{yolo_name}.pt')
+    
+    os.system(f'python yolov7/export.py --weights {yolo_name}.pt --img-size {image_size} {image_size}')    
+    os.makedirs('./model', exist_ok=True)
+    os.system(f'mv -v {yolo_name}.onnx model/.')        
+    os.system(f'rm -rf {yolo_name}*')
+    if include_nms: 
+        os.system(f'rm -rf model_with_smart_nms')        
+        gen_yaml(yolo_name, image_size) 
+        os.system('python /opt/qti-aic/tools/qaic-pytools/qaic-model-preparator.py --config model.yaml')
+    return 
+
 # This checks if arg_in is not specified by user, looks that up in the lut.csv or switches to 'default'
 def user_lut_default (arg_in, row, entry, default):
     if arg_in == None:
@@ -184,7 +299,7 @@ def run_model_on_ort(onnx_path, ort_inputs):
     output_names = [o.name for o in session.get_outputs()]
     ort_outputs = session.run(None, {k: v for k, v in ort_inputs.items() if k in input_names})
     return output_names, ort_outputs
-    
+
 # The main function
 def main(args):
     RUN_ONLY = args.run_only
@@ -192,7 +307,7 @@ def main(args):
     OBJECTIVE = 'best-throughput' if args.objective is None else args.objective
 
     try:
-        row = look_model_up(MODEL_NAME, OBJECTIVE, 'fp16', 'lut_cv_classifiers.csv')
+        row = look_model_up(MODEL_NAME, OBJECTIVE, 'fp16', 'lut_yolo_models.csv')
     except:
         row = None
 
@@ -209,17 +324,17 @@ def main(args):
 
     # Similarly, for the other arguments
     if OBJECTIVE == 'best-throughput':
-        BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',  '14'))
-        IS        = int(user_lut_default(args.image_size, row, 'IMAGE_SIZE', '224'))
-        CORES     = int(user_lut_default(args.cores,      row, 'CORES',        '1'))
-        INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',   '14'))
+        BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',   '1'))
+        IS        = int(user_lut_default(args.image_size, row, 'IMAGE_SIZE', '640'))
+        CORES     = int(user_lut_default(args.cores,      row, 'CORES',       '14'))
+        INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',    '1'))
         OLS       =     user_lut_default(args.ols,        row, 'OLS',          '2')
         MOS       =     user_lut_default(args.mos,        row, 'MOS',           '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',    '10')
         EXTRA     =     user_lut_default(args.extra,      row, 'EXTRA',         '')
     elif OBJECTIVE == 'best-latency':
         BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',   '1'))
-        IS        = int(user_lut_default(args.image_size, row, 'IMAGE_SIZE', '224'))
+        IS        = int(user_lut_default(args.image_size, row, 'IMAGE_SIZE', '640'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',       '14'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',    '1'))
         OLS       =     user_lut_default(args.ols,        row, 'OLS',          '1')
@@ -228,16 +343,19 @@ def main(args):
         EXTRA     =     user_lut_default(args.extra,      row, 'EXTRA',         '')
     else:
         BS        = int(user_lut_default(args.batch_size, row, 'BATCH_SIZE',   '1'))
-        IS        = int(user_lut_default(args.image_size, row, 'IMAGE_SIZE', '224'))
+        IS        = int(user_lut_default(args.image_size, row, 'IMAGE_SIZE', '640'))
         CORES     = int(user_lut_default(args.cores,      row, 'CORES',        '4'))
         INSTANCES = int(user_lut_default(args.instances,  row, 'INSTANCES',    '3'))
         OLS       =     user_lut_default(args.ols,        row, 'OLS',          '1')
         MOS       =     user_lut_default(args.mos,        row, 'MOS',           '')
         SET_SIZE  =     user_lut_default(args.set_size,   row, 'SET_SIZE',     '2')
         EXTRA     =     user_lut_default(args.extra,      row, 'EXTRA',         '')  
-        
-    TIME      = args.time
-    OPSET     = args.opset
+
+    INCLUDE_NMS = args.include_nms
+
+
+    TIME = args.time
+    OPSET = args.opset
 
     # check device status and cores available
     check_device(DEVICE_ID, CORES, INSTANCES)
@@ -251,64 +369,51 @@ def main(args):
     OUTPUT_FOLDER = "./outputFiles/"
     os.makedirs(INPUT_FOLDER, exist_ok=True)
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
-    
+
     MOTIF = f"B{BS}-C{CORES}-A{INSTANCES}-OLS{OLS}"
     if MOS != '': MOTIF = MOTIF + f"-MOS{MOS}"
+    if INCLUDE_NMS: MOTIF = MOTIF + "-NMS"
     MOTIF = MOTIF + f"-{OBJECTIVE}"
     MOTIF = MOTIF.replace(' ','')
     
+    YOLO_VERSION = MODEL_NAME[5]
+
     if not RUN_ONLY:
+
         print("\n\n*************************************************************************************", flush=True)
         print(f"Downloading {MODEL_NAME} (OPSET {OPSET})", flush=True)
         print("*************************************************************************************\n\n", flush=True)
-        # Downloading/Generating the onnx model
-
-        if MODEL_NAME in torchvision_models:
-            model = get_model (MODEL_NAME, weights="DEFAULT")
-        elif MODEL_NAME in timm_pretrained_models:
-            model = create_model (MODEL_NAME, pretrained=True)
-        elif MODEL_NAME == 'resnet-50':
-            model = torchvision.models.resnet50(weights=torchvision.models.ResNet50_Weights.IMAGENET1K_V2)
-        elif MODEL_NAME == 'resnet-152':
-            model = ResNetForImageClassification.from_pretrained("microsoft/resnet-152")        
-        elif MODEL_NAME == 'vit-base-patch16-224':
-            model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224')
-
-        if not os.path.exists('./model'):
-            os.makedirs('./model')
-
-        # Export the PyTorch model to ONNX
-        dummy_input = torch.randn(BS, 3, IS, IS)
-        torch.onnx.export(model,                    # PyTorch model
-                          dummy_input,              # Input tensor
-                          './model/model.onnx',     # Output file
-                          export_params=True,       # Export the model parameters
-                          opset_version=OPSET,      # ONNX opset version
-                          do_constant_folding=True, # Fold constant values for optimization
-                          input_names=['input'],    # Input tensor names
-                          output_names=['output'],  # Output tensor names
-                          dynamic_axes={'input': {0: 'batch_size'},  # Dynamic axes
-                                        'output': {0: 'batch_size'}})
+        if (YOLO_VERSION == '7'):
+            get_yolov7_model(MODEL_NAME, IS, INCLUDE_NMS)
+        elif (YOLO_VERSION == '5'):
+            get_yolov5_model(MODEL_NAME, IS, OPSET, INCLUDE_NMS)
+        elif (YOLO_VERSION == '4'):
+            get_yolov4_model(BS, INCLUDE_NMS)
 
     # For now, assuming only one onnx is generated in the directory ./model
-    for file in os.listdir("./model"):
+    
+    MODEL_FOLDER = './model_with_smart_nms' if INCLUDE_NMS else './model'
+    
+    for file in os.listdir(MODEL_FOLDER):
         if file.endswith(".onnx"):
-            model_base_name = file[:-5]
+            MODEL_BASE_NAME = file[:-5]
 
     # Fixing for fp16
-    model_base_name = fix_onnx_fp16('./model', model_base_name)
-    MODEL = f"./model/{model_base_name}.onnx"
+    MODEL_BASE_NAME = fix_onnx_fp16(MODEL_FOLDER, MODEL_BASE_NAME)
+    MODEL = f"{MODEL_FOLDER}/{MODEL_BASE_NAME}.onnx"
 
-    # Generate a sample input 
-    ort_inputs, data_files, input_list_file = generate_random_data(MODEL, BS, IS, INPUT_FOLDER)
+    execute ([""], f"commands-{MOTIF}.txt", 'w')
     
+    # Generate a sample input
+    ort_inputs, data_files, input_list_file = generate_random_data(MODEL, BS, IS, INPUT_FOLDER)
+
     if not RUN_ONLY:
         print("\n\n*************************************************************************************", flush=True)
         print(f"Compiling for BATCH_SIZE {BS} & IMAGE_SIZE {IS} for {CORES} AIC100_CORES", flush=True)
         print("*************************************************************************************\n\n", flush=True)
 
         # Compile for fp16
-        execute(["rm", "-rf", f"compiled-bin-fp16-{MOTIF}"], f"commands-{MOTIF}.txt", 'w')
+        execute(["rm", "-rf", f"compiled-bin-fp16-{MOTIF}"], f"commands-{MOTIF}.txt", 'a')
         os.makedirs(f"{OUTPUT_FOLDER}fp16-{MOTIF}", exist_ok=True)
         cmd_elements = ["/opt/qti-aic/exec/qaic-exec",
                         f"-m={MODEL}",
@@ -323,26 +428,18 @@ def main(args):
                         f"-stats-batchsize={BS}",
                         f"{EXTRA}"
                         ]
-        if MOS != '':
+        if MOS.replace(' ','') != '':
             cmd_elements.extend([f"-mos={MOS}"])
         execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
 
     print("\n\n*************************************************************************************", flush=True)
-    print(f"Running {INSTANCES} INSTANCES for {TIME} seconds in a loop with OBJECTIVE {OBJECTIVE}", flush=True)
+    print(f"Running {INSTANCES} INSTANCES repeatedly for {TIME} seconds with OBJECTIVE {OBJECTIVE}", flush=True)
     print("*************************************************************************************\n\n", flush=True)
 
     # Run for fp16
     run_output_dir = f"{OUTPUT_FOLDER}fp16-{MOTIF}"
     os.makedirs(run_output_dir, exist_ok=True)
-
-    try:
-        while check_device(DEVICE_ID, CORES, INSTANCES) > 65.:
-            print (f"Waiting for device to cool down! Current temperature {check_device(DEVICE_ID, CORES, INSTANCES)}C ")
-            time.sleep(10) 
-    except:
-        None
-    
-    cmd_elements = ["sudo", "/opt/qti-aic/exec/qaic-runner",
+    cmd_elements = ["/opt/qti-aic/exec/qaic-runner",
                     "-t", f"./compiled-bin-fp16-{MOTIF}",
                     "-a", f"{INSTANCES}",
                     "--time", f"{TIME}",
@@ -350,43 +447,17 @@ def main(args):
                     "--aic-profiling-out-dir", run_output_dir,
                     "-write-output-dir", run_output_dir,
                     "-S", f"{SET_SIZE}",
-                    "-d", f"{DEVICE_ID}",
-                    "--aic-batch-json-input", "./inputFiles/aic_batch_io.json"
+                    "-d", f"{DEVICE_ID}"
                     ]
+    for data_file in data_files:
+        cmd_elements.extend(["-i", data_file])
     execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
-    
-    # # computes the device avg power during runtime
-    # def measure_power(TIME):
-        # global avg_power 
-        # SAMPLE_RATE = 3
-        # avg_power = 0.
-        # count = 0
-        # time.sleep(TIME/(SAMPLE_RATE+2))
-        # for i in range (SAMPLE_RATE):
-            # time.sleep(TIME/(SAMPLE_RATE+2))  
-            # try:
-                # with open('/sys/class/hwmon/hwmon3/power1_input', 'r') as power:
-                    # avg_power = avg_power + float(power.read())/1e6
-                    # # print (float(power.read())/1e6)
-                    # count = count + 1
-            # except:
-                # avg_power = 75.
-        # avg_power = avg_power/count
-    
-    # t1 = threading.Thread(target=execute,       args=(cmd_elements, f"commands-{MOTIF}.txt", 'a',))
-    # t2 = threading.Thread(target=measure_power, args=(TIME,))
-    # t1.start()
-    # t2.start()
-    # t1.join()
-    # t2.join()
-    # print(avg_power)
-    
+
     latency_method = '95pct'
     config_folders = glob(f"{OUTPUT_FOLDER}fp16-{MOTIF}")
     latency_logs = glob(f"{config_folders[0]}/*latency.txt")
     LATENCY = get_latency(latency_logs, latency_method)
     print(f"Latency ({latency_method}) = {LATENCY:.3f} ms")
-
 
     print("\n\n*************************************************************************************", flush=True)
     print(f"Comparing AIC100 fp16 inference with onnxruntime fp32 inference", flush=True)
@@ -408,7 +479,7 @@ def main(args):
         diff = ort_output_flat - aico16_flat
         argmax = diff.argmax()
         print (f"The maximum difference is {np.abs(diff).max()} for values {ort_output_flat[argmax]} from onnxruntime (fp32) and {aico16_flat[argmax]} from aic100 (fp16)") 
-
+        
 
 def check_positive(arg_in):
     try:
@@ -421,11 +492,14 @@ def check_positive(arg_in):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Download, Compile, and Run vision models on randomly generated inputs")
+        description="Download, Compile, and Run YOLO models on randomly generated inputs for benchmarking")
     parser.add_argument(
         "--model-name", "-m",
-        choices = all_models,
         required=True,
+        choices=["yolov4", "yolov5s", "yolov5m",
+                 "yolov5l", "yolov5x", "yolov7", "yolov7-tiny",
+                 "yolov7x", "yolov7-w6", "yolov7-e6",
+                 "yolov7-d6", "yolov7-e6e"],
         help="Model name to download.",
     )
     parser.add_argument(
@@ -435,8 +509,8 @@ def parse_args():
     )
     parser.add_argument(
         "--opset",  type=check_positive,
-        default=14,
-        help="ONNX opset. Default <14>",
+        default=12,
+        help="ONNX opset. Default <12>",
     )
     parser.add_argument(
         "--batch-size", "-b", type=check_positive,
@@ -444,7 +518,7 @@ def parse_args():
     )
     parser.add_argument(
         "--image-size", "-s", type=check_positive,
-        help="Sample input image width/height. Default <224>.",
+        help="Sample input image width/height. Default <640>.",
     )
     parser.add_argument(
         "--cores", "-c", type=int,
@@ -463,7 +537,7 @@ def parse_args():
     )
     parser.add_argument(
         "--mos", type=str,
-        help="Maximum output channel split.",
+        help="Maximum output channel split. Default <1>",
     )
     parser.add_argument(
         "--set-size", type=int,
@@ -486,7 +560,12 @@ def parse_args():
     )
     parser.add_argument('--run-only', '-r',
                         action='store_true',
-                        help="Performs the inference only, without re-exporting and re-compiling the model")
+                        help="Performs the inference only, without re-exporting and re-compiling the model"
+    )    
+    parser.add_argument('--include-nms', 
+                        action='store_true',
+                        help="add the non maximum suppression to the object detectio model"
+    )
     return parser.parse_args()
 
 

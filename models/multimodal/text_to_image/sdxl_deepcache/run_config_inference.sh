@@ -5,6 +5,10 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 ####################################################################################################
 
+
+PYTHON=$1
+echo $PYTHON
+
 # model configs
 MODEL_PATH="stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT="\"A cinematic shot of a baby racoon wearing an intricate italian priest robe.\""
@@ -116,7 +120,7 @@ export TQDM_DISABLE=1
 
 rm run.sh
 
-scripts="python main.py \
+scripts="$PYTHON main.py \
 --model-path $MODEL_PATH \
 --prompt $PROMPT \
 --negative-prompt $NEGATIVE_PROMPT \

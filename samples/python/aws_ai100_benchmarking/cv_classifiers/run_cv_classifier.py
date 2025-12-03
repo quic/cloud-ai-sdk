@@ -1,5 +1,38 @@
-# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-# SPDX-License-Identifier: BSD-3-Clause-Clear
+##############################################################################
+# @@-COPYRIGHT-START-@@
+#
+# Copyright (c) 2023, Qualcomm Technologies, Inc. All Rights Reserved.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# @@-COPYRIGHT-END-@@
+##############################################################################
+
 
 import os
 import subprocess
@@ -14,7 +47,7 @@ import pandas as pd
 from glob import glob
 import time
 import threading
-import json
+
 import torchvision
 from transformers import ResNetForImageClassification, ViTForImageClassification
 from torchvision.models import list_models, get_model
@@ -25,8 +58,8 @@ torchvision_models = ['resnet18','resnet34','resnet50','resnet101','resnet152','
 # torchvision_models = list_models()
 # timm_pretrained_models = timm.list_models(pretrained=True) # This list is huge. Ignoring for now
 timm_pretrained_models = []
-other_sources = ['resnet-50', 'resnet-152', 'vit-base-patch16-224']
-all_models  = list(set(torchvision_models+timm_pretrained_models+other_sources))
+aws_list = ['resnet-50', 'resnet-152', 'vit-base-patch16-224']
+all_models  = list(set(torchvision_models+timm_pretrained_models+aws_list))
 all_models.sort()
 
 
@@ -38,7 +71,6 @@ def get_metric(series, method):
         prctile = int(method.replace('pct', ''))/100
         return series.quantile(prctile)
     return None
-
 
 # computes the latency from the profiling latency text files, using the latency_method specified
 def get_latency(latency_logs, latency_method):
@@ -72,7 +104,7 @@ def execute(cmd_elements, write_to_file, mode):
 # checks device status and cores available
 def check_device(DEVICE_ID, CORES, INSTANCES):
 
-    QAIC_UTIL = subprocess.run(f"sudo /opt/qti-aic/tools/qaic-util -d {DEVICE_ID} -q",  shell=True, capture_output=True, text=True).stdout
+    QAIC_UTIL = subprocess.run(f"/opt/qti-aic/tools/qaic-util -d {DEVICE_ID} -q",  shell=True, capture_output=True, text=True).stdout
 
     try:
         NSP_TOTAL = int(QAIC_UTIL.split("Nsp Total:")[1].split()[0])
@@ -113,7 +145,6 @@ def generate_random_data(model_path, BS, IS, INPUT_FOLDER):
         return
         
     ort_inputs = {}
-    aic_batch_io = {"IO-files": [[]]}
     os.makedirs(INPUT_FOLDER, exist_ok=True)
     dummy_input = torch.randn(BS, 3, IS, IS)
     image_file = f"{INPUT_FOLDER}input_img_{BS}x3x{IS}x{IS}.raw"
@@ -124,9 +155,6 @@ def generate_random_data(model_path, BS, IS, INPUT_FOLDER):
         file.write(','.join(data_files))
     print(f"The random input samples are saved at {INPUT_FOLDER} and are addressed by {input_list_file}", flush=True)
     input_name = model.graph.input[0].name
-    aic_batch_io["IO-files"][0].append({"path":f"input_img_{BS}x3x{IS}x{IS}.raw", "io-direction": "in", "elem-size": 4, "map-to": input_name, "dims": [BS, 3, IS, IS]})
-    with open(f"{INPUT_FOLDER}aic_batch_io.json", "w") as f:
-        json.dump(aic_batch_io, f, indent=1) 
     ort_inputs[input_name]=dummy_input.numpy().astype(np.float32)
     return ort_inputs, data_files, input_list_file
 
@@ -342,7 +370,7 @@ def main(args):
     except:
         None
     
-    cmd_elements = ["sudo", "/opt/qti-aic/exec/qaic-runner",
+    cmd_elements = ["/opt/qti-aic/exec/qaic-runner",
                     "-t", f"./compiled-bin-fp16-{MOTIF}",
                     "-a", f"{INSTANCES}",
                     "--time", f"{TIME}",
@@ -350,9 +378,10 @@ def main(args):
                     "--aic-profiling-out-dir", run_output_dir,
                     "-write-output-dir", run_output_dir,
                     "-S", f"{SET_SIZE}",
-                    "-d", f"{DEVICE_ID}",
-                    "--aic-batch-json-input", "./inputFiles/aic_batch_io.json"
+                    "-d", f"{DEVICE_ID}"
                     ]
+    for data_file in data_files:
+        cmd_elements.extend(["-i", data_file])
     execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
     
     # # computes the device avg power during runtime
@@ -435,8 +464,8 @@ def parse_args():
     )
     parser.add_argument(
         "--opset",  type=check_positive,
-        default=14,
-        help="ONNX opset. Default <14>",
+        default=13,
+        help="ONNX opset. Default <13>",
     )
     parser.add_argument(
         "--batch-size", "-b", type=check_positive,

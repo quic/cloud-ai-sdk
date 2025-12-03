@@ -1,0 +1,100 @@
+## Description
+---
+
+Download the yolov4, yolov5, and yolov7 models, prepare for the Qualcomm AIC100, compile for high-thoughput, min-latency, or balanced throughput with fp16 precision, run the model on a generated random sample, and obtain the benchmarking results and output values.
+
+## Source of the models
+---
+The models are downloaded from (https://github.com/ultralytics/yolov5). This script has been tested for the following requested models:
+* yolov4
+* yolov5s
+* yolov5m
+* yolov5l
+* yolov5x
+* yolov7-e6e
+
+
+## Virtual environment
+---
+For a quick environment setup:
+
+```commandline
+source /opt/qti-aic/dev/python/qaic-env/bin/activate
+```
+
+## Framework and version
+---
+```commandline
+pip3 install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
+pip3 install ultralytics seaborn nvidia-pyindex onnx-graphsurgeon
+
+```
+## Syntax
+---
+Copy the run_yolo_model.py and the lut_yolo_models.csv to a working directory. Pick a MODEl_NAME from the list above, and type:
+
+```commandline
+
+usage: run_yolo_model.py [-h] --model-name {yolov4,yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
+             [--objective {best-latency,best-throughput,balanced}] 
+	     [--opset OPSET] 
+	     [--batch-size BATCH_SIZE]
+             [--image-size IMAGE_SIZE] 
+	     [--cores {1,2,3,4,5,6,7,8,9,10,11,12,13,14}]
+             [--instances {1,2,3,4,5,6,7,8,9,10,11,12,13,14}] 
+	     [--ols {1,2,3,4,5,6,7,8,9,10,11,12,13,14}] 
+	     [--mos MOS]
+             [--set-size {1,2,3,4,5,6,7,8,9,10}] 
+	     [--extra EXTRA] 
+	     [--time TIME] 
+	     [--device {0,1,2,3,4,5,6,7}] 
+	     [--run-only]
+
+
+
+Download, Compile, and Run YOLO models on randomly generated inputs
+
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --model-name, -m {yolov4,yolov5s,yolov5m,yolov5l,yolov5x,yolov7-e6e}
+                        Model name to download.
+  --objective, -o {best-latency,best-throughput,balanced}
+                        Running for best-latency, best-throughput, or balanced
+  --opset OPSET         ONNX opset. Default <12>
+  --batch-size, -b BATCH_SIZE
+                        Sample input batch size. Default <1>.
+  --image-size, -s IMAGE_SIZE
+                        Sample input image width/height. Default <640>.
+  --cores, -c {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
+                        Number of AIC100 cores to compile the model for. Default <2>
+  --instances, -i {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
+                        Number of model instances to run on AIC100. Default <7>
+  --ols {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
+                        Overlap split factor. Default <1>
+  --mos MOS             Maximum output channel split. Default <1>
+  --set-size {1,2,3,4,5,6,7,8,9,10}
+                        Set size. Default <10>
+  --extra EXTRA         Extra compilation arguments.
+  --time TIME           Duration (in seconds) for which to submit inferences. Default <20>
+  --device, -d {0,1,2,3,4,5,6,7}
+                        AIC100 device ID. Default <0>
+  --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
+
+
+```
+For example:
+```commandline
+python run_yolo_model.py -m yolov5s -o best-throughput
+```
+or
+```commandline
+python run_yolo_model.py -m yolov5m -o balanced
+```
+or
+
+```commandline
+python run_yolo_model.py -m yolov5x -o best-throughput
+```
+
+The hardware configuration will be either associated to the corresponding row in the lut_yolo_models.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_yolo_models.csv, default values will be used.

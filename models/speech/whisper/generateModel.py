@@ -7,19 +7,16 @@ import os
 import argparse
 import numpy as np
 import torch
-from datasets import load_dataset
 import whisper
+from audio import AudioSample
 
 def main(model_name: str, output_dir: str):
     cache_path = './cache'
-    # load dummy dataset and read soundfiles
-    ds = load_dataset(
-        'hf-internal-testing/librispeech_asr_dummy', 'clean', split='validation'
-    )
 
-    audio_sample = ds[0]['audio']
+    audio_sample = AudioSample()
+    audio_path = audio_sample.to_file()
 
-    audio = whisper.load_audio(audio_sample['path']) # Read audio from file
+    audio = whisper.load_audio(audio_path) # Read audio from file
     audio_pad = whisper.pad_or_trim(audio) # Padding and trimming
 
     # make log-Mel spectrogram and move to the same device as the model

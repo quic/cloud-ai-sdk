@@ -18,7 +18,7 @@ The models are downloaded from (https://github.com/ultralytics/yolov5). This scr
 For a quick environment setup:
 
 ```commandline
-python3.8 -m venv det_env
+python3.10 -m venv det_env
 source det_env/bin/activate
 
 ```
@@ -26,9 +26,7 @@ source det_env/bin/activate
 ## Framework and version
 ---
 ```commandline
-pip install torch==1.13.0+cpu torchvision==0.14.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
-pip install onnx==1.12.0 onnxruntime==1.15.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
-pip install ultralytics seaborn onnx-graphsurgeon
+pip3 install -r requirements.txt
 
 ```
 ## Syntax

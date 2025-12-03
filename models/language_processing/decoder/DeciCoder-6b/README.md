@@ -21,46 +21,51 @@ The model is downloaded from [HuggingFace](https://huggingface.co/Deci/DeciCoder
 ## Environment and Dependencies
 Create Python virtual environment and activate.
 
-        python3.8 -m venv llm_env
-        source llm_env/bin/activate
+```commandline
+python3.10 -m venv llm_env
+source llm_env/bin/activate
+pip3 install -r requirements.txt
+```
 
 Install the dependencies.
 
-        python -m pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
-        python -m pip install onnx==1.15.0 onnxruntime==1.16.3 onnxsim==0.4.35 tiktoken==0.5.2 protobuf==3.20.2 urllib3==1.26.6 
-        git clone --branch v4.35.2 --depth 1 https://github.com/huggingface/transformers
-        cd transformers
-        git apply ../Llama2_4.35.2.patch
-        python -m pip install .
-        cd ..
+```commandline
+git clone --branch v4.35.2 --depth 1 https://github.com/huggingface/transformers transformers-dev
+cd transformers-dev
+git apply ../Llama2_4.35.2.patch
+pip3 install .
+cd ..
+```
 
 ## Model and Hardware Parameters
-Specify the model repo/name and the compilation parameters. Model will be compiled using MX6 compression. Let MX="" if you want to avoid MX6 compression. BS, PL and CL are Batchsize, Prompt Length and Context Length respectively. 
+Customize the model repo/name and the compilation parameters in `init.sh`. Model will be compiled using MX6 compression. Let MX="" if you want to avoid MX6 compression. BS, PL and CL are Batchsize, Prompt Length and Context Length respectively.
 
-        MODEL_REPO="Deci"
-        MODEL_NAME="DeciCoder-6b"
-        BS=1
-        PL=256
-        CL=2048
-        CORES=14
-        MX="-mxfp6-matmul"
+```commandline
+source init.sh
+```
 
 ## Model Generation
 Generate the model into onnx format.
 		
-        python generateModel.py --model-name ${MODEL_REPO}/${MODEL_NAME} --model-class LlamaForCausalLM
+```commandline
+python generateModel.py --model-name ${MODEL_REPO}/${MODEL_NAME} --model-class LlamaForCausalLM
+```
 
 ## Model Compilation for AIC100
 Compile the onnx format into bin file. Modify BS, PL, CL, CORES, and MX if needed.
 
-        bash compileModel.sh $MODEL_NAME $BS $PL $CL $CORES $MX
+```commandline
+bash compileModel.sh $MODEL_NAME $BS $PL $CL $CORES $MX
+```
 
 ## Model Execution on AIC100
-Run the bin file on AIC100. Modify DEVICE_ID if needed.
+Run the compiled model binary on AIC100. Modify DEVICE_ID if needed. Run  `/opt/qti-aic/tools/qaic-util -q` to check available devices.
 
-        PROMPT="insert your prompt here"
-        DEVICE_ID=0
-        python runModel.py --model-name ${MODEL_REPO}/${MODEL_NAME} --qpc ./qpc/${MODEL_NAME}-kv-${PL}pl-${CL}cl-${CORES}c${MX} --device_id $DEVICE_ID --prompt "${PROMPT}"
+```commandline
+export PROMPT="insert your prompt here"
+export DEVICE_ID=0
+python runModel.py --model-name ${MODEL_REPO}/${MODEL_NAME} --qpc ./qpc/${MODEL_NAME}-kv-${PL}pl-${CL}cl-${CORES}c${MX} --device_id $DEVICE_ID --prompt "${PROMPT}"
+```
 
 ## References 
 - [Shared Micro-exponents](https://arxiv.org/abs/2302.08007)

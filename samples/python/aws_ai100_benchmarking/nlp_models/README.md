@@ -1,23 +1,15 @@
 ## Description
 ---
-This document runs a script (run_nlp_model.py) to benchmark encoder-type NLP model from Hugging Face.  The script downloads the model, prepares it for the Qualcomm Cloud AI accelerator, compiles it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, runs the model on a generated random sample, and obtains the benchmarking results and output values.
-
-## Efficient Transformers
----
-Support for embedding models is now available in the Qualcomm efficient-transformers library.  Refer to [link](https://quic.github.io/efficient-transformers/source/validate.html#embedding-models) for more details.
+This document runs a script (run_nlp_model.py) that downloads an encoder-type NLP model from Huggingface, prepares it for the Qualcomm AIC100, compiles it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, runs the model on a generated random sample, and obtains the benchmarking results and output values.
 
 ## Source of the models
 ---
-The models are downloaded from (https://huggingface.co). This script has been tested with the following models:
+The models are downloaded from (https://huggingface.co). This script has been tested for the following models:
 
 * albert-base-v2
 * allenai/scibert_scivocab_uncased
 * avichr/heBERT_sentiment_analysis
-* BAAI/bge-reranker-large
-* BAAI/bge-base-en-v1.5
-* BAAI/bge-reranker-v2-m3
-* BAAI/bge-large-en-v1.5
-* BAAI/bge-small-en-v1.5
+* BaptisteDoyen/camembert-base-xnli
 * beomi/kcbert-base
 * bert-base-cased
 * bert-base-chinese
@@ -61,9 +53,6 @@ The models are downloaded from (https://huggingface.co). This script has been te
 * hfl/chinese-bert-wwm-ext
 * hfl/chinese-electra-180g-base-discriminator
 * hfl/chinese-roberta-wwm-ext
-* intfloat/e5-large
-* intfloat/e5-large-v2
-* jinaai/jina-embeddings-v2-base-code
 * kit-nlp/bert-base-japanese-sentiment-cyberbullying
 * klue/bert-base
 * m3hrdadfi/bert-fa-base-uncased-wikinli
@@ -86,7 +75,6 @@ The models are downloaded from (https://huggingface.co). This script has been te
 * sentence-transformers/all-mpnet-base-v2
 * sentence-transformers/bert-base-nli-mean-tokens
 * sentence-transformers/distilbert-base-nli-stsb-mean-tokens
-* sentence-transformers/gtr-t5-large
 * sentence-transformers/msmarco-distilbert-base-tas-b
 * sentence-transformers/paraphrase-MiniLM-L6-v2
 * sentence-transformers/paraphrase-mpnet-base-v2
@@ -105,21 +93,18 @@ The models are downloaded from (https://huggingface.co). This script has been te
 For a quick environment setup:
 
 ```commandline
-python3.10 -m venv nlp_env
-source nlp_env/bin/activate
-pip3 install -r requirements.txt
+python3 -m venv nlp_models
+source nlp_models/bin/activate
 ```
 
-## Hugging Face authentication
-
-Some models on Hugging Face require an access token.  Refer to https://huggingface.co/docs/hub/en/security-tokens for more information.
-
+## Framework and version
+---
+```commandline
+pip3 install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 optimum==1.8 pandas==2.0.2 urllib3==1.26.6
 ```
-export HF_TOKEN=<your_auth_token>
-```
-
 ## Syntax
 ---
+Copy the run_nlp_model.py and the lut_nlp_models.csv to a  working directory. Pick a MODEl_NAME from the list above, and type:
 Pick a MODEl_NAME from the list above. At the working directory where two files run_nlp_model.py and the lut_nlp_models.csv exist, use the following command:
 
 
@@ -138,7 +123,6 @@ usage: run_nlp_model.py [-h] --model-name MODEL_NAME
 			[--extra EXTRA] 
 			[--time TIME] 
 			[--device {0,1,2,3,4,5,6,7}] 
-                        [--api-run]
 			[--run-only]
 
 Download, Compile, and Run encoder-type NLP models on randomly generated inputs
@@ -157,9 +141,9 @@ optional arguments:
   --seq-length, -s SEQ_LENGTH
                         Sample input sequence length. Default <128>.
   --cores {1,2,3,4,5,6,7,8,9,10,11,12,13,14}, -c {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
-                        Number of AI cores to compile the model for. Default <2>
+                        Number of AIC100 cores to compile the model for. Default <2>
   --instances, -i {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
-                        Number of model instances to run on Cloud AI device. Default <7>
+                        Number of model instances to run on AIC100. Default <7>
   --ols {1,2,3,4,5,6,7,8,9,10,11,12,13,14}
                         Overlap split factor. Default <1>
   --mos MOS             Maximum output channel split. Default <1>
@@ -168,83 +152,20 @@ optional arguments:
   --extra EXTRA         Extra compilation arguments.
   --time TIME           Duration (in seconds) for which to submit inferences. Default <20>
   --device, -d {0,1,2,3,4,5,6,7}
-                        Cloud AI device ID. Default <0>
-  --api-run, -a         Performs the inference using qaic session (high-level) and qaicrt(low-level) Python APIs. If this flag is not specified, qaic-runner CLI is used. 
+                        AIC100 device ID. Default <0>
   --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
 
 ```
-Examples:
-Use qaic session and qaicrt Python APIs 
+For example:
 ```commandline
-python run_nlp_model.py --model-name albert-base-v2 -t question-answering --objective best-throughput --api-run
+python run_nlp_model.py -m bert-large-uncased
 ```
-
-Use qaic-runner CLI
-```commandline
-python run_nlp_model.py -m Rostlab/prot_bert
-```
+or
 ```commandline
 python run_nlp_model.py -m bert-base-cased -t question-answering -o best-throughput
 ```
+or
 ```commandline
 python run_nlp_model.py --model-name bert-base-uncased --objective best-latency
 ```
-
-The TASK and hardware configuration will be either associated to the corresponding row in the lut_nlp_models.csv or to default values if not specified by the user. If the MODEL_NAME is not included in the lut_nlp_models.csv, pick a corresponding task, or switch to default.
-
-After download, compile, and run is complete, the working directory of the selected model is as follows. 
-# Working directory structure
-```
-|── model                   # Contains the onnx file of the picked model 
-|   └── model.onnx          # The onnx file of the picked model
-|── inputFiles              # Contains the (randomly generated) input files of the compiled model
-│   └── input_ids*.raw      # Randomly generated input files for the compiled model
-│   └── attention_mask*.raw 
-│   └── token_type_ids*.raw 
-|── outputFiles             # Contains the corresponding output to input, as well as the hardware profiling for latency
-│   └── fp16*               
-│       └── output-act*.bin # Corresponding output to the randomly generated input_img*.raw
-│       └── aic-profil*.bin # The hardware profiling for round trip latency between host and device for each inference
-├── compiled-bin*           # Compilation path
-│   └── programqpc.bin      # For the selected objective, the model.onnx is compiled into programqpc.bin 
-├── list*.txt               # A list that contains path to the inputs. Can be used as input to qaic-runner
-├── commands*.txt           # Includes necessary compilation and running scripts to reproduce the results manually.
-
-```
-To manually reproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 
-
-
-## Run an OpenAI-compatible REST endpoint
----
-
-Setup:
-
-```
-source ./nlp_env/bin/activate
-```
-
-Build the embedding model:
-
-```
-python run_nlp_model.py -m BAAI/bge-large-en-v1.5 --task feature-extraction --objective best-throughput
-```
-
-Start endpoint:
-
-```
-python server.py --qpc_path ./models/BAAI/bge-large-en-v1.5/compiled-bin-fp16-B1-C4-A3-OLS2-MOS1-best-throughput
-```
-
-Test the endpoint:
-
-```
-curl http://localhost:8000/v1/embeddings \
-  -H "Authorization: Bearer test-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": ["your-text-here"],
-    "model": "bge-large-en-v1.5",
-    "encoding_format": "float"
-  }'
-```
-
+The TASK and hardware configuration will be either associated to the corresponding row in the lut_nlp_models.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_nlp_models.csv, pick a corresponding task, or switch to default.

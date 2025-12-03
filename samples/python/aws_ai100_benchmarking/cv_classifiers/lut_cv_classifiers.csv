@@ -1,0 +1,113 @@
+﻿MODEL_NAME,TASK,BATCH_SIZE,IMAGE_SIZE,CORES,INSTANCES,OLS,MOS,EXTRA,SET_SIZE,PRECISION,OBJECTIVE,THPS,LATENCY,FLOPS
+resnet-50,image-classification,1,224,14,1,1,"1,7"," -sdp-cluster-sizes=7,7 -multicast-weights -use-producer-dma=1",3,fp16,best-latency,,,
+resnet-50,image-classification,2,224,12,1,2,"1,6"," -sdp-cluster-sizes=6,6 -multicast-weights -use-producer-dma=1",3,fp16,balanced,,,
+resnet-50,image-classification,14,224,14,1,1,"1,1"," -sdp-cluster-sizes=7,7 -multicast-weights  -use-producer-dma=1",3,fp16,best-throughput,,,
+resnet-152,image-classification,1,224,12,1,1,"6,6"," -sdp-cluster-sizes=6,6 -multicast-weights  -use-producer-dma=1 ",2,fp16,best-latency,,,
+resnet-152,image-classification,4,224,12,1,2,"4,4"," -sdp-cluster-sizes=6,6 -multicast-weights  -use-producer-dma=1 ",2,fp16,balanced,,,
+resnet-152,image-classification,14,224,14,1,2,"1,1"," -sdp-cluster-sizes=7,7 -multicast-weights  -use-producer-dma=1 ",4,fp16,best-throughput,,,
+vit-base-patch16-224,image-classification,1,224,12,1,1,12, -multicast-weights,2,fp16,best-latency,,,
+vit-base-patch16-224,image-classification,2,224,6,2,1,6, -multicast-weights,2,fp16,balanced,,,
+vit-base-patch16-224,image-classification,4,224,4,3,2,1, -multicast-weights,4,fp16,best-throughput,,,
+,,,,,,,,,,,,,,
+alexnet,image-classification,15,224,2,7,1,2, -aic-enable-depth-first,3,fp16,best-throughput,11086.612,32.7828997,15.83626984
+densenet121,image-classification,10,224,1,14,4,, -multicast-weights -aic-enable-depth-first,5,fp16,best-throughput,8671.592,38.572738,50.24332725
+densenet161,image-classification,15,224,1,14,1,1, -multicast-weights -aic-enable-depth-first,6,fp16,best-throughput,2673.388,96.2001365,41.94995466
+densenet169,image-classification,15,224,1,14,4,1, -aic-enable-depth-first,3,fp16,best-throughput,5967.089,49.2682835,41.00723334
+densenet201,image-classification,9,224,1,14,2,1, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,3636.949,41.117627,31.9351905
+efficientnet_b0,image-classification,3,224,1,14,2,1, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,7257.985,11.6267992,6.026232714
+efficientnet_b1,image-classification,2,240,1,14,1,1, -multicast-weights -aic-enable-depth-first,3,fp16,best-throughput,4086.918,20.8586622,6.00356497
+efficientnet_b2,image-classification,1,260,1,14,1,, -aic-enable-depth-first,2,fp16,best-throughput,2607.622,11.4848816,5.498057086
+efficientnet_b3,image-classification,12,300,2,7,4,1, -multicast-weights -aic-enable-depth-first,4,fp16,best-throughput,965.477,366.5256544,3.729724158
+efficientnet_b4,image-classification,1,380,2,7,2,2, ,3,fp16,best-throughput,623.599,32.3078053,5.751382287
+efficientnet_b5,image-classification,1,456,3,4,2,, ,2,fp16,best-throughput,250.032,3.183355,5.352057584
+efficientnet_b6,image-classification,1,528,7,2,2,7, -multicast-weights -use-producer-dma=1,3,fp16,best-throughput,104.269,57.70001105,4.130469319
+efficientnet_b7,image-classification,1,600,7,2,2,7,,2,fp16,best-throughput,58.335,68.8706878,4.553541539
+efficientnet_v2_l,image-classification,2,480,2,7,1,1, -multicast-weights,4,fp16,best-throughput,238.706,3.12399,27.09761586
+efficientnet_v2_m,image-classification,1,480,1,14,4,1, -multicast-weights,4,fp16,best-throughput,505.279,5.4262809,25.23287119
+efficientnet_v2_s,image-classification,1,384,1,14,1,, -multicast-weights,4,fp16,best-throughput,1668.668,3.891984,28.4290336
+inception_v3,image-classification,4,299,2,7,2,1, ,4,fp16,best-throughput,3359.828,5.4139998,38.63277508
+mnasnet0_5,image-classification,25,224,14,1,1,1, -multicast-weights,4,fp16,best-throughput,21548.458,4.7587532,5.030174119
+mnasnet0_75,image-classification,2,224,1,14,2,1, -multicast-weights,5,fp16,best-throughput,19306.35,22.4027991,9.056752115
+mnasnet1_0,image-classification,27,224,14,1,2,, -multicast-weights,6,fp16,best-throughput,21363.244,7.64395385,14.36645824
+mnasnet1_3,image-classification,14,224,7,2,4,, ,5,fp16,best-throughput,17253.946,14.616928,19.17851463
+mobilenet_v2,image-classification,14,224,2,7,1,2, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,19377.384,11.1413692,12.69167186
+mobilenet_v3_large,image-classification,5,224,1,14,1,, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,18221.095,7.8104648,8.558027633
+mobilenet_v3_small,image-classification,5,224,1,14,4,1, -multicast-weights,3,fp16,best-throughput,19298.167,7.166276,2.411419594
+resnet101,image-classification,14,224,7,2,2,1, -multicast-weights -use-producer-dma=1,4,fp16,best-throughput,4663.664,25.2744988,73.37282488
+resnet152,image-classification,14,224,1,14,4,, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,2760.369,537.1923086,64.06234272
+resnet18,image-classification,10,224,2,7,4,1, -multicast-weights -use-producer-dma=1,5,fp16,best-throughput,19244.333,18.7959197,70.20462739
+resnet34,image-classification,8,224,1,14,4,1, -multicast-weights,5,fp16,best-throughput,11156.073,50.6149687,82.08057184
+resnet50,image-classification,14,224,7,2,1,1, -multicast-weights,6,fp16,best-throughput,7721.331,21.7330191,63.83598964
+resnext101_32x8d,image-classification,15,224,1,14,2,, -multicast-weights -aic-enable-depth-first,4,fp16,best-throughput,1646.805,153.457548,54.47287013
+resnext101_64x4d,image-classification,14,224,2,7,4,, -aic-enable-depth-first,3,fp16,best-throughput,1660.543,185.930411,51.75982396
+resnext50_32x4d,image-classification,14,224,7,2,2,1, ,3,fp16,best-throughput,7064.419,11.9785681,60.58706157
+shufflenet_v2_x0_5,image-classification,32,224,12,1,1,1, -multicast-weights -aic-enable-depth-first,5,fp16,best-throughput,21532.259,7.5256928,1.919474452
+shufflenet_v2_x1_0,image-classification,4,224,1,14,1,, -multicast-weights,2,fp16,best-throughput,19299.557,5.5484414,5.894424071
+shufflenet_v2_x1_5,image-classification,16,224,2,7,4,1, ,2,fp16,best-throughput,16625.708,35.5125242,10.20251441
+shufflenet_v2_x2_0,image-classification,6,224,1,14,4,1, ,5,fp16,best-throughput,11946.845,111.499263,14.2939086
+squeezenet1_0,image-classification,31,224,14,1,4,1, ,5,fp16,best-throughput,20232.506,7.7903455,33.14467185
+squeezenet1_1,image-classification,28,224,14,1,1,, -multicast-weights -use-producer-dma=1,4,fp16,best-throughput,21557.031,5.3000721,15.06068761
+vgg11,image-classification,15,224,1,14,2,1, -multicast-weights -aic-enable-depth-first,6,fp16,best-throughput,4372.342,281.7106352,66.53952677
+vgg11_bn,image-classification,15,224,1,14,4,1, -aic-enable-depth-first,4,fp16,best-throughput,4414.533,48.8619376,67.44386151
+vgg13,image-classification,15,224,1,14,4,1, -multicast-weights -aic-enable-depth-first,4,fp16,best-throughput,3486.292,48.6763054,78.84958018
+vgg13_bn,image-classification,15,224,1,14,4,1, -multicast-weights -aic-enable-depth-first,2,fp16,best-throughput,3517.295,48.67307735,79.89527241
+vgg16,image-classification,15,224,1,14,1,1, -aic-enable-depth-first,2,fp16,best-throughput,2721.235,96.12709055,84.19672254
+vgg16_bn,image-classification,15,224,1,14,2,1, -aic-enable-depth-first,3,fp16,best-throughput,2743.444,228.7062245,85.18121786
+vgg19,image-classification,15,224,1,14,2,1, -aic-enable-depth-first,2,fp16,best-throughput,2230.961,225.6674085,87.59695529
+vgg19_bn,image-classification,15,224,1,14,4,1, -aic-enable-depth-first,3,fp16,best-throughput,2297.814,48.5260367,90.49490538
+vit_b_16,image-classification,4,224,2,7,4,1, ,2,fp16,best-throughput,1244.64,45.5768199,28.09464783
+vit_b_32,image-classification,14,224,2,7,2,1, ,6,fp16,best-throughput,5504.441,107.7013309,32.4912698
+wide_resnet101_2,image-classification,4,224,2,7,2,, -multicast-weights -use-producer-dma=1,5,fp16,best-throughput,1530.635,105.2021743,69.91343982
+wide_resnet50_2,image-classification,12,224,6,2,2,, ,6,fp16,best-throughput,2891.269,50.524523,66.24316841
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+alexnet,image-classification,1,224,3,4,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,946.652,0.6265688,1.352210803
+densenet121,image-classification,1,224,1,14,1,, ,1,fp16,best-latency,6225.738,1.02472635,36.07201443
+densenet161,image-classification,1,224,12,1,1,3, ,1,fp16,best-latency,300.954,3.2598375,4.722474498
+densenet169,image-classification,1,224,6,2,1,4, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,1242.291,1.614189,8.537314746
+densenet201,image-classification,1,224,12,1,1,2, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,546.609,1.9909164,4.799644577
+efficientnet_b0,image-classification,1,224,7,2,1,, -multicast-weights,1,fp16,best-latency,2377.455,0.9374055,1.973977226
+efficientnet_b1,image-classification,1,240,2,7,2,, ,1,fp16,best-latency,2776.601,0.85363,4.078746992
+efficientnet_b2,image-classification,1,260,2,7,2,, -aic-enable-depth-first,1,fp16,best-latency,1889.361,0.82860435,3.983635141
+efficientnet_b3,image-classification,1,300,3,4,1,, ,1,fp16,best-latency,1055.19,0.62698995,4.076293515
+efficientnet_b4,image-classification,1,380,4,3,1,, -multicast-weights -aic-enable-depth-first,1,fp16,best-latency,349.892,0.4428412,3.227013916
+efficientnet_b5,image-classification,1,456,4,3,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,224.153,0.4270011,4.798104897
+efficientnet_b6,image-classification,1,528,4,3,1,, ,1,fp16,best-latency,88.089,0.4245718,3.489521448
+efficientnet_b7,image-classification,1,600,4,3,1,, -multicast-weights,1,fp16,best-latency,37.762,0.4240004,2.947644392
+efficientnet_v2_l,image-classification,1,480,4,3,1,, -multicast-weights,1,fp16,best-latency,173.08,0.425806,19.64783187
+efficientnet_v2_m,image-classification,1,480,7,2,2,7, -aic-enable-depth-first,1,fp16,best-latency,180.21,0.8378767,8.999415603
+efficientnet_v2_s,image-classification,1,384,3,4,1,, ,1,fp16,best-latency,873.029,0.62162475,14.87376205
+inception_v3,image-classification,1,299,4,3,1,4, -multicast-weights -aic-enable-depth-first,1,fp16,best-latency,950.318,0.6009714,10.92717292
+mnasnet0_5,image-classification,1,224,7,2,1,7, ,1,fp16,best-latency,4954.847,0.52753975,1.156636969
+mnasnet0_75,image-classification,1,224,12,1,1,, ,1,fp16,best-latency,2461.481,0.4083121,1.154699011
+mnasnet1_0,image-classification,1,224,14,1,1,, ,1,fp16,best-latency,2364.675,0.545205,1.590208146
+mnasnet1_3,image-classification,1,224,12,1,2,, ,1,fp16,best-latency,1635.698,0.58949035,1.818149774
+mobilenet_v2,image-classification,1,224,12,1,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,2331.492,0.5490854,1.527065336
+mobilenet_v3_large,image-classification,1,224,7,2,1,4, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,3265.116,0.63379025,1.5335496
+mobilenet_v3_small,image-classification,1,224,12,1,1,1, ,1,fp16,best-latency,1645.826,0.605544,0.205655649
+resnet101,image-classification,1,224,2,7,2,, -aic-enable-depth-first,1,fp16,best-latency,1327.922,0.8197429,20.89202575
+resnet152,image-classification,1,224,4,3,1,4, -multicast-weights -aic-enable-depth-first,1,fp16,best-latency,782.265,0.598903,18.15472081
+resnet18,image-classification,1,224,12,1,1,, ,1,fp16,best-latency,2452.007,0.400893,8.945087252
+resnet34,image-classification,1,224,14,1,1,, ,1,fp16,best-latency,1653.017,0.592793,12.16203772
+resnet50,image-classification,1,224,7,2,2,, ,1,fp16,best-latency,2467.284,0.817042,20.39823391
+resnext101_32x8d,image-classification,1,224,2,7,1,1, -multicast-weights -aic-enable-depth-first,1,fp16,best-latency,594.397,0.923456,19.66141139
+resnext101_64x4d,image-classification,1,224,4,3,1,, -aic-enable-depth-first,1,fp16,best-latency,552.93,0.5260096,17.23506074
+resnext50_32x4d,image-classification,1,224,12,1,1,, -multicast-weights,1,fp16,best-latency,1611.456,0.7145521,13.8204407
+shufflenet_v2_x0_5,image-classification,1,224,12,1,1,12, ,1,fp16,best-latency,1247,0.775437,0.111162728
+shufflenet_v2_x1_0,image-classification,1,224,7,2,1,4, -aic-enable-depth-first,1,fp16,best-latency,2465.12,0.8107492,0.752890995
+shufflenet_v2_x1_5,image-classification,1,224,6,2,1,4, ,1,fp16,best-latency,1995.301,1.008284,1.224434305
+shufflenet_v2_x2_0,image-classification,1,224,14,1,1,, -multicast-weights,1,fp16,best-latency,860.823,1.2017374,1.029939309
+squeezenet1_0,image-classification,1,224,12,1,1,2, ,1,fp16,best-latency,2473.599,0.4053434,4.052223048
+squeezenet1_1,image-classification,1,224,14,1,1,2, ,1,fp16,best-latency,2492.93,0.4023992,1.741670268
+vgg11,image-classification,1,224,14,1,1,4, -multicast-weights,1,fp16,best-latency,357.371,2.81904785,5.438572102
+vgg11_bn,image-classification,1,224,14,1,1,, ,1,fp16,best-latency,364.744,2.76638235,5.572445335
+vgg13,image-classification,1,224,12,1,1,4, ,1,fp16,best-latency,346.008,2.935897,7.825674252
+vgg13_bn,image-classification,1,224,14,1,2,14, ,1,fp16,best-latency,343.818,2.9381838,7.809817706
+vgg16,image-classification,1,224,12,1,1,12, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,315.441,3.2068517,9.75994295
+vgg16_bn,image-classification,1,224,2,7,4,2, ,1,fp16,best-latency,429.717,2.9391182,13.34228707
+vgg19,image-classification,1,224,12,1,1,, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,290.554,3.38540575,11.40837771
+vgg19_bn,image-classification,1,224,14,1,1,, ,1,fp16,best-latency,298.099,3.33564635,11.74004545
+vit_b_16,image-classification,1,224,4,3,1,, -aic-enable-depth-first,1,fp16,best-latency,346.939,0.4419055,7.831283764
+vit_b_32,image-classification,1,224,1,14,2,1, -multicast-weights -use-producer-dma=1,1,fp16,best-latency,707.21,1.4088486,4.174474922
+wide_resnet101_2,image-classification,1,224,4,3,1,4, -aic-enable-depth-first,1,fp16,best-latency,283.618,0.59028365,12.95456459
+wide_resnet50_2,image-classification,1,224,3,4,2,, -aic-enable-depth-first,1,fp16,best-latency,643.48,0.7224512,14.74306058

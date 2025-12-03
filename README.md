@@ -19,49 +19,49 @@
 ---
 
 *Latest News* 🔥
-- [2025/08] Try the [QAic Bench](https://github.com/quic/cloud-ai-sdk/tree/1.19/utils/qaic-bench) script for LLM benchmarking on Cloud AI accelerators
-- [2025/08] The [Open WebUI tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/open-webui) shows how to use Open WebUI's chat interface with Cloud AI accelerators.
-- [2025/08] Added [Kubernetes](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/Kubernetes) tutorial
-- [2025/08] Added [Efficient Transformers](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/efficient_transformers) tutorial
-- [2025/08] Added [DETR ResNet-50](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/Computer-Vision/DETR) model example
-- [2025/08] Added [YOLOv8](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/vision/detection) model example
-- [2024/11] Check out the [Qualcomm Cloud AI Playground Tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials/Playground) to learn how to access the latest Generative AI models running on Qualcomm Cloud AI 100 Ultra Accelerators hosted in the cloud.
-- [2024/11] Added [Stable Diffusion XL Turbo](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_turbo) model example
-- [2024/11] Added [Stable Diffusion 3](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/stable-diffusion-3-medium-diffusers) model example
-- [2024/09] Added [Whisper](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/speech/whisper) model example
-- [2024/09] Added [SDXL-DeepCache](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_deepcache) model example
+- [2025/08] Try the [QAic Bench](https://github.com/quic/cloud-ai-sdk/tree/1.20/utils/qaic-bench) script for LLM benchmarking on Cloud AI accelerators
+- [2025/08] The [Open WebUI tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.20/tutorials/open-webui) shows how to use Open WebUI's chat interface with Cloud AI accelerators.
+- [2025/08] Added [Kubernetes](https://github.com/quic/cloud-ai-sdk/tree/1.20/tutorials/Kubernetes) tutorial
+- [2025/08] Added [Efficient Transformers](https://github.com/quic/cloud-ai-sdk/tree/1.20/tutorials/efficient_transformers) tutorial
+- [2025/08] Added [DETR ResNet-50](https://github.com/quic/cloud-ai-sdk/tree/1.20/tutorials/Computer-Vision/DETR) model example
+- [2025/08] Added [YOLOv8](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/vision/detection) model example
+- [2024/11] Check out the [Qualcomm Cloud AI Playground Tutorial](https://github.com/quic/cloud-ai-sdk/tree/1.20/tutorials/Playground) to learn how to access the latest Generative AI models running on Qualcomm Cloud AI 100 Ultra Accelerators hosted in the cloud.
+- [2024/11] Added [Stable Diffusion XL Turbo](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/multimodal/text_to_image/sdxl_turbo) model example
+- [2024/11] Added [Stable Diffusion 3](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/multimodal/text_to_image/stable-diffusion-3-medium-diffusers) model example
+- [2024/09] Added [Whisper](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/speech/whisper) model example
+- [2024/09] Added [SDXL-DeepCache](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/multimodal/text_to_image/sdxl_deepcache) model example
 - [2024/04] Qualcomm released [efficient transformers](https://github.com/quic/efficient-transformers) for seamless deployment of pre-trained LLMs.
-- [2024/03] Added [AI 100 Ultra recipe for Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
-- [2024/03] Added support for Speculative Decoding with LLMs - [CodeGen with Speculative Decoding](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/CodeGen-With-Speculative-Decoding)
-- [2024/02] Added support for [Stable Diffusion XL](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/sdxl_turbo)
-- [2024/02] Added support for [MPT family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/MptForCausalLM) - e.g., [MPT-7B](https://huggingface.co/mosaicml/mpt-7b)
-- [2024/02] Added support for [GPTBigCode family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/GPTBigCodeForCausalLM) - e.g., [StarCoder](https://huggingface.co/bigcode/starcoder)
-- [2024/01] Added [profiling tutorial for LLMs](https://github.com/quic/cloud-ai-sdk/blob/1.19/tutorials/NLP/Profiler-Intermediate/Profiler-LLM.ipynb)
-- [2024/01] Added support for [DeciDiffusion-v2.0](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image/DeciDiffusion-v2-0)
-- [2024/01] Added support for [DeciCoder-6B](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/DeciCoder-6b)
-- [2024/01] Added support for [Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
+- [2024/03] Added [AI 100 Ultra recipe for Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
+- [2024/03] Added support for Speculative Decoding with LLMs - [CodeGen with Speculative Decoding](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing/decoder/CodeGen-With-Speculative-Decoding)
+- [2024/02] Added support for [Stable Diffusion XL](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/multimodal/text_to_image/sdxl_turbo)
+- [2024/02] Added support for [MPT family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing/decoder/MptForCausalLM) - e.g., [MPT-7B](https://huggingface.co/mosaicml/mpt-7b)
+- [2024/02] Added support for [GPTBigCode family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing/decoder/GPTBigCodeForCausalLM) - e.g., [StarCoder](https://huggingface.co/bigcode/starcoder)
+- [2024/01] Added [profiling tutorial for LLMs](https://github.com/quic/cloud-ai-sdk/blob/1.20/tutorials/NLP/Profiler-Intermediate/Profiler-LLM.ipynb)
+- [2024/01] Added support for [DeciDiffusion-v2.0](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/multimodal/text_to_image/DeciDiffusion-v2-0)
+- [2024/01] Added support for [DeciCoder-6B](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing/decoder/DeciCoder-6b)
+- [2024/01] Added support for [Llama family of LLMs](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing/decoder/LlamaForCausalLM) - e.g., [Llama-2-7B](https://huggingface.co/meta-llama/Llama-2-7b)
 ---
 
 ## About
 Qualcomm Cloud AI 100 offers a unique blend of high computational performance, low latency, and low power utilization, making it well-suited for a broad range of AI applications, including computer vision, natural language processing, and Generative AI such as Large Language Models (LLMs). Specifically designed for high-performance, low-power AI processing, it is ideal for both public and private cloud environments, supporting Enterprise AI applications.
 
 This repository provides developers with 3 key resources
-- Models    - Recipes for [CV](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/vision), [NLP](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing), [multimodal](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image) models to run on Cloud AI platforms performantly, <br> For LLM, embeddings and speech models, see [efficient-transformers](https://github.com/quic/efficient-transformers)
-- Tutorials - [Tutorials](https://github.com/quic/cloud-ai-sdk/tree/1.19/tutorials) cover model onboarding, performance tuning, and profiling aspects of inferencing across CV/NLP on Cloud AI platforms
-- Samples   - Sample code illustrating usage of APIs - [Python](https://github.com/quic/cloud-ai-sdk/tree/1.19/samples/python) and [C++](https://github.com/quic/cloud-ai-sdk/tree/1.19/samples/cpp/cpp_qpc_inference) for inference on Cloud AI platforms
+- Models    - Recipes for [CV](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/vision), [NLP](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing), [multimodal](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/multimodal/text_to_image) models to run on Cloud AI platforms performantly, <br> For LLM, embeddings and speech models, see [efficient-transformers](https://github.com/quic/efficient-transformers)
+- Tutorials - [Tutorials](https://github.com/quic/cloud-ai-sdk/tree/1.20/tutorials) cover model onboarding, performance tuning, and profiling aspects of inferencing across CV/NLP on Cloud AI platforms
+- Samples   - Sample code illustrating usage of APIs - [Python](https://github.com/quic/cloud-ai-sdk/tree/1.20/samples/python) and [C++](https://github.com/quic/cloud-ai-sdk/tree/1.20/samples/cpp/cpp_qpc_inference) for inference on Cloud AI platforms
 
 ## 📚 Supported Models
 ### Generative AI - Large Language Models (LLMs), Embeddings and Speech
 - See [efficient-transformers](https://github.com/quic/efficient-transformers)
 
-### 💬 [Generative AI - Text-to-Image Models](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/multimodal/text_to_image)
+### 💬 [Generative AI - Text-to-Image Models](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/multimodal/text_to_image)
 - Stable Diffusion (`stabilityai/stable-diffusion-xl-base-1.0`, `stabilityai/stable-diffusion-2-1`, `runwayml/stable-diffusion-v1-5`, etc.)
 - DeciDiffusion (`Deci/DeciDiffusion-v2-0`, `Deci/DeciDiffusion-v1-0`, etc.)
 
-### 🤖 [NLP - Encoder-only Transformer Models](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/language_processing/encoder)
+### 🤖 [NLP - Encoder-only Transformer Models](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/language_processing/encoder)
 - 80+ models including all varieties of `bert` models, `sentence-transformer` embedding models, etc.
 
-### 👀 [Computer Vision (CV) Models](https://github.com/quic/cloud-ai-sdk/tree/1.19/models/vision)
+### 👀 [Computer Vision (CV) Models](https://github.com/quic/cloud-ai-sdk/tree/1.20/models/vision)
 - ViT (`vit_b_16`, `vit_b_32`, `vit-base-patch16-224`)
 - YOLO (`yolov5s`, `yolov5m`, `yolov5l`, `yolov5x`, `yolov7-e6e`, `yolov8`)
 - ResNet (`resnet18`, `resnet34`, `resnet50`, `resnet101`, `resnet152`)

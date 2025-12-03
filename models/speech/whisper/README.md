@@ -5,13 +5,12 @@
 ## Environment and dependencies
 
 ```commandline
-python3.8 -m venv whisper_env
+python3.10 -m venv whisper_env
 source whisper_env/bin/activate
-pip3 install wheel
 pip3 install -r requirements.txt
 
-sudo apt-get install libsndfile1
-sudo apt-get install ffmpeg
+sudo apt-get update
+sudo apt-get install libsndfile1 ffmpeg
 ```
 
 ## Model generation

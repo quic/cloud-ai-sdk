@@ -3,9 +3,9 @@
 ### SPDX-License-Identifier: BSD-3-Clause-Clear
 
 
-# Instructions to run SDXL on Cloud AI100 (PRO SKU)
+# Instructions to run SDXL on Cloud AI 100
 
-The instructions below are to run [the Stable Diffusion XL model](stabilityai/stable-diffusion-xl-base-1.0) on Cloud AI100 PRO SKU. For other cards such as STD SKU, the block size in attention_processor.py will need to be tuned. Other compile time parameters may also need to be adjusted (e.g., -aic-num-cores)
+The instructions below are to run [the Stable Diffusion XL model](stabilityai/stable-diffusion-xl-base-1.0) on Cloud AI 100. For Cloud AI Standard Accelerators (AWS DL2q EC2 instances), the block size in attention_processor.py will need to be tuned. Other compile time parameters may also need to be adjusted (e.g., -aic-num-cores)
 
 
 ## Folder Structure
@@ -18,7 +18,7 @@ The instructions below are to run [the Stable Diffusion XL model](stabilityai/st
 ├── compile_models.sh                       # Script to compile all the model ONNX files
 ├── attention_patch.patch                   # Diffusers patch for ONNX generation
 ├── pipeline_patch.patch                    # Diffusers patch for SDXL inference
-├── run_sdxl.py                             # End-to-end SDXL inference script running on AI100
+├── run_sdxl.py                             # End-to-end SDXL inference script running on AI 100
 ```
 
 ## Pre-requisites
@@ -28,20 +28,25 @@ Install the `moreutils` package for the `ts` timestamp tool:
 sudo apt-get install moreutils
 ```
 
+Install Git Large File System (LFS) support
+
+```
+sudo apt update
+sudo apt-get install git-lfs
+```
+
 ## 1. Install Platform and Apps SDK
 
-Install the latest Platform and Apps SDKs following the instructions in the [Cloud AI100 documentation](https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Installation/Cloud-AI-SDK/Cloud-AI-SDK/).
+Install the latest Platform and Apps SDKs following the instructions in the [Cloud AI documentation](https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Installation/Cloud-AI-SDK/Cloud-AI-SDK/).
 
 
 ## 2. Generate ONNX files (skip this step if ONNX files are already available)
 
 1.  Set up a virtual environment for ONNX generation
 ```
-python3.8 -m venv env_sdxl_onnxgen
+python3.10 -m venv env_sdxl_onnxgen
 source ./env_sdxl_onnxgen/bin/activate
-pip install networkx==3.0
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install onnx==1.12.0 onnxruntime accelerate transformers==4.42
+pip install -r requirements.txt
 ```
 
 2.  Create a folder for caching HuggingFace model downloads, and export the environment variable HF_HOME
@@ -71,7 +76,7 @@ python generate_onnx_files.py onnx_files/unet_bs2/ --export_unet
 
 6. Modify attention_processor.py with blocksize = 256 directly in the installed diffusers library
 ```
-sed -i 's/query_block_size = 128/query_block_size = 256/g' ./env_sdxl_onnxgen/lib/python3.8/site-packages/diffusers/models/attention_processor.py
+sed -i 's/query_block_size = 128/query_block_size = 256/g' ./env_sdxl_onnxgen/lib/python3.10/site-packages/diffusers/models/attention_processor.py
 ```
 
 7. Generate ONNX files for UNet for batchsize = 1
@@ -106,19 +111,10 @@ bash -x compile_models.sh
 
 1. Set up a separate virtual environment for running SDXL (this would conflict with code changes for ONNX generation - hence separate environment)
 
-First, deactivate the env_sdxl_onnxgen environment
 ```
-deactivate
-```
-
-Next, create and setup the new environment:
-
-```
-python3.8 -m venv env_sdxl_infer
+python3.10 -m venv env_sdxl_infer
 source ./env_sdxl_infer/bin/activate
-pip install networkx==3.0
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install onnx==1.12.0 onnxruntime accelerate transformers==4.42
+pip install -r requirements.txt
 pip install --force-reinstall /opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl
 ```
 
@@ -137,7 +133,7 @@ pip install .
 cd ..
 ```
 
-4. Run the SDXL inference with 'sudo' flag if needed to access the AI100 devices. The `text_encoder`, `text_encoder_2`, and `vae_decoder` binaries are the same whether running on 1 device or 2 devices. You can pass in `--use_latents latents.pt` argument to use a pre-defined latents PyTorch file
+4. Run the SDXL inference with 'sudo' flag if needed to access the AI 100 devices. The `text_encoder`, `text_encoder_2`, and `vae_decoder` binaries are the same whether running on 1 device or 2 devices. You can pass in `--use_latents latents.pt` argument to use a pre-defined latents PyTorch file
 
 
 For running on 1 device, pass in `device_id` argument, and `unet` argument point to the batchsize=2 QPC

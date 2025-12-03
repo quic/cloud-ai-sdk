@@ -9,7 +9,7 @@ pip install --upgrade pip
 
 ### Clone and install the efficient transformers repo
 ```
-pip install git+https://github.com/quic/efficient-transformers@release/v1.19
+pip install git+https://github.com/quic/efficient-transformers@release/v1.20.0
 ```
 
 ### After installation of efficient transformers library, install jupyter notebook

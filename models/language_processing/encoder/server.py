@@ -120,7 +120,7 @@ if __name__ == "__main__":
         "--device",
         type=int,
         help="Cloud AI accelerator device ID",
-        default=1
+        default=0
     )
 
     args = parser.parse_args()

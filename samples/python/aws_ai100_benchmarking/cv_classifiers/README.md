@@ -1,7 +1,7 @@
 ## Description
 ---
 
-This document uses a script (run_cv_classifier.py) to download a computer-vision model from Huggingface or Torchvision, prepares it for the Qualcomm AIC100, compiles it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, runs the model on a generated random sample, and obtains the benchmarking results (Inf/Sec and Latency) and output values.
+This document runs a script (run_cv_model.py) that downloads a CV model from Huggingface/Torchvision, prepares it for the Qualcomm AIC100, compile it for a specific hardware configuration (best-throughput or best-latency) with fp16 precision, run the model on a generated random sample, and obtain the benchmarking results and output values.
 
 ## Source of the models
 ---
@@ -66,14 +66,14 @@ This script has been tested for the following models. These models are downloade
 For a quick environment setup:
 
 ```commandline
-python3.10 -m venv cv_env
-source cv_env/bin/activate
+python3 -m venv cv_models
+source cv_models/bin/activate
 ```
 
 ## Framework and version
 ---
 ```commandline
-pip3 install -r requirements.txt
+pip3 install torch==1.13.0 onnx==1.12.0 onnxruntime==1.15.0 torchvision==0.14.0 transformers==4.29.2 pandas==2.0.2 urllib3==1.26.6
 ```
 ## Syntax
 ---
@@ -125,37 +125,23 @@ optional arguments:
 
 
 ```
-Examples:
+For example:
 ```commandline
-python run_cv_classifier.py -m resnet-50
+python run_cv_classifier.py -m resnet50
 ```
+or
 ```commandline
 python run_cv_classifier.py -m resnet-152 -o best-throughput
 ```
+or
 ```commandline
-python run_cv_classifier.py -m resnet-50 -o best-latency
+python run_cv_classifier.py -m resnet-50 -o balanced
 ```
+or
+
 ```commandline
 python run_cv_classifier.py -m vit-base-patch16-224 -o best-latency
 ```
 
 The hardware configuration will be either associated to the corresponding row in the lut_cv_classifiers.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_cv_classifiers.csv, default values will be used.
 
-After download, compile, and run is complete, the working directory of the selected model is as follows. 
-# Working directory structure
-```
-|── model                   # Contains the onnx file of the picked model 
-|   └── model.onnx          # The onnx file of the picked model
-|── inputFiles              # Contains the (randomly generated) input files of the compiled model
-│   └── input_img*.raw      # Randomly generated input files of the compiled model
-|── outputFiles             # Contains the corresponding output to input, as well as the hardware profiling for latency
-│   └── fp16*               
-│       └── output-act*.bin # Corresponding output to the randomly generated input_img*.raw
-│       └── aic-profil*.bin # The hardware profiling for round trip latency between host and device for each inference
-├── compiled-bin*           # Compilation path
-│   └── programqpc.bin      # For the selected objective, the model.onnx is compiled into programqpc.bin 
-├── list*.txt               # A list that contains path to the inputs. Can be used as input to qaic-runner
-├── commands*.txt           # Includes necessary compilation and running scripts to reproduce the results manually.
-
-```
-To manually resproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 

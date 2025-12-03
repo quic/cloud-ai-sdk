@@ -72,10 +72,6 @@ def check_device(DEVICE_ID, CORES, INSTANCES):
         raise TypeError(
             'The device is not ready. Please try, sudo sh -c "echo 1 > /sys/bus/mhi/devices/mhi0/soc_reset", or restart.')
     elif (CORES * INSTANCES) > NSP_FREE:
-        print('NSP_FREE {}'.format(NSP_FREE))
-        print('NSP_TOTAL {}'.format(NSP_TOTAL))
-        print('CORES {}'.format(CORES))
-        print('INSTANCES {}'.format(INSTANCES))
         raise TypeError(
             'Expected {} free AI cores but only {} are available on device {}'.format(CORES * INSTANCES, NSP_FREE, DEVICE_ID))
     elif (NSP_TOTAL < CORES*INSTANCES):
@@ -344,7 +340,7 @@ def main(args):
 
 
         print("\n\n-----------------------------------------", flush=True)
-        print(f"Running qaic session with woker threads and save output ", flush=True)
+        print(f"Running qaic session with worker threads and save output ", flush=True)
         print("------------------------------------------\n\n", flush=True)
 
         import concurrent.futures
@@ -372,7 +368,7 @@ def main(args):
                 index +=1
         #Release all resources acquired by the session
         sess.reset()
-        print(f"Finish qaic session with woker threads !!!!  ", flush=True)
+        print(f"Finish qaic session with worker threads !!!!  ", flush=True)
 
 
         print("\n\n-----------------------------------------", flush=True)

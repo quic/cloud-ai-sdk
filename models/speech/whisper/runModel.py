@@ -9,14 +9,15 @@ from transformers import WhisperProcessor
 import whisper
 import numpy as np
 import torch
+from audio import AudioSample
 import qaic
 
 model_name = 'base'
 aic_path = './whisper_AIC'
 
 # Select an audio file and read it:
-ds = load_dataset('hf-internal-testing/librispeech_asr_dummy', 'clean', split='validation')
-audio_path = ds[0]['audio']['path']
+audio_sample = AudioSample()
+audio_path = audio_sample.to_file()
 audio = whisper.load_audio(audio_path) # Read audio from file
 audio_pad = whisper.pad_or_trim(audio) # Padding and trimming
 # make log-Mel spectrogram and move to the same device as the model

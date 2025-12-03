@@ -3,6 +3,9 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
+PYTHON=$1
+echo $PYTHON
+
 # model configs
 MODEL_PATH="stabilityai/sdxl-turbo"
 PROMPT="\"photo of 8k ultra realistic harbour, port, boats, sunset, beautiful light, golden hour, full of colour, cinematic lighting, battered, trending on artstation, 4k, hyperrealistic, focused, extreme details, cinematic, masterpiece\""
@@ -104,7 +107,7 @@ export HF_HOME="cache"
 
 rm run.sh
 
-scripts="python main.py \
+scripts="$PYTHON main.py \
 --model-path $MODEL_PATH \
 --prompt $PROMPT \
 --vae-type $VAE_TYPE \

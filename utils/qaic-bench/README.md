@@ -7,7 +7,7 @@ Benchmarking script for Cloud AI Inference accelerators.
 Download Cloud AI Docker Image:
 
 ```
-docker pull ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
+docker pull ghcr.io/quic/cloud_ai_inference_ubuntu22:1.20.4.0
 ```
 
 Start container. This example maps 4 Cloud AI 100 Ultra Accelerators. Each accelerator has 4 SoC devices.
@@ -45,7 +45,7 @@ docker run -it \
   --device=/dev/accel/accel13 \
   --device=/dev/accel/accel14 \
   --device=/dev/accel/accel15 \
-  ghcr.io/quic/cloud_ai_inference_ubuntu22:1.19.8.0
+  ghcr.io/quic/cloud_ai_inference_ubuntu22:1.20.4.0
 ```
 
 Activate vLLM environment:<br>
@@ -86,7 +86,7 @@ The control response timeout must also be extended:
 sudo sh -c 'echo 2600 > /sys/module/qaic/parameters/control_resp_timeout_s'
 ```
 
-More details at: https://github.com/quic/cloud-ai-sdk/tree/1.19/utils/multi-device
+More details at: https://github.com/quic/cloud-ai-sdk/tree/1.20/utils/multi-device
 
 ## Hugging Face Access Token
 
