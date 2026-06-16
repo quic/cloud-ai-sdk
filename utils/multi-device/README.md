@@ -6,15 +6,16 @@ Refer to [Model Sharding](https://quic.github.io/cloud-ai-sdk-pages/latest/Getti
 
 ## Pre-requisites 
 
-- Server with Platform and APPS SDK versions >= 1.17 installed.
+- Server with Platform and Apps SDK versions >= 1.17 installed.
 - PCIe switch for inter-card P2P communication
 - python3 -m pip install pyudev
+- [switchtec](https://github.com/Microsemi/switchtec-user) utility installed
 
 ## Setup instructions 
 
 Platform SDK 1.18 and later offers an option (`--setup_mdp all`) to enable P2P for the multi-device partitioning tensor slicing feature during installation.
 
-Example:d
+Example:
 
 ```
 cd <platform sdk installer>/x86_64/deb
@@ -25,6 +26,8 @@ sudo bash install.sh --setup_mdp all
 > If P2P is enabled via the Platform SDK installer then skip to the [Testing P2P](#testing-p2p) section.
 > 
 > The remaining steps in this section show manual steps for enabling P2P.
+>
+> For VM instances, use the manual steps to enable P2P.
 
 ### Disable PCIe ACS for P2P communication between cards 
 

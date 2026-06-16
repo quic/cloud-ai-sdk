@@ -1,36 +1,29 @@
 ## Description
----
 
-Download the yolov5, and yolov7 models, prepare for the Qualcomm AIC100, compile for high-thoughput, min-latency, or balanced throughput with fp16 precision, run the model on a generated random sample, and obtain the benchmarking results and output values.
+Download the YOLOv5, YOLOv7 and YOLOv8 models, prepare for the Qualcomm AIC100, compile for high-throughput, minimum-latency, or balanced throughput with fp16 precision, run the model on a generated random sample, and obtain the benchmarking results and output values.
 
 ## Source of the models
----
+
 The models are downloaded from (https://github.com/ultralytics/yolov5). This script has been tested for the following requested models:
-* yolov5s
-* yolov5m
-* yolov5l
-* yolov5x
-* yolov7-e6e
-* yolov8m
+* YOLOv5s
+* YOLOv5m
+* YOLOv5l
+* YOLOv5x
+* YOLOv7-e6e
+* YOLOv8m
 
 ## Virtual environment
----
+
 For a quick environment setup:
 
 ```commandline
 python3.10 -m venv det_env
 source det_env/bin/activate
-
-```
-
-## Framework and version
----
-```commandline
 pip3 install -r requirements.txt
 
 ```
 ## Syntax
----
+
 Copy the run_yolo_model.py and the lut_yolo_models.csv to a working directory. Pick a MODEL_NAME from the list above, and type:
 
 ```commandline
@@ -81,7 +74,7 @@ optional arguments:
   --device, -d {0,1,2,3,4,5,6,7}
                         AIC100 device ID. Default <0>
   --run-only, -r        Performs the inference only, without re-exporting and re-compiling the model
-  --include-nms         Run the model preparator  tool to optimize the graph, and to add the Post Processing to supported models. Details on model preparator tool here- https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Inference-Workflow/Export-the-model/Prepare-the-model/ 
+  --include-nms         Run the model preparator tool to optimize the graph, and to add the Post Processing to supported models. Details on model preparator tool here- https://quic.github.io/cloud-ai-sdk-pages/latest/Getting-Started/Inference-Workflow/Export-the-model/Prepare-the-model/ 
 
 
 ```
@@ -96,9 +89,9 @@ python run_yolo_model.py -m yolov5m -o balanced
 python run_yolo_model.py -m yolov5x -o best-throughput
 ```
 
-The hardware configuration will be either associated to the corresponding row in the lut_yolo_models.csv or to defualt values if not specified by the user. If the MODEL_NAME is not included in the lut_yolo_models.csv, default values will be used.
+The hardware configuration will be either associated to the corresponding row in the lut_yolo_models.csv or to default values if not specified by the user. If the MODEL_NAME is not included in the lut_yolo_models.csv, default values will be used.
 
-After download, compile, and run is complete, the working directory of the selected model looks as follows. 
+After download, compilation, and run is complete, the working directory of the selected model looks as follows. 
 # Working directory structure
 ```
 |── model                   # Contains the onnx file of the picked model 
@@ -111,8 +104,61 @@ After download, compile, and run is complete, the working directory of the selec
 │       └── aic-profil*.bin # The hardware profiling for round trip latency between host and device for each inference
 ├── compiled-bin*           # Compilation path
 │   └── programqpc.bin      # For the selected objective, the model.onnx is compiled into programqpc.bin 
-├── list*.txt               # A list that contains path to the inputs. Can be used as input to qaic-runner
+├── list*.txt               # A list that contains paths to the inputs. Can be used as input to qaic-runner
 ├── commands*.txt           # Includes necessary compilation and running scripts to reproduce the results manually.
 
 ```
-To manually resproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal. 
+To manually reproduce the results, navigate to the working directory, select the qaic compile/run commands from the command*.txt and run them in the terminal.
+
+## Docker Compose Setup
+
+### Build the Docker image
+
+```commandline
+docker compose build
+```
+
+### Export YOLO model and generate Triton repo
+
+```commandline
+# Default: yolov8m
+docker compose run --rm yolo-export
+
+# Or specify model
+YOLO_MODEL=yolov5m docker compose run --rm yolo-export
+```
+
+This generates a Triton model repository at `models/vision/detection/${YOLO_MODEL}/triton-model-repo/`.
+
+### Start Triton server
+
+```commandline
+# Default port 8000
+docker compose up yolo-triton
+
+# Or customize ports
+TRITON_HTTP_PORT=8080 docker compose up yolo-triton
+```
+
+### Run inference client
+
+```commandline
+# From host machine
+pip3 install numpy Pillow
+python3 triton_client.py --endpoint localhost:8000
+```
+
+### Options
+
+- `--endpoint`: Triton server URL (default: localhost:8000)
+- `--image`: Image path or URL (default: https://ultralytics.com/images/zidane.jpg)
+- `--model`: Model name in Triton (default: yolo)
+- `--output`: Output image path with detections (default: output.jpg)
+
+### Environment variables
+
+- `YOLO_MODEL`: Model subfolder (default: yolov8m)
+- `TRITON_HTTP_PORT`: HTTP port (default: 8000)
+- `TRITON_GRPC_PORT`: gRPC port (default: 8001)
+- `TRITON_METRICS_PORT`: Metrics port (default: 8002)
+- `TRITON_LOG_VERBOSE`: Enable verbose logging (default: 0) 

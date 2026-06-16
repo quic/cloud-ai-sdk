@@ -386,22 +386,62 @@ def main(args):
         # Compile for fp16
         execute(["rm", "-rf", f"compiled-bin-fp16-{MOTIF}"], f"commands-{MOTIF}.txt", 'a')
         os.makedirs(f"{OUTPUT_FOLDER}fp16-{MOTIF}", exist_ok=True)
-        cmd_elements = ["/opt/qti-aic/exec/qaic-exec",
+        cmd_elements = ["/opt/qti-aic/exec/qaic-compile",
                         f"-m={MODEL}",
                         f"-onnx-define-symbol=batch_size,{BS}",
                         f"-aic-hw",
-                        f"-aic-hw-version=2.0",
+                        f"-aic-hw-version=ai100",
                         f"-aic-num-cores={CORES}",
                         f"-ols={OLS}",
                         f"-convert-to-fp16",
-                        f"-compile-only",
-                        f"-aic-binary-dir=./compiled-bin-fp16-{MOTIF}",
+                         f"-aic-binary-dir=./compiled-bin-fp16-{MOTIF}",
                         f"-stats-batchsize={BS}",
                         f"{EXTRA}"
                         ]
         if MOS.replace(' ','') != '':
             cmd_elements.extend([f"-mos={MOS}"])
         execute(cmd_elements, f"commands-{MOTIF}.txt", 'a')
+
+    # Triton export: generate repo
+    if args.triton_export:
+        import shutil
+        from pathlib import Path
+
+        repo = Path(args.triton_export) / "yolo"
+        (repo / "1").mkdir(parents=True, exist_ok=True)
+
+        # Copy compiled QPC
+        qpc_path = f"./compiled-bin-fp16-{MOTIF}/programqpc.bin"
+        if not os.path.exists(qpc_path):
+            raise FileNotFoundError(f"QPC not found at {qpc_path}. Run compilation first.")
+
+        shutil.copy(qpc_path, repo / "1" / "programqpc.bin")
+
+        # Load ONNX to get input/output names for config
+        onnx_model = onnx.load(MODEL)
+        input_name = onnx_model.graph.input[0].name
+        output_name = onnx_model.graph.output[0].name
+
+        # Config with explicit input/output for QAIC backend (640x640 hardcoded)
+        config = f'''name: "yolo"
+backend: "qaic"
+max_batch_size: 0
+
+input {{
+  name: "{input_name}"
+  data_type: TYPE_FP32
+  dims: [1, 3, 640, 640]
+}}
+
+output {{
+  name: "{output_name}"
+  data_type: TYPE_FP32
+  dims: [1, 84, 8400]
+}}
+'''
+        (repo / "config.pbtxt").write_text(config)
+
+        print(f"Triton repo generated at {args.triton_export}")
 
     print("\n\n*************************************************************************************", flush=True)
     print(f"Running {INSTANCES} INSTANCES repeatedly for {TIME} seconds with OBJECTIVE {OBJECTIVE}", flush=True)
@@ -533,9 +573,12 @@ def parse_args():
                         action='store_true',
                         help="Performs the inference only, without re-exporting and re-compiling the model"
     )    
-    parser.add_argument('--include-nms', 
+    parser.add_argument('--include-nms',
                         action='store_true',
                         help="add the non maximum suppression to the object detectio model"
+    )
+    parser.add_argument('--triton-export', type=str,
+                        help="Generate Triton model repository at PATH"
     )
     return parser.parse_args()
 

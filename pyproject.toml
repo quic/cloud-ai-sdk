@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qaic_models"
+version = "0.1.0"
+description = "Qualcomm Cloud AI model wrappers and pipelines"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Qualcomm Cloud AI ML Team" }]
+keywords = ["Cloud AI 100", "Inference"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 5 - Development/Unstable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Operating System :: Linux",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence for Inference Accelerator",
+]
+
+# Core dependencies common to all qaic_models code (keep minimal)
+dependencies = []
+
+[project.optional-dependencies]
+# Mask R-CNN pipeline
+"mask-rcnn" = [
+  "numpy==1.23",
+  "onnx==1.13.1",
+  "onnxruntime>=1.16",
+  "opencv-python-headless==3.4.18.65",
+  "Pillow==9.5.0",
+  "PyYAML",
+  "fvcore",
+  "cloudpickle",
+  "omegaconf",
+  "pycocotools",
+  "fairscale",
+  "timm",
+  "torch@https://download.pytorch.org/whl/cpu/torch-1.13.1%2Bcpu-cp310-cp310-linux_x86_64.whl ; python_version=='3.10' and platform_machine=='x86_64'",
+  "torchvision@https://download.pytorch.org/whl/cpu/torchvision-0.14.1%2Bcpu-cp310-cp310-linux_x86_64.whl ; python_version=='3.10' and platform_machine=='x86_64'",
+  "qaic@file:///opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl"
+]
+"mask-rcnn-infer" = [
+  "numpy==1.23",
+  "onnxruntime>=1.16",
+  "Pillow==9.5.0",
+  "qaic@file:///opt/qti-aic/dev/lib/x86_64/qaic-0.0.1-py3-none-any.whl",
+  "PyYAML",
+]
+
+[tool.setuptools.package-data]
+# Detectron2 patch
+"models.vision.segmentation.mask_rcnn" = ["patch/*.patch"]
+
+[project.urls]
+Homepage = "https://github.com/quic/cloud-ai-sdk"
+Source = "https://github.com/quic/cloud-ai-sdk"
+
+[tool.setuptools.packages.find]
+# Include the qaic_models namespace and the original models tree so that
+# models/vision/segmentation/mask_rcnn code is packaged with qaic_models.
+include = [
+  "qaic_models*",
+  "models",
+  "models.common",
+  "models.vision",
+  "models.vision.segmentation",
+  "models.vision.segmentation.mask_rcnn",
+]

@@ -4,6 +4,7 @@ torchvision==0.18.1+cpu
 onnx==1.19.1
 onnxruntime==1.19.0
 onnxscript
+onnxslim>=0.1.71
 transformers==4.41.2
 pandas==2.1.4
 opencv-python-headless
@@ -11,3 +12,7 @@ opencv-contrib-python-headless
 ultralytics
 seaborn
 onnx-graphsurgeon
+Pillow
+
+# Minimal dependencies for triton_client.py
+# pip install Pillow numpy
