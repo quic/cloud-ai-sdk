@@ -1,0 +1,35 @@
+services:
+  yolo-export:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.yolo
+    container_name: qaic-yolo-export
+    devices:
+      - /dev/accel/
+    working_dir: /cloud-ai-sdk/models/vision/detection
+    volumes:
+      - ../../..:/cloud-ai-sdk
+    environment:
+      - YOLO_MODEL=${YOLO_MODEL:-yolov8m}
+    command: >
+      bash -c "/opt/yolo-env/bin/python3 ./run_yolo_model.py --model-name $$YOLO_MODEL --cores 8 --triton-export ./triton-model-repo"
+
+  yolo-triton:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.yolo
+    container_name: qaic-yolo-triton
+    ports:
+      - "${TRITON_HTTP_PORT:-8000}:8000"
+      - "${TRITON_GRPC_PORT:-8001}:8001"
+      - "${TRITON_METRICS_PORT:-8002}:8002"
+    devices:
+      - /dev/accel/
+    working_dir: /cloud-ai-sdk/models/vision/detection
+    volumes:
+      - ../../..:/cloud-ai-sdk
+    environment:
+      - TRITON_LOG_VERBOSE=${TRITON_LOG_VERBOSE:-0}
+      - YOLO_MODEL=${YOLO_MODEL:-yolov8m}
+    command: >
+      bash -c "/opt/tritonserver/bin/tritonserver --model-repository=./$$YOLO_MODEL/triton-model-repo $( [ $$TRITON_LOG_VERBOSE -gt 0 ] && echo --log-verbose $$TRITON_LOG_VERBOSE )"

@@ -9,6 +9,8 @@ import os
 import stat
 import sys
 import subprocess
+import shlex
+import glob
 
 """
 This program disables ACS on pcie branches among AIC100 cards
@@ -63,6 +65,21 @@ Disabling ACS on:
 0000:32:01.0
 """
 
+class Switchtec:
+  def __init__(self, device="/dev/switchtec0"):
+    self.device = device
+
+  def read(self, addr, num_bytes=1):
+      stsCmd = "sudo switchtec gas read {} -a {} -n {}".format(self.device, addr, hex(num_bytes))
+      stsCmd = shlex.split(stsCmd)
+      output = subprocess.check_output(stsCmd, text=True, stderr=subprocess.DEVNULL)
+      return output
+
+  def write(self, addr, value):
+      stsCmd = "sudo switchtec gas write {} -a {} -v {} --yes".format(self.device, addr, value)
+      stsCmd = shlex.split(stsCmd)
+      subprocess.check_output(stsCmd, text=True, stderr=subprocess.DEVNULL)
+
 # Contains all devices. Includes parent and children. Dict {self: <BDF>, children: list{}}
 allDevices = list()
 
@@ -108,19 +125,26 @@ def changeAcs():
     print(bdf)
 
   if not enableAcs:
-    # Also call qaic-util -a to directly configure the Ultra AI 100 onboard PCIe switches.
+    # Also call switchtec to directly configure the AI 100 Ultra onboard PCIe switches.
     # This is needed since some upstream PCIe switch firmware versions might block ACS commands
     # from propagating to the Ultra AI 100 cards
-    stsCmd = ["sudo", "/opt/qti-aic/tools/qaic-util", "-a"]
-    try:
-      subprocess.check_output(stsCmd, stderr = subprocess.DEVNULL)
-    except subprocess.CalledProcessError as errMsg:
-      print("Error: unexpected error disabling ACS on onboard PCIe switches.")
-      print(str(errMsg))
-      exit()
+    nodes = glob.glob("/dev/switchtec*")
+    registers = ["0x1361D0", "0x1371D0", "0x1381D0", "0x1391D0"]
+
+    for idx, device in enumerate(nodes):
+      nodes[idx] = Switchtec(device)
+
+    for device in nodes:
+      for reg in registers:
+        try:
+          device.write(reg, "0x0")
+        except subprocess.CalledProcessError as errMsg:
+          print("Error: unexpected error changing ACS on onboard PCIe switches.")
+          print(str(errMsg))
+          exit()
 
 def getBdfFromDev(device):
-  bdfStr = device.get("PCI_SLOT_NAME") 
+  bdfStr = device.get("PCI_SLOT_NAME")
   return bdfStr
 
 def populateAncestors(device):
@@ -179,7 +203,7 @@ def main():
       d = d.find_parent("pci")
       if d.driver == "qaic":
         populateAncestors(d)
-  
+
   # Transform from pyudev data to simple string of bdfs
   allDevices = [{"self": getBdfFromDev(elem["device"]), "children": set(), "parent": "Root"} if elem["parent"] == None else {"self": getBdfFromDev(elem["device"]), "children": set(), "parent": getBdfFromDev(elem["parent"])} for elem in allDevices]
   """ Schema:
@@ -196,17 +220,17 @@ def main():
       if child["parent"] == parent["self"]:
         parent["children"].add(child["self"]) 
         break
-  
+
   if len(sys.argv) == 1:
     print("Found the following AIC100 devices:")
     disp(allDevices)
     exit()
-  
+
   inputBdf = sys.argv[1]
 
   if len(sys.argv) == 3:
     enableAcs = "001d"
-  
+
   # Find the downstream tree starting from the given pci bridge bdf
   if inputBdf.lower() == "all":
     firstBorns = set()

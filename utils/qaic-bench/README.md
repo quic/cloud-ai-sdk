@@ -7,12 +7,10 @@ Benchmarking script for Cloud AI Inference accelerators.
 Download Cloud AI Docker Image:
 
 ```
-docker pull ghcr.io/quic/cloud_ai_inference_ubuntu22:1.20.4.0
+docker pull ghcr.io/quic/cloud_ai_inference_ubuntu22:1.21.2.0
 ```
 
-Start container. This example maps 4 Cloud AI 100 Ultra Accelerators. Each accelerator has 4 SoC devices.
-
-Note: For QPC generation, choose a `/cache` location with 1TB or more of free space to hold model weights, ONNX files, and QPC model binaries.
+Start container. For QPC generation, choose a `/cache` location with 1TB or more of free space to store model weights, ONNX files, and QPC model binaries.
 
 Note: Run `docker container rm qaic-bench` to clean up after exiting the container.
 
@@ -28,24 +26,8 @@ docker run -it \
   --env HF_HOME='/cache/huggingface' \
   --env QEFF_HOME='/cache/qeff_models' \
   --env XDG_CACHE_HOME='/cache' \
-  --device=/dev/accel/accel0 \
-  --device=/dev/accel/accel1 \
-  --device=/dev/accel/accel2 \
-  --device=/dev/accel/accel3 \
-  --device=/dev/accel/accel4 \
-  --device=/dev/accel/accel5 \
-  --device=/dev/accel/accel6 \
-  --device=/dev/accel/accel7 \
-  --device=/dev/accel/accel8 \
-  --device=/dev/accel/accel8 \
-  --device=/dev/accel/accel9 \
-  --device=/dev/accel/accel10 \
-  --device=/dev/accel/accel11 \
-  --device=/dev/accel/accel12 \
-  --device=/dev/accel/accel13 \
-  --device=/dev/accel/accel14 \
-  --device=/dev/accel/accel15 \
-  ghcr.io/quic/cloud_ai_inference_ubuntu22:1.20.4.0
+  --device /dev/accel/ \
+  ghcr.io/quic/cloud_ai_inference_ubuntu22:1.21.2.0
 ```
 
 Activate vLLM environment:<br>
@@ -69,12 +51,12 @@ source qaic-vllm-venv/bin/activate
 Download KV-Heads Replication script from Efficient Transformers. This is needed to efficiently tensor-slice large models across 16 SoCs.
 
 ```
-wget https://github.com/quic/efficient-transformers/raw/refs/heads/release/v1.19.3_fp8_update/scripts/replicate_kv_head/replicate_kv_heads.py
+wget https://github.com/quic/efficient-transformers/raw/refs/heads/release/v1.21.0/scripts/replicate_kv_head/replicate_kv_heads.py
 ```
 
 ## Multi-Device Operation
 
-To run models across multiple AI 100 devices, make sure tensor slicing is enabled with:
+To run models across multiple AI 100 devices, make sure tensor slicing is enabled. Run these commands outside the container on the host system.
 
 ```
 sudo /opt/qti-aic/tools/qaic-util -a
@@ -86,7 +68,7 @@ The control response timeout must also be extended:
 sudo sh -c 'echo 2600 > /sys/module/qaic/parameters/control_resp_timeout_s'
 ```
 
-More details at: https://github.com/quic/cloud-ai-sdk/tree/1.20/utils/multi-device
+More details at: https://github.com/quic/cloud-ai-sdk/tree/1.21/utils/multi-device
 
 ## Hugging Face Access Token
 
@@ -122,7 +104,7 @@ options:
 ```
 {
     "vllm_root": "/opt/qti-aic/integrations/vllm",
-    
+
     "models": [
         {
             "name": "Meta-Llama-3.1-8B-Instruct",
@@ -164,4 +146,4 @@ options:
 | cores (optional) | Number of AI Cores for compilation. Default 16. |
 | prompt_len       | Prompt input length                       |
 | generation_len   | Max number of output tokens to generate   |
-| qpc (optional)   | Path to pre-generated QPC binary. If not specified, QPC will be generated. |
+| qpc (optional)   | Local path or URL for pre-generated QPC binary. If not specified, QPC will be generated. |

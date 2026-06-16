@@ -1,0 +1,5 @@
+FP16NodeInstanceNames:
+- /Gather_output_0
+- /Sub_output_0
+- /Div_output_0
+- /Unsqueeze_output_0
